@@ -41,5 +41,4 @@ function migrate($source, $newSite, $mysqlDatabaseName) {
     $errorMsg .= "Completed in " . $elapsed . " seconds</br>";
     return $errorMsg;
 }
-
 ?>
