@@ -8,6 +8,7 @@ define("MYSQL_PASSWORD","");
 define("MYSQL_HOST","localhost");
 define("MASTER_SITE","master");
 define("MASTER_DB","dbmaster");
+define("DEBUG",false);
 
 include_once("WPMigrateFile.php");
 include_once("DBCloner.php");
