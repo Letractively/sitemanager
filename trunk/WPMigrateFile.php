@@ -23,6 +23,8 @@ class WPMigrateFile {
     function recurseCopy($src, $dst) {
         if (file_exists($dst) && is_dir($dst)) {
             $this->removeDir($dst);
+            //TODO remove return if we want to delete and recreate new folder
+            return false;
         }
         if (!is_dir($src)) {
             $this->errorMsg = $src . " is not a dir";
@@ -54,44 +56,30 @@ class WPMigrateFile {
         $file = file_get_contents($wpConfigFile);
         if ($file) {
             $file = str_replace($searchFor, $replaceWith, $file);
-        } else {
-            echo "File " . $wpConfigFile . " not found</br>";
-            return;
         }
         $fh = fopen($wpConfigFile, 'w');
-        if($fh) {
-            fwrite($fh, $file);
-            fclose($fh);
-        } else {
-            echo "Could not open new " . $wpConfigFile . " file</br>";
-        }
+        fwrite($fh, $file);
+        fclose($fh);
     }
 
     function removeDir($dir) {
-        if (DEBUG) {
-            echo "Removing: " . $dir . "</br>";
-        }
-        if (!file_exists($dir))
-            return true;
-        if (!is_dir($dir) || is_link($dir)) {
-            if (DEBUG) {
-                echo "Removing: " . $dir . "</br>";
-            }
-            return unlink($dir);
-        }
-        foreach (scandir($dir) as $item) {
-            if ($item == '.' || $item == '..')
-                continue;
-            if (!$this->removeDir($dir . "/" . $item)) {
-                chmod($dir . "/" . $item, 0777);
-                if (!$this->removeDir($dir . "/" . $item))
-                    return false;
-            };
-        }
-        if (DEBUG) {
-            echo "Removing: " . $dir . "</br>";
-        }
-        return rmdir($dir);
+        $this->errorMsg = "La pagina esiste già";
+        /*
+          if (!file_exists($dir))
+          return true;
+          if (!is_dir($dir) || is_link($dir))
+          return unlink($dir);
+          foreach (scandir($dir) as $item) {
+          if ($item == '.' || $item == '..')
+          continue;
+          if (!$this->removeDir($dir . "/" . $item)) {
+          chmod($dir . "/" . $item, 0777);
+          if (!$this->removeDir($dir . "/" . $item))
+          return false;
+          };
+          }
+          return rmdir($dir);
+         */
     }
 
 }
