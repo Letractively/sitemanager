@@ -9,10 +9,7 @@
 <?php
 include_once("config.php");
 if (isset ($_POST['nome']) && validateInput($_POST['nome'])) {
-        $result = migrate(MASTER_SITE, mysql_real_escape_string($_POST['nome']),MASTER_DB);
-	if ($result!=""){
-		echo $result;
-	}
+       echo migrate(MASTER_SITE, $_POST['nome'],MASTER_DB);
 }
 echo createLinks() ;
 ?>

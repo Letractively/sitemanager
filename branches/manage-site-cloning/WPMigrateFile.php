@@ -60,6 +60,7 @@ class WPMigrateFile {
         fclose($fh);
     }
 
+
     function removeDir($dir) {
 	/*
         if (!file_exists($dir))
@@ -78,6 +79,7 @@ class WPMigrateFile {
         return rmdir($dir);
 		*/
     }
+
 }
 
 ?>
