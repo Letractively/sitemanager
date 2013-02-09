@@ -10,18 +10,22 @@ class DBCloner {
     public $filePutOutput;
     public $errormsg;
     public $mysqlDatabaseNameNew;
+    public $sourcename;
+    public $destName;
 
-    function __construct($mysqlDatabaseName, $mysqlUserName, $mysqlPassword, $mysqlHostName, $mysqlDatabaseNameNew) {
+    function __construct($mysqlDatabaseName, $mysqlUserName, $mysqlPassword, $mysqlHostName, $mysqlDatabaseNameNew, $source, $dest) {
         $this->mysqlDatabaseName = $mysqlDatabaseName;
         $this->mysqlUserName = $mysqlUserName;
         $this->mysqlPassword = $mysqlPassword;
         $this->mysqlHostName = $mysqlHostName;
         $this->mysqlDatabaseNameNew = $mysqlDatabaseNameNew;
+        $this->sourcename = $source;
+        $this->destName = $dest;
     }
 
     function migrate() {
         $mysqlImportFilename = tempnam(__DIR__, "");
-        $command = "\"".MYSQL_BIN_BASE_PATH . "mysqldump\" --opt --host=" . $this->mysqlHostName . " --user=" . $this->mysqlUserName . " --password=" . $this->mysqlPassword . " " . $this->mysqlDatabaseName . " --single-transaction > \"" . $mysqlImportFilename . "\" 2>&1";
+        $command = "\"" . MYSQL_BIN_BASE_PATH . "mysqldump\" --opt --host=" . $this->mysqlHostName . " --user=" . $this->mysqlUserName . " --password=" . $this->mysqlPassword . " " . $this->mysqlDatabaseName . " --single-transaction > \"" . $mysqlImportFilename . "\" 2>&1";
         exec($command, $output, $worked);
         if ($worked == 1) {
             $this->errormsg = "Impossibile esportare il file " . $mysqlImportFilename . " sul DB";
@@ -39,7 +43,7 @@ class DBCloner {
             }
             return false;
         }
-       
+
 //        $sql = "DROP DATABASE " . $this->mysqlDatabaseNameNew. " IF EXISTS";
 //        if (!mysql_query($sql, $con)) {
 //            $this->errormsg = "Could not delete existent db " . $this->mysqlDatabaseNameNew;
@@ -68,8 +72,9 @@ class DBCloner {
         }
         $content = file_get_contents($mysqlImportFilename);
         $replaced = str_replace($this->mysqlDatabaseName, $this->mysqlDatabaseNameNew, $content);
+        $replaced = str_replace($this->sourcename, $this->destName, $replaced);
         file_put_contents($mysqlImportFilename, $replaced);
-        $command = "\"".MYSQL_BIN_BASE_PATH . "mysql\" --host=" . $this->mysqlHostName . " --user=" . $this->mysqlUserName . " --password=" . $this->mysqlPassword . " " . $this->mysqlDatabaseNameNew . " < \"" . $mysqlImportFilename."\"";
+        $command = "\"" . MYSQL_BIN_BASE_PATH . "mysql\" --host=" . $this->mysqlHostName . " --user=" . $this->mysqlUserName . " --password=" . $this->mysqlPassword . " " . $this->mysqlDatabaseNameNew . " < \"" . $mysqlImportFilename . "\"";
         exec($command, $output = array(), $worked);
         if (!unlink($mysqlImportFilename)) {
             $this->errormsg = "Impossibile cancellare il file temporaneo " . $mysqlImportFilename;

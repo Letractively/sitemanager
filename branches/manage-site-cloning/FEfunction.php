@@ -32,7 +32,7 @@ function migrate($source, $newSite, $mysqlDatabaseName) {
         $errorMsg .= $fileCloner->errorMsg . "</br>";
     }
 
-    $dbCloner = new DBCloner($mysqlDatabaseName, MYSQL_USER_NAME, MYSQL_PASSWORD, MYSQL_HOST, "db_" . $newSite);
+    $dbCloner = new DBCloner($mysqlDatabaseName, MYSQL_USER_NAME, MYSQL_PASSWORD, MYSQL_HOST, "db_" . $newSite,$source,$newSite);
     if (!$dbCloner->migrate()) {
         $errorMsg .= $dbCloner->errormsg . "</br>";
     }
