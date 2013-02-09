@@ -3,15 +3,16 @@
     <head>
         <title></title>
         <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-	<script type="application/javascript" src="js/check.js"></script>
-        <script type="application/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.9.0/jquery.min.js"></script>
+		<script type="application/javascript" src="js/check.js"></script>
     </head>
     <body>
-    Siti disponibili</br>
 <?php
 include_once("config.php");
 if (isset ($_POST['nome']) && validateInput($_POST['nome'])) {
-        migrate(MASTER_SITE, mysql_real_escape_string($_POST['nome']),MASTER_DB);
+        $result = migrate(MASTER_SITE, mysql_real_escape_string($_POST['nome']),MASTER_DB);
+	if ($result!=""){
+		echo $result;
+	}
 }
 echo createLinks() ;
 ?>

@@ -52,33 +52,20 @@ class WPMigrateFile {
     function changeWpconfig($searchFor, $replaceWith) {
         $wpConfigFile = $this->destPath . "\wp-config.php";
         $file = file_get_contents($wpConfigFile);
-        if ($file) {
-            $file = str_replace($searchFor, $replaceWith, $file);
-        } else {
-            echo "File " . $wpConfigFile . " not found</br>";
-            return;
+		if ($file) {
+            $file = str_replace($searchFor,$replaceWith, $file);
         }
-        $fh = fopen($wpConfigFile, 'w');
-        if($fh) {
-            fwrite($fh, $file);
-            fclose($fh);
-        } else {
-            echo "Could not open new " . $wpConfigFile . " file</br>";
-        }
+		$fh = fopen($wpConfigFile, 'w');
+        fwrite($fh, $file);
+        fclose($fh);
     }
 
     function removeDir($dir) {
-        if (DEBUG) {
-            echo "Removing: " . $dir . "</br>";
-        }
+	/*
         if (!file_exists($dir))
             return true;
-        if (!is_dir($dir) || is_link($dir)) {
-            if (DEBUG) {
-                echo "Removing: " . $dir . "</br>";
-            }
+        if (!is_dir($dir) || is_link($dir))
             return unlink($dir);
-        }
         foreach (scandir($dir) as $item) {
             if ($item == '.' || $item == '..')
                 continue;
@@ -88,12 +75,9 @@ class WPMigrateFile {
                     return false;
             };
         }
-        if (DEBUG) {
-            echo "Removing: " . $dir . "</br>";
-        }
         return rmdir($dir);
+		*/
     }
-
 }
 
 ?>
