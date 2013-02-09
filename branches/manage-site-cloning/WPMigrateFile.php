@@ -23,6 +23,8 @@ class WPMigrateFile {
     function recurseCopy($src, $dst) {
         if (file_exists($dst) && is_dir($dst)) {
             $this->removeDir($dst);
+            //TODO remove return if we want to delete and recreate new folder
+            return false;
         }
         if (!is_dir($src)) {
             $this->errorMsg = $src . " is not a dir";
@@ -52,32 +54,32 @@ class WPMigrateFile {
     function changeWpconfig($searchFor, $replaceWith) {
         $wpConfigFile = $this->destPath . "\wp-config.php";
         $file = file_get_contents($wpConfigFile);
-		if ($file) {
-            $file = str_replace($searchFor,$replaceWith, $file);
+        if ($file) {
+            $file = str_replace($searchFor, $replaceWith, $file);
         }
-		$fh = fopen($wpConfigFile, 'w');
+        $fh = fopen($wpConfigFile, 'w');
         fwrite($fh, $file);
         fclose($fh);
     }
 
-
     function removeDir($dir) {
-	/*
-        if (!file_exists($dir))
-            return true;
-        if (!is_dir($dir) || is_link($dir))
-            return unlink($dir);
-        foreach (scandir($dir) as $item) {
-            if ($item == '.' || $item == '..')
-                continue;
-            if (!$this->removeDir($dir . "/" . $item)) {
-                chmod($dir . "/" . $item, 0777);
-                if (!$this->removeDir($dir . "/" . $item))
-                    return false;
-            };
-        }
-        return rmdir($dir);
-		*/
+        $this->errorMsg = "La pagina esiste già";
+        /*
+          if (!file_exists($dir))
+          return true;
+          if (!is_dir($dir) || is_link($dir))
+          return unlink($dir);
+          foreach (scandir($dir) as $item) {
+          if ($item == '.' || $item == '..')
+          continue;
+          if (!$this->removeDir($dir . "/" . $item)) {
+          chmod($dir . "/" . $item, 0777);
+          if (!$this->removeDir($dir . "/" . $item))
+          return false;
+          };
+          }
+          return rmdir($dir);
+         */
     }
 
 }
