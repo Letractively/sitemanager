@@ -75,7 +75,7 @@ class DBCloner {
         $replaced = str_replace($this->sourcename, $this->destName, $replaced);
         file_put_contents($mysqlImportFilename, $replaced);
         $command = "\"" . MYSQL_BIN_BASE_PATH . "mysql\" --host=" . $this->mysqlHostName . " --user=" . $this->mysqlUserName . " --password=" . $this->mysqlPassword . " " . $this->mysqlDatabaseNameNew . " < \"" . $mysqlImportFilename . "\"";
-        exec($command, $output = array(), $worked);
+        @exec($command, $output = array(), $worked);
         if (!unlink($mysqlImportFilename)) {
             $this->errormsg = "Impossibile cancellare il file temporaneo " . $mysqlImportFilename;
             return false;

@@ -25,7 +25,6 @@ function validateInput($input) {
 }
 
 function migrate($source, $newSite, $mysqlDatabaseName) {
-    $start = mktime();
     $fileCloner = new WPMigrateFile(BASE_PATH . $source, BASE_PATH . $newSite);
     $errorMsg = "";
     if (!$fileCloner->cloneSite()) {
@@ -37,8 +36,6 @@ function migrate($source, $newSite, $mysqlDatabaseName) {
         $errorMsg .= $dbCloner->errormsg . "</br>";
     }
     $fileCloner->changeWpconfig($mysqlDatabaseName, "db_" . $newSite);
-    $elapsed = mktime() - $start;
-    $errorMsg .= "Completed in " . $elapsed . " seconds</br>";
     return $errorMsg;
 }
 
