@@ -57,6 +57,7 @@ function migrate($source, $newSite, $mysqlDatabaseName) {
         echo $dbCloner->errormsg . "</br>";
         return false;
     }
+    $dbCloner->cleanAndClose();
     
     $fileCloner = new WPMigrateFile(BASE_PATH . $source, BASE_PATH . $newSite);
     $errorMsg = "";
