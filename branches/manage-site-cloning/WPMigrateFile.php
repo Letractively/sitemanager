@@ -17,7 +17,7 @@ class WPMigrateFile {
     }
 
     function cloneSite() {
-        $this->recurseCopy($this->sourcePath, $this->destPath);
+        return $this->recurseCopy($this->sourcePath, $this->destPath);
     }
 
     function recurseCopy($src, $dst) {
@@ -27,12 +27,12 @@ class WPMigrateFile {
             return false;
         }
         if (!is_dir($src)) {
-            $this->errorMsg = $src . " is not a dir";
+            $this->errorMsg .= $src . " is not a dir";
             return false;
         }
         $dir = opendir($src);
         if (!mkdir($dst)) {
-            $this->errorMsg = "Could not create dir " . $dst;
+            $this->errorMsg .= "Could not create dir " . $dst;
             return false;
         }
         while (false !== ( $file = readdir($dir))) {
@@ -41,7 +41,7 @@ class WPMigrateFile {
                     $this->recurseCopy($src . '/' . $file, $dst . '/' . $file);
                 } else {
                     if (!copy($src . '/' . $file, $dst . '/' . $file)) {
-                        $this->errorMsg = "Could not copy " . $src . '/' . $file;
+                        $this->errorMsg .= "Could not copy " . $src . '/' . $file;
                         return false;
                     }
                 }
@@ -56,14 +56,18 @@ class WPMigrateFile {
         $file = file_get_contents($wpConfigFile);
         if ($file) {
             $file = str_replace($searchFor, $replaceWith, $file);
-        }
+        }else {
+           $this->errorMsg .= $wpConfigFile." non aperto<br>";
+         }
         $fh = fopen($wpConfigFile, 'w');
-        fwrite($fh, $file);
+        if (fwrite($fh, $file)=== false){
+            $this->errorMsg .= "Cannot write to file ($wpConfigFile)<br>";
+        }
         fclose($fh);
     }
 
     function removeDir($dir) {
-        $this->errorMsg = "La pagina esiste già";
+        $this->errorMsg .= "La pagina esiste già";
         /*
           if (!file_exists($dir))
           return true;

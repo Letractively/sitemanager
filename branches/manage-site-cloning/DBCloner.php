@@ -12,6 +12,7 @@ class DBCloner {
     public $mysqlDatabaseNameNew;
     public $sourcename;
     public $destName;
+    private $con;
 
     function __construct($mysqlDatabaseName, $mysqlUserName, $mysqlPassword, $mysqlHostName, $mysqlDatabaseNameNew, $source, $dest) {
         $this->mysqlDatabaseName = $mysqlDatabaseName;
@@ -21,6 +22,8 @@ class DBCloner {
         $this->mysqlDatabaseNameNew = $mysqlDatabaseNameNew;
         $this->sourcename = $source;
         $this->destName = $dest;
+        $this->con = mysql_connect($this->mysqlHostName, $this->mysqlUserName, $this->mysqlPassword);
+
     }
 
     function migrate() {
@@ -28,34 +31,16 @@ class DBCloner {
         $command = "\"" . MYSQL_BIN_BASE_PATH . "mysqldump\" --opt --host=" . $this->mysqlHostName . " --user=" . $this->mysqlUserName . " --password=" . $this->mysqlPassword . " " . $this->mysqlDatabaseName . " --single-transaction > \"" . $mysqlImportFilename . "\" 2>&1";
         exec($command, $output, $worked);
         if ($worked == 1) {
-            $this->errormsg = "Impossibile esportare il file " . $mysqlImportFilename . " sul DB";
+            $this->errormsg .= "Impossibile esportare il file " . $mysqlImportFilename . " sul DB ". mysql_error();
             if (!unlink($mysqlImportFilename)) {
                 $this->errormsg .= "</br>Impossibile cancellare il file temporaneo " . $mysqlImportFilename;
             }
             return false;
         }
 
-        $con = mysql_connect($this->mysqlHostName, $this->mysqlUserName, $this->mysqlPassword);
-        if (!$con) {
-            $this->errormsg = "Could not connect: " . mysql_error();
-            if (!unlink($mysqlImportFilename)) {
-                $this->errormsg .= "</br>Impossibile cancellare il file temporaneo " . $mysqlImportFilename;
-            }
-            return false;
-        }
-
-//        $sql = "DROP DATABASE " . $this->mysqlDatabaseNameNew. " IF EXISTS";
-//        if (!mysql_query($sql, $con)) {
-//            $this->errormsg = "Could not delete existent db " . $this->mysqlDatabaseNameNew;
-//            if (!unlink($mysqlImportFilename)) {
-//                $this->errormsg .= "</br>Impossibile cancellare il file temporaneo " . $mysqlImportFilename;
-//            }
-//            return false;
-//        }
-//       
         $sql = "CREATE DATABASE " . $this->mysqlDatabaseNameNew;
-        if (!mysql_query($sql, $con)) {
-            $this->errormsg = "Could not create db " . $this->mysqlDatabaseNameNew;
+        if (!mysql_query($sql, $this->con)) {
+            $this->errormsg .= "Could not create db " . $this->mysqlDatabaseNameNew." ". mysql_error();
             if (!unlink($mysqlImportFilename)) {
                 $this->errormsg .= "</br>Impossibile cancellare il file temporaneo " . $mysqlImportFilename;
             }
@@ -63,8 +48,8 @@ class DBCloner {
         }
 
         $sql = "USE " . $this->mysqlDatabaseNameNew;
-        if (!mysql_query($sql, $con)) {
-            $this->errormsg = "Could not select db " . $this->mysqlDatabaseNameNew;
+        if (!mysql_query($sql, $this->con)) {
+            $this->errormsg .= "Could not select db " . $this->mysqlDatabaseNameNew." ". mysql_error();
             if (!unlink($mysqlImportFilename)) {
                 $this->errormsg .= "</br>Impossibile cancellare il file temporaneo " . $mysqlImportFilename;
             }
@@ -77,17 +62,25 @@ class DBCloner {
         $command = "\"" . MYSQL_BIN_BASE_PATH . "mysql\" --host=" . $this->mysqlHostName . " --user=" . $this->mysqlUserName . " --password=" . $this->mysqlPassword . " " . $this->mysqlDatabaseNameNew . " < \"" . $mysqlImportFilename . "\"";
         @exec($command, $output = array(), $worked);
         if (!unlink($mysqlImportFilename)) {
-            $this->errormsg = "Impossibile cancellare il file temporaneo " . $mysqlImportFilename;
+            $this->errormsg .= "Impossibile cancellare il file temporaneo " . $mysqlImportFilename;
             return false;
         }
         if ($worked == 1) {
-            $this->errormsg = "Impossibile importare il file " . $mysqlImportFilename . " sul DB";
+            $this->errormsg .= "Impossibile importare il file " . $mysqlImportFilename . " sul DB";
             if (!unlink($mysqlImportFilename)) {
                 $this->errormsg .= "</br>Impossibile cancellare il file temporaneo " . $mysqlImportFilename;
             }
             return false;
         }
         return true;
+    }
+
+    private function cancellDB() {
+        $sql = "DROP DATABASE IF EXISTS " . $this->mysqlDatabaseNameNew ;
+        if (!mysql_query($sql, $this->con)) {
+            $this->errormsg .= "Could not delete existent db " . $this->mysqlDatabaseNameNew." ". mysql_error();
+            return false;
+        }
     }
 
 }
