@@ -26,18 +26,15 @@
         <td><?php echo siteWorkInProgress();?></td>
         <td><?php echo siteToBePublished();?></td>
     </tr>
-        <tr>
-        <td>Inserisci il nome del nuovo sito da creare
+</table>
+</br></br>
+Inserisci il nome del nuovo sito da creare
 </br></br>
 <form method="post" name="newsite"  onsubmit="return validateForm()" >
     <input type="text" name="nome" value=""></br>
     <input type="radio" name="tipo" value="easy">Easy<br>
     <input type="radio" name="tipo" value="pro" checked>Pro<br>
     <input type="submit" value="crea">
-</form></td>
-        <td>&nbsp;</td>
-        <td>&nbsp;</td>
-    </tr>
-</table>    
+</form>
 </body>
 </html>

@@ -28,7 +28,7 @@ function siteWorkInProgress() {
     $result = "";
 
     if ($files != null && count($files) > 0) {
-        $result.="<form>
+        $result.="<form  method=\"post\" name=\"newsite\" action=\"publish.php\">
 <table border =1>";
         $result.= "<tr>
 <td>Siti da publicare </td>
@@ -85,7 +85,7 @@ function validateInput($input) {
  */
 function insertNewCreatedSiteInDb($newSite, $clientId, $source) {
     $con = mysql_connect(MYSQL_HOST, MYSQL_USER_NAME, MYSQL_PASSWORD);
-    $sql = "INSERT INTO `site_manager`.`sm_prodotti` (`id`, `nome`, `cliente_id`, `modello_id`, `ins`, `upd`) VALUES ('', '" . $newSite . "', '', ' " . $clientId . "', '" . date("Y-m-d H:i:s") . "', '" . date("Y-m-d H:i:s") . "');";
+    $sql = "INSERT INTO `site_manager`.`sm_prodotti` (`id`, `nome`, `cliente_id`, `modello_id`, `ins`, `upd`) VALUES ('', '" . $newSite . "', ' " . $clientId . "', '".$source."', '" . date("Y-m-d H:i:s") . "', '" . date("Y-m-d H:i:s") . "');";
     if (!mysql_query($sql, $con)) {
         $this->errormsg = "Could not insert in db " . $this->mysqlDatabaseNameNew;
         mysql_close($con);
@@ -107,9 +107,17 @@ function updateStatusSiteInDb($id) {
     return true;
 }
 
+function getSiteById($id) {
+    $con = mysql_connect(MYSQL_HOST, MYSQL_USER_NAME, MYSQL_PASSWORD);
+    $sql = "SELECT * FROM `site_manager`.`sm_prodotti` WHERE id = " . $id;
+    $castresult = mysql_query($sql) or die(mysql_error());
+    mysql_close($con);
+    return mysql_fetch_array($castresult);
+}
+
 function getSitesByState($state) {
     $con = mysql_connect(MYSQL_HOST, MYSQL_USER_NAME, MYSQL_PASSWORD);
-    $sql = "SELECT nome,id FROM `site_manager`.`sm_prodotti` WHERE STATUS = " . $state . " ORDER BY upd DESC";
+    $sql = "SELECT * FROM `site_manager`.`sm_prodotti` WHERE STATUS = " . $state . " ORDER BY upd DESC";
     $castresult = mysql_query($sql) or die(mysql_error());
     mysql_close($con);
     $rows=null;
@@ -117,6 +125,28 @@ function getSitesByState($state) {
         $rows[] = $row;
     }
     return $rows;
+}
+
+/**
+ * Create a new wp-config file
+ * @param type name of the site to move
+ * @param type array of config valuewhos keys are:,  newDb,userName,password,hostdb,domain,domainName
+ * 
+ * Ecample:
+ * $input['newDb'] = "arubadb1";
+ * $input['userName'] = "sdfdfgjewroigt";
+ * $input['password'] = "aruba password";
+ * $input['hostdb'] = "192.34.35.354";
+ * $input['domain'] = "com";
+ * $input['domainName'] = "centro-estetocpbuetyansdusun";
+ * 
+ */
+function moveToRelease($source, $newConfig) {
+    $fileCloner = new WPMigrateFile(BASE_PATH . $source, BASE_PATH . $source);
+    $fileCloner->createReleaseConfigAndBckpLocal($newConfig);
+    $fileCloner->switchConfigFile("wp-config-locale.php", "wp-config-remote.php");
+    $dbCloner = new DBCloner("db_" . $source, MYSQL_USER_NAME, MYSQL_PASSWORD, MYSQL_HOST, null, $source, "http://www." . $newConfig['domainName'] . "." . $newConfig['domain']);
+    $dbCloner->exportDbToPath($newConfig['domainName'] . ".sql",$source, $newConfig);
 }
 
 /**
@@ -128,7 +158,7 @@ function getSitesByState($state) {
  * @return boolean
  */
 function migrate($source, $newSite, $mysqlDatabaseName) {
-    set_time_limit(6000);
+    set_time_limit(60000);
     $dbCloner = new DBCloner($mysqlDatabaseName, MYSQL_USER_NAME, MYSQL_PASSWORD, MYSQL_HOST, "db_" . $newSite, $source, $newSite);
     if (!$dbCloner->migrate()) {
         echo $dbCloner->errormsg . "</br>";

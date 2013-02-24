@@ -70,7 +70,7 @@ class DBCloner {
             $this->errormsg .= "Could not select db " . $this->mysqlDatabaseNameNew . " " . mysql_error();
             return false;
         }
-        migrateDbFiles($this->mysqlImportFilename);
+        $this->migrateDbFiles($this->mysqlImportFilename);
         $command = "\"" . MYSQL_BIN_BASE_PATH . "mysql\" --host=" . $this->mysqlHostName . " --user=" . $this->mysqlUserName . " --password=" . $this->mysqlPassword . " " . $this->mysqlDatabaseNameNew . " < \"" . $this->mysqlImportFilename . "\"";
         @exec($command, $output = array(), $worked);
         if ($worked == 1) {
