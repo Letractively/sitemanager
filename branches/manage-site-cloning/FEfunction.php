@@ -5,12 +5,64 @@ include_once("config.php");
 function createLinks() {
     $files = glob(BASE_PATH . "*");
     $result = "";
+    $result.="<table border =1>";
+    $result.= "<tr>
+<td>Siti presenti</td>
+</tr>
+";
     foreach ($files as $file) {
         if (is_dir($file)) {
             $basename = basename($file);
-            $result.= "<a href=\"http://localhost/" . $basename . "\" target=\"_blank\">" . $basename . "</a></br>
+            $result.= "<tr>
+<td><a href=\"http://localhost/" . $basename . "\" target=\"_blank\">" . $basename . "</a></td>
+</tr>
 ";
         }
+    }
+    $result.="</table>";
+    return $result;
+}
+
+function siteWorkInProgress() {
+    $files = getSitesByState(0);
+    $result = "";
+
+    if ($files != null && count($files) > 0) {
+        $result.="<form>
+<table border =1>";
+        $result.= "<tr>
+<td>Siti da publicare </td>
+</tr>
+";
+        foreach ($files as $file) {
+            $result.= "<tr>
+<td><input type=\"radio\" name=\"sites\" value=\"" . $file['id'] . "\">" . $file['nome'] . "</td>
+</tr>
+";
+        }
+        $result.="</table>
+<input type=\"submit\" value=\"Prepara per la publicazione\">
+</form>";
+    }
+    return $result;
+}
+
+function siteToBePublished() {
+    $files = getSitesByState(1);
+    $result = "";
+    if ($files != null && count($files) > 0) {
+        $result.="<table border =1>";
+        $result.= "<tr>
+<td>Siti da publicare </td>
+</tr>
+";
+        foreach ($files as $file) {
+            $result.= "<tr>
+<td>" . $file['nome'] . "</td>
+</tr>
+";
+        }
+        $result.="</table>";
     }
     return $result;
 }
@@ -32,14 +84,39 @@ function validateInput($input) {
  * @return boolean
  */
 function insertNewCreatedSiteInDb($newSite, $clientId, $source) {
-    $sql = "INSERT INTO `site_manager`.`sm_prodotti`
-        (`id`, `nome`, `cliente_id`, `modello_id`, `ins`, `upd`)
-        VALUES (NULL, \'" . $newSite . "\', " . $clientId . ", \'$source\', \'" . date() . "\', CURRENT_TIMESTAMP);";
+    $con = mysql_connect(MYSQL_HOST, MYSQL_USER_NAME, MYSQL_PASSWORD);
+    $sql = "INSERT INTO `site_manager`.`sm_prodotti` (`id`, `nome`, `cliente_id`, `modello_id`, `ins`, `upd`) VALUES ('', '" . $newSite . "', '', ' " . $clientId . "', '" . date("Y-m-d H:i:s") . "', '" . date("Y-m-d H:i:s") . "');";
     if (!mysql_query($sql, $con)) {
         $this->errormsg = "Could not insert in db " . $this->mysqlDatabaseNameNew;
+        mysql_close($con);
         return false;
     }
+    mysql_close($con);
     return true;
+}
+
+function updateStatusSiteInDb($id) {
+    $con = mysql_connect(MYSQL_HOST, MYSQL_USER_NAME, MYSQL_PASSWORD);
+    $sql = "UPDATE `site_manager`.`sm_prodotti` SET `upd` = '" . date("Y-m-d H:i:s") . "',`status` = '1' WHERE `sm_prodotti`.`id` =". $id.";";
+    if (!mysql_query($sql, $con)) {
+        $this->errormsg = "Could not insert in db " . $this->mysqlDatabaseNameNew;
+        mysql_close($con);
+        return false;
+    }
+    mysql_close($con);
+    return true;
+}
+
+function getSitesByState($state) {
+    $con = mysql_connect(MYSQL_HOST, MYSQL_USER_NAME, MYSQL_PASSWORD);
+    $sql = "SELECT nome,id FROM `site_manager`.`sm_prodotti` WHERE STATUS = " . $state . " ORDER BY upd DESC";
+    $castresult = mysql_query($sql) or die(mysql_error());
+    mysql_close($con);
+    $rows=null;
+    while ($row = mysql_fetch_array($castresult)) {
+        $rows[] = $row;
+    }
+    return $rows;
 }
 
 /**
@@ -58,7 +135,7 @@ function migrate($source, $newSite, $mysqlDatabaseName) {
         return false;
     }
     $dbCloner->cleanAndClose();
-    
+
     $fileCloner = new WPMigrateFile(BASE_PATH . $source, BASE_PATH . $newSite);
     $errorMsg = "";
     if (!$fileCloner->cloneSite()) {
@@ -68,7 +145,7 @@ function migrate($source, $newSite, $mysqlDatabaseName) {
 
     $fileCloner->changeWpconfig($mysqlDatabaseName, "db_" . $newSite);
 
-    //insertNewCreatedSiteInDb($newSite, null, $source);
+    insertNewCreatedSiteInDb($newSite, null, $source);
     return true;
 }
 
