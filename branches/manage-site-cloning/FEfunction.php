@@ -85,7 +85,7 @@ function validateInput($input) {
  */
 function insertNewCreatedSiteInDb($newSite, $clientId, $source) {
     $con = mysql_connect(MYSQL_HOST, MYSQL_USER_NAME, MYSQL_PASSWORD);
-    $sql = "INSERT INTO `site_manager`.`sm_prodotti` (`id`, `nome`, `cliente_id`, `modello_id`, `ins`, `upd`) VALUES ('', '" . $newSite . "', ' " . $clientId . "', '".$source."', '" . date("Y-m-d H:i:s") . "', '" . date("Y-m-d H:i:s") . "');";
+    $sql = "INSERT INTO `site_manager`.`sm_prodotti` (`id`, `nome`, `cliente_id`, `modello_id`, `ins`, `upd`) VALUES ('', '" . $newSite . "', ' " . $clientId . "', '" . $source . "', '" . date("Y-m-d H:i:s") . "', '" . date("Y-m-d H:i:s") . "');";
     if (!mysql_query($sql, $con)) {
         $this->errormsg = "Could not insert in db " . $this->mysqlDatabaseNameNew;
         mysql_close($con);
@@ -95,11 +95,26 @@ function insertNewCreatedSiteInDb($newSite, $clientId, $source) {
     return true;
 }
 
-function updateStatusSiteInDb($id) {
+function updateStatusSiteInDb($id, $data) {
     $con = mysql_connect(MYSQL_HOST, MYSQL_USER_NAME, MYSQL_PASSWORD);
-    $sql = "UPDATE `site_manager`.`sm_prodotti` SET `upd` = '" . date("Y-m-d H:i:s") . "',`status` = '1' WHERE `sm_prodotti`.`id` =". $id.";";
+    $sql = "UPDATE site_manager.sm_prodotti SET 
+        data_acquisto = '" . $data['dataacqui']. "',
+        ref_mail = '" . $data['email'] . "',
+        ftp_host = '" . $data['ftphost']  . "',
+        ftp_username = '" . $data['ftpusername']  . "',
+        ftp_pwd = '" . $data['ftppwd']  . "',
+        db = '" . $data['newDb'] . "',
+        dbusername = '" . $data['userName']  . "',
+        dbpwd = '" . $data['password']  . "',
+        hostdb = '" . $data['hostdb']  . "',
+        domain = '" . $data['domain']  . "',
+        domainName = '" . $data['domainName'] . "',
+        status = '1',
+        upd = '" . date("Y-m-d H:i:s") . "'
+    WHERE sm_prodotti.id =" . $id . ";";
+    echo    $sql;
     if (!mysql_query($sql, $con)) {
-        $this->errormsg = "Could not insert in db " . $this->mysqlDatabaseNameNew;
+        echo "Could not insert in db ";
         mysql_close($con);
         return false;
     }
@@ -120,7 +135,7 @@ function getSitesByState($state) {
     $sql = "SELECT * FROM `site_manager`.`sm_prodotti` WHERE STATUS = " . $state . " ORDER BY upd DESC";
     $castresult = mysql_query($sql) or die(mysql_error());
     mysql_close($con);
-    $rows=null;
+    $rows = null;
     while ($row = mysql_fetch_array($castresult)) {
         $rows[] = $row;
     }
@@ -141,12 +156,13 @@ function getSitesByState($state) {
  * $input['domainName'] = "centro-estetocpbuetyansdusun";
  * 
  */
-function moveToRelease($source, $newConfig) {
+function moveToRelease($id, $source, $newConfig) {
     $fileCloner = new WPMigrateFile(BASE_PATH . $source, BASE_PATH . $source);
     $fileCloner->createReleaseConfigAndBckpLocal($newConfig);
     $fileCloner->switchConfigFile("wp-config-locale.php", "wp-config-remote.php");
     $dbCloner = new DBCloner("db_" . $source, MYSQL_USER_NAME, MYSQL_PASSWORD, MYSQL_HOST, null, $source, "http://www." . $newConfig['domainName'] . "." . $newConfig['domain']);
-    $dbCloner->exportDbToPath($newConfig['domainName'] . ".sql",$source, $newConfig);
+    $dbCloner->exportDbToPath($newConfig['domainName'] . ".sql", $source, $newConfig);
+    return updateStatusSiteInDb($id, $newConfig);
 }
 
 /**
