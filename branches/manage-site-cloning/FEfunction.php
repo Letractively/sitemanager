@@ -31,7 +31,7 @@ function siteWorkInProgress() {
         $result.="<form  method=\"post\" name=\"newsite\" action=\"publish.php\">
 <table border =1>";
         $result.= "<tr>
-<td>Siti da publicare </td>
+<td>Siti da publicare</td>
 </tr>
 ";
         foreach ($files as $file) {
@@ -53,7 +53,7 @@ function siteToBePublished() {
     if ($files != null && count($files) > 0) {
         $result.="<table border =1>";
         $result.= "<tr>
-<td>Siti da publicare </td>
+<td>Siti completati</td>
 </tr>
 ";
         foreach ($files as $file) {
