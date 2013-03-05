@@ -112,7 +112,6 @@ function updateStatusSiteInDb($id, $data) {
         status = '1',
         upd = '" . date("Y-m-d H:i:s") . "'
     WHERE sm_prodotti.id =" . $id . ";";
-    echo    $sql;
     if (!mysql_query($sql, $con)) {
         echo "Could not insert in db ";
         mysql_close($con);
@@ -147,7 +146,7 @@ function getSitesByState($state) {
  * @param type name of the site to move
  * @param type array of config valuewhos keys are:,  newDb,userName,password,hostdb,domain,domainName
  * 
- * Ecample:
+ * Example:
  * $input['newDb'] = "arubadb1";
  * $input['userName'] = "sdfdfgjewroigt";
  * $input['password'] = "aruba password";
@@ -162,7 +161,63 @@ function moveToRelease($id, $source, $newConfig) {
     $fileCloner->switchConfigFile("wp-config-locale.php", "wp-config-remote.php");
     $dbCloner = new DBCloner("db_" . $source, MYSQL_USER_NAME, MYSQL_PASSWORD, MYSQL_HOST, null, $source, "http://www." . $newConfig['domainName'] . "." . $newConfig['domain']);
     $dbCloner->exportDbToPath($newConfig['domainName'] . ".sql", $source, $newConfig);
+    writeInstaller($newConfig,$source);
     return updateStatusSiteInDb($id, $newConfig);
+}
+
+function writeInstaller($config,$source){
+    $fh = fopen(BASE_PATH.DIRECTORY_SEPARATOR.$source.DIRECTORY_SEPARATOR."install.php", 'w');
+    $stringData ="<?php
+
+if (importDb(\"".$config['domainName'].".sql\", \"".$config['hostdb']."\", \"".$config['userName']."\", \"".$config['password']."\", \"".$config['newDb']."\")
+        && changeWpConfig(\"wp-config-remote.php\")) {
+    unlink(__FILE__);
+}
+
+function importDb(\$dbDumpFile, \$mysqlHostName, \$mysqlUserName, \$mysqlPassword, \$mydb) {
+    \$result = false;
+    if (file_exists(\$dbDumpFile)) {
+        \$mysqli = new mysqli(\$mysqlHostName, \$mysqlUserName, \$mysqlPassword, \$mydb);
+        if (\$mysqli->connect_errno) {
+            printf(\"Connessione fallita: %s\n\", \$mysqli->connect_error);
+            \$result = false;
+        } else {
+            \$command = \"mysql -h \" . \$mysqlHostName. \" -u \" . \$mysqlUserName . \" -p\" . \$mysqlPassword . \" \" . \$mydb . \" < \" . \$dbDumpFile;
+            exec(\$command, \$output = array(), \$worked);
+            if (\$worked == 1) {
+                echo \"Impossibile importare il file \" . \$this->mysqlImportFilename . \" sul DB\";
+                \$result = false;
+            } else {
+                unlink(\$dbDumpFile);
+                \$result = true;
+            }
+        }
+    } else {
+        echo \"Il file \" . \$dbDumpFile . \"non siste <br>\";
+        \$result = false;
+    }
+    return \$result;
+}
+
+function changeWpConfig(\$configRemoteFile) {
+    if (file_exists(\$configRemoteFile)) {
+        if (!file_exists(\"wp-config.php\")) {
+            rename(\$configRemoteFile, \"wp-config.php\");
+        } else {
+            rename(\"wp-config.php\", \"wp-config-locale.php\");
+            rename(\$configRemoteFile, \"wp-config.php\");
+        }
+        \$result = true;
+    } else {
+        echo \"Il file \" . \$configRemoteFile . \" non esiste\";
+        \$result = false;
+    }
+    return \$result;
+}
+?>";
+
+    fwrite($fh, $stringData);
+    fclose($fh);
 }
 
 /**
