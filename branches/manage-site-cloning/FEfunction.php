@@ -172,6 +172,7 @@ function writeInstaller($config,$source){
 if (importDb(\"".$config['domainName'].".sql\", \"".$config['hostdb']."\", \"".$config['userName']."\", \"".$config['password']."\", \"".$config['newDb']."\")
         && changeWpConfig(\"wp-config-remote.php\")) {
     unlink(__FILE__);
+    header('Location: /');
 }
 
 function importDb(\$dbDumpFile, \$mysqlHostName, \$mysqlUserName, \$mysqlPassword, \$mydb) {
@@ -185,7 +186,7 @@ function importDb(\$dbDumpFile, \$mysqlHostName, \$mysqlUserName, \$mysqlPasswor
             \$command = \"mysql -h \" . \$mysqlHostName. \" -u \" . \$mysqlUserName . \" -p\" . \$mysqlPassword . \" \" . \$mydb . \" < \" . \$dbDumpFile;
             exec(\$command, \$output = array(), \$worked);
             if (\$worked == 1) {
-                echo \"Impossibile importare il file \" . \$this->mysqlImportFilename . \" sul DB\";
+                echo \"Impossibile importare il file \" . \$dbDumpFile . \" sul DB\";
                 \$result = false;
             } else {
                 unlink(\$dbDumpFile);
