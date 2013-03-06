@@ -53,32 +53,12 @@ function siteToBePublished() {
     if ($files != null && count($files) > 0) {
         $result.="<table border =1>";
         $result.= "<tr>
-<td>Siti da attivare</td>
-</tr>
-";
-        foreach ($files as $file) {
-            $result.= "<tr>
-<td><a href=\"http://www." . $file['domainName'] . "." . $file['domain'] . "/install.php\" target=\"_blank\">" . $file['nome'] . "</a></td>
-</tr>
-";
-        }
-        $result.="</table>";
-    }
-    return $result;
-}
-
-function siteCompleted() {
-    $files = getSitesByState(2);
-    $result = "";
-    if ($files != null && count($files) > 0) {
-        $result.="<table border =1>";
-        $result.= "<tr>
 <td>Siti completati</td>
 </tr>
 ";
         foreach ($files as $file) {
             $result.= "<tr>
-<td><a href=\"http://www." . $file['domainName'] . "." . $file['domain'] . "\" target=\"_blank\">" . $file['nome'] . "</a></td>
+<td>" . $file['nome'] . "</td>
 </tr>
 ";
         }
@@ -118,16 +98,16 @@ function insertNewCreatedSiteInDb($newSite, $clientId, $source) {
 function updateStatusSiteInDb($id, $data) {
     $con = mysql_connect(MYSQL_HOST, MYSQL_USER_NAME, MYSQL_PASSWORD);
     $sql = "UPDATE site_manager.sm_prodotti SET 
-        data_acquisto = '" . $data['dataacqui'] . "',
+        data_acquisto = '" . $data['dataacqui']. "',
         ref_mail = '" . $data['email'] . "',
-        ftp_host = '" . $data['ftphost'] . "',
-        ftp_username = '" . $data['ftpusername'] . "',
-        ftp_pwd = '" . $data['ftppwd'] . "',
+        ftp_host = '" . $data['ftphost']  . "',
+        ftp_username = '" . $data['ftpusername']  . "',
+        ftp_pwd = '" . $data['ftppwd']  . "',
         db = '" . $data['newDb'] . "',
-        dbusername = '" . $data['userName'] . "',
-        dbpwd = '" . $data['password'] . "',
-        hostdb = '" . $data['hostdb'] . "',
-        domain = '" . $data['domain'] . "',
+        dbusername = '" . $data['userName']  . "',
+        dbpwd = '" . $data['password']  . "',
+        hostdb = '" . $data['hostdb']  . "',
+        domain = '" . $data['domain']  . "',
         domainName = '" . $data['domainName'] . "',
         status = '1',
         upd = '" . date("Y-m-d H:i:s") . "'
@@ -181,15 +161,15 @@ function moveToRelease($id, $source, $newConfig) {
     $fileCloner->switchConfigFile("wp-config-locale.php", "wp-config-remote.php");
     $dbCloner = new DBCloner("db_" . $source, MYSQL_USER_NAME, MYSQL_PASSWORD, MYSQL_HOST, null, $source, "http://www." . $newConfig['domainName'] . "." . $newConfig['domain']);
     $dbCloner->exportDbToPath($newConfig['domainName'] . ".sql", $source, $newConfig);
-    writeInstaller($newConfig, $source);
+    writeInstaller($newConfig,$source);
     return updateStatusSiteInDb($id, $newConfig);
 }
 
-function writeInstaller($config, $source) {
-    $fh = fopen(BASE_PATH . DIRECTORY_SEPARATOR . $source . DIRECTORY_SEPARATOR . "install.php", 'w');
-    $stringData = "<?php
+function writeInstaller($config,$source){
+    $fh = fopen(BASE_PATH.DIRECTORY_SEPARATOR.$source.DIRECTORY_SEPARATOR."install.php", 'w');
+    $stringData ="<?php
 
-if (importDb(\"" . $config['domainName'] . ".sql\", \"" . $config['hostdb'] . "\", \"" . $config['userName'] . "\", \"" . $config['password'] . "\", \"" . $config['newDb'] . "\")
+if (importDb(\"".$config['domainName'].".sql\", \"".$config['hostdb']."\", \"".$config['userName']."\", \"".$config['password']."\", \"".$config['newDb']."\")
         && changeWpConfig(\"wp-config-remote.php\")) {
     unlink(__FILE__);
     header('Location: /');

@@ -25,7 +25,6 @@
         <td><?php echo createLinks();?></td>
         <td><?php echo siteWorkInProgress();?></td>
         <td><?php echo siteToBePublished();?></td>
-        <td><?php echo siteCompleted();?></td>
     </tr>
 </table>
 </br></br>
