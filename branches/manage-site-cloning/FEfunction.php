@@ -194,7 +194,7 @@ function importDb(\$dbDumpFile, \$mysqlHostName, \$mysqlUserName, \$mysqlPasswor
             }
         }
     } else {
-        echo \"Il file \" . \$dbDumpFile . \"non siste <br>\";
+        echo \"Il file \" . \$dbDumpFile . \"non esiste <br>\";
         \$result = false;
     }
     return \$result;
@@ -239,7 +239,6 @@ function migrate($source, $newSite, $mysqlDatabaseName) {
     $dbCloner->cleanAndClose();
 
     $fileCloner = new WPMigrateFile(BASE_PATH . $source, BASE_PATH . $newSite);
-    $errorMsg = "";
     if (!$fileCloner->cloneSite()) {
         echo $fileCloner->errorMsg . "</br>";
         return false;
