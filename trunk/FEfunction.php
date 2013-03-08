@@ -126,7 +126,7 @@ function validateInput($input) {
 
 /**
  * inserti in DB the entry for the new created site
- * 
+ *
  * @param type $newSite: the name of the new site
  * @param type $clientId: this is the id of a client
  * @param type $source : this is the name of the master that are used for this entry
@@ -146,10 +146,10 @@ function insertNewCreatedSiteInDb($newSite, $clientId, $source) {
 
 function updateStatusForDomain($domainName, $domain,$status) {
     $con = mysql_connect(MYSQL_HOST, MYSQL_USER_NAME, MYSQL_PASSWORD);
-    $sql = "UPDATE site_manager.sm_prodotti SET 
+    $sql = "UPDATE site_manager.sm_prodotti SET
         status = ".$status.",
         upd = '" . date("Y-m-d H:i:s") . "'
-    WHERE sm_prodotti.domainName ='".$domainName."' 
+    WHERE sm_prodotti.domainName ='".$domainName."'
     AND sm_prodotti.domain='".$domain."';";
     if (!mysql_query($sql, $con)) {
         echo "Could not update in db ";
@@ -162,7 +162,7 @@ function updateStatusForDomain($domainName, $domain,$status) {
 
 function updateStatusSiteInDb($id, $data) {
     $con = mysql_connect(MYSQL_HOST, MYSQL_USER_NAME, MYSQL_PASSWORD);
-    $sql = "UPDATE site_manager.sm_prodotti SET 
+    $sql = "UPDATE site_manager.sm_prodotti SET
         data_acquisto = '" . $data['dataacqui']. "',
         ref_mail = '" . $data['email'] . "',
         ftp_host = '" . $data['ftphost']  . "',
@@ -210,7 +210,7 @@ function getSitesByState($state) {
  * Create a new wp-config file
  * @param type name of the site to move
  * @param type array of config valuewhos keys are:,  newDb,userName,password,hostdb,domain,domainName
- * 
+ *
  * Example:
  * $input['newDb'] = "arubadb1";
  * $input['userName'] = "sdfdfgjewroigt";
@@ -218,7 +218,7 @@ function getSitesByState($state) {
  * $input['hostdb'] = "192.34.35.354";
  * $input['domain'] = "com";
  * $input['domainName'] = "centro-estetocpbuetyansdusun";
- * 
+ *
  */
 function moveToRelease($id, $source, $newConfig) {
     $fileCloner = new WPMigrateFile(BASE_PATH . $source, BASE_PATH . $source);
@@ -288,7 +288,7 @@ function changeWpConfig(\$configRemoteFile) {
 
 /**
  * Do all the migration of files and DB entry for a Word press site
- * 
+ *
  * @param type $source
  * @param type $newSite
  * @param type $mysqlDatabaseName
