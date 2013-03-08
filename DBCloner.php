@@ -81,7 +81,7 @@ class DBCloner {
     }
 
     public function exportDbToPath($sqlPath,$source,$newConfig) {
-        $dumpFileOfDb = $this->mysqldumpOfDb(RELASE_BASE_PATH, $sqlPath);
+        $dumpFileOfDb = $this->mysqldumpOfDb(BASE_PATH.DIRECTORY_SEPARATOR.$source.DIRECTORY_SEPARATOR, $sqlPath);
         $content = file_get_contents($dumpFileOfDb);
         $replaced = str_replace("http://localhost/" . $source, "http://www." . $newConfig['domainName'] . "." . $newConfig['domain'], $content);
         $replaced = str_replace("db_" . $source, $newConfig['newDb'], $replaced);
