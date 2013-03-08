@@ -7,7 +7,7 @@ function createLinks() {
     $result = "";
     $result.="<table border =1>";
     $result.= "<tr>
-<td>Siti presenti</td>
+<td>Siti in locale</td>
 </tr>
 ";
     foreach ($files as $file) {
@@ -31,7 +31,7 @@ function siteWorkInProgress() {
         $result.="<form  method=\"post\" name=\"newsite\" action=\"publish.php\">
 <table border =1>";
         $result.= "<tr>
-<td>Siti da publicare</td>
+<td>Siti da publicare<br/>(selezionare una volta comprato il dominio)</td>
 </tr>
 ";
         foreach ($files as $file) {
@@ -53,7 +53,7 @@ function siteToBePublished() {
     if ($files != null && count($files) > 0) {
         $result.="<table border =1>";
         $result.= "<tr>
-<td>Siti da installare</td>
+<td>Siti da attivare<br/>(cliccare dopo aver trasferito i file sul sito remoto)</td>
 </tr>
 ";
         foreach ($files as $file) {
