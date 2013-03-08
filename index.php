@@ -25,10 +25,10 @@
 ?>
 <table>
     <tr>
-        <td><?php echo createLinks();?></td>
-        <td><?php echo siteWorkInProgress();?></td>
-        <td><?php echo siteToBePublished();?></td>
-        <td><?php echo siteCompleted();?></td>
+        <td style="vertical-align:top"><?php echo createLinks();?></td>
+        <td style="vertical-align:top"><?php echo siteWorkInProgress();?></td>
+        <td style="vertical-align:top"><?php echo siteToBePublished();?></td>
+        <td style="vertical-align:top"><?php echo siteCompleted();?></td>
     </tr>
 </table>
 </br></br>
