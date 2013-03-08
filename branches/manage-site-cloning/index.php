@@ -18,13 +18,17 @@
         if (!$result){
             echo "un qualche errore di migrazione c'e' stato....<br>";
         }
+    }else if (isset($_GET['nome']) && isset($_GET['domain'])) {
+        manageInstallation($_GET['nome'],$_GET['domain']);
     }
+    
 ?>
 <table>
     <tr>
         <td><?php echo createLinks();?></td>
         <td><?php echo siteWorkInProgress();?></td>
         <td><?php echo siteToBePublished();?></td>
+        <td><?php echo siteCompleted();?></td>
     </tr>
 </table>
 </br></br>

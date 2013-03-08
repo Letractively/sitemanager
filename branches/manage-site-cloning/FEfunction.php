@@ -36,7 +36,7 @@ function siteWorkInProgress() {
 ";
         foreach ($files as $file) {
             $result.= "<tr>
-<td><input type=\"radio\" name=\"sites\" value=\"" . $file['id'] . "\">" . $file['nome'] . "</td>
+<td><input type=\"radio\" name=\"sites\" value=\"" . $file['id'] . "\"><a href=\"http://localhost/" . $file['nome']. "\" target=\"_blank\">" . $file['nome']. "</a></td>
 </tr>
 ";
         }
@@ -53,12 +53,61 @@ function siteToBePublished() {
     if ($files != null && count($files) > 0) {
         $result.="<table border =1>";
         $result.= "<tr>
+<td>Siti da installare</td>
+</tr>
+";
+        foreach ($files as $file) {
+            $result.= "<tr>
+<td><a href=\"index.php?nome=".$file['domainName'] ."&domain=".$file['domain'] ."\">Installa " . $file['nome'] . "</a></td>
+</tr>
+";
+        }
+        $result.="</table>";
+    }
+    return $result;
+}
+function manageInstallation($domainName,$dom){
+    $nameToBeCheked = "http://www." . $domainName . "." . $dom;
+    $resultOfACall = @file_get_contents($nameToBeCheked . "/publish.php");
+    if(isset($http_response_header)) {
+        $responseHeader = $http_response_header[0];
+        if ($responseHeader == "HTTP/1.1 404 Not Found") {
+            $resultOfACall = @file_get_contents($nameToBeCheked);
+            $responseHeader = $http_response_header[0];
+            if ($responseHeader != "HTTP/1.1 404 Not Found") {
+                updateStatusForDomain($domainName, $dom,2) ;
+                header('Location: index.php');
+            } else {
+                echo "carica i file sull'host";
+            }
+        } else {
+            $resultOfACall = @file_get_contents($nameToBeCheked);
+            $responseHeader = $http_response_header[0];
+            if ($responseHeader != "HTTP/1.1 404 Not Found") {
+                updateStatusForDomain($domainName, $dom,2) ;
+                header('Location: index.php');
+            } else {
+                echo "errore nell'installazione";
+            }
+        }
+    }else{
+        echo $nameToBeCheked." non trovato";
+    }
+}
+
+
+function siteCompleted() {
+    $files = getSitesByState(2);
+    $result = "";
+    if ($files != null && count($files) > 0) {
+        $result.="<table border =1>";
+        $result.= "<tr>
 <td>Siti completati</td>
 </tr>
 ";
         foreach ($files as $file) {
             $result.= "<tr>
-<td>" . $file['nome'] . "</td>
+<td><a href=\"http://www.".$file['domainName'] .".".$file['domain'] ."\" target=\"_blank\">" . $file['nome'] . "</a></td>
 </tr>
 ";
         }
@@ -88,6 +137,22 @@ function insertNewCreatedSiteInDb($newSite, $clientId, $source) {
     $sql = "INSERT INTO `site_manager`.`sm_prodotti` (`id`, `nome`, `cliente_id`, `modello_id`, `ins`, `upd`) VALUES ('', '" . $newSite . "', ' " . $clientId . "', '" . $source . "', '" . date("Y-m-d H:i:s") . "', '" . date("Y-m-d H:i:s") . "');";
     if (!mysql_query($sql, $con)) {
         $this->errormsg = "Could not insert in db " . $this->mysqlDatabaseNameNew;
+        mysql_close($con);
+        return false;
+    }
+    mysql_close($con);
+    return true;
+}
+
+function updateStatusForDomain($domainName, $domain,$status) {
+    $con = mysql_connect(MYSQL_HOST, MYSQL_USER_NAME, MYSQL_PASSWORD);
+    $sql = "UPDATE site_manager.sm_prodotti SET 
+        status = ".$status.",
+        upd = '" . date("Y-m-d H:i:s") . "'
+    WHERE sm_prodotti.domainName ='".$domainName."' 
+    AND sm_prodotti.domain='".$domain."';";
+    if (!mysql_query($sql, $con)) {
+        echo "Could not update in db ";
         mysql_close($con);
         return false;
     }
