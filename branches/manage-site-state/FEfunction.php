@@ -31,7 +31,7 @@ function siteWorkInProgress() {
         $result.="<form  method=\"post\" name=\"newsite\" action=\"publish.php\">
 <table border =1>";
         $result.= "<tr>
-<td>Siti da publicare<br/>(selezionare una volta comprato il dominio)</td>
+<td>Siti da pubblicare<br/>(selezionare una volta comprato il dominio)</td>
 </tr>
 ";
         foreach ($files as $file) {

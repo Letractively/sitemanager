@@ -27,9 +27,13 @@ function validateSubscription(){
     var domain=document.forms["datasubcription"]["domain"].value;
     var domainname=document.forms["datasubcription"]["domainname"].value;
     var source=document.forms["datasubcription"]["source"].value;
-    
-    var result=false;
-    if (s==null || s=="" || hasWhiteSpace(s)){
+    var dataqui=document.forms["datasubcription"]["dataacqui"].value;
+
+    var result=true;
+    if (dataqui==null || dataqui=="" || hasWhiteSpace(dataqui)){
+        alert("Inserisci la data");
+        result= false;
+    }else if (s==null || s=="" || hasWhiteSpace(s)){
         alert("Inserisci/correggi il nome del db");
         result= false;
     }else if (us==null || us=="" || hasWhiteSpace(us)){
