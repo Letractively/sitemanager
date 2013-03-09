@@ -13,11 +13,12 @@
         include_once("config.php");
         if (isset($_POST['sites'])) {
             $siteData = getSiteById($_POST['sites']);
+            $today=date('d/m/Y');
             echo "Inserisci i dati per la pubblicazione di: " . $siteData['nome'] . "<br><br>
       ";
-            echo "<form method=\"post\" name=\"datasubcription\">
+            echo "<form method=\"post\" name=\"datasubcription\" onsubmit=\"return validateSubscription()\">
 data acquisto dominio
-<div><input type=\"text\" name=\"dataacqui\"  class=\"tcal\"  value=\"\"></div><br>
+<div><input type=\"text\" name=\"dataacqui\"  class=\"tcal\"  value=\"".$today."\"></div><br>
 email di riferimento<input type=\"text\" name=\"email\"><br>
 ftp host<input type=\"text\" name=\"ftphost\"><br>
 username ftp<input type=\"text\" name=\"ftpusername\"><br>
