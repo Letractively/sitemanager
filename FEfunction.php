@@ -36,7 +36,7 @@ function siteWorkInProgress() {
 ";
         foreach ($files as $file) {
             $result.= "<tr>
-<td><input type=\"radio\" name=\"sites\" value=\"" . $file['id'] . "\"><a href=\"http://localhost/" . $file['nome']. "\" target=\"_blank\">" . $file['nome']. "</a></td>
+<td><input type=\"radio\" name=\"sites\" value=\"" . $file['id'] . "\"><a href=\"http://localhost/" . $file['nome'] . "\" target=\"_blank\">" . $file['nome'] . "</a></td>
 </tr>
 ";
         }
@@ -58,7 +58,7 @@ function siteToBePublished() {
 ";
         foreach ($files as $file) {
             $result.= "<tr>
-<td><a href=\"index.php?nome=".$file['domainName'] ."&domain=".$file['domain'] ."\">Installa " . $file['nome'] . "</a></td>
+<td><a href=\"index.php?nome=" . $file['domainName'] . "&domain=" . $file['domain'] . "\">Installa " . $file['nome'] . "</a></td>
 </tr>
 ";
         }
@@ -66,35 +66,39 @@ function siteToBePublished() {
     }
     return $result;
 }
-function manageInstallation($domainName,$dom){
+
+function manageInstallation($domainName, $dom) {
     $nameToBeCheked = "http://www." . $domainName . "." . $dom;
     $resultOfACall = @file_get_contents($nameToBeCheked . "/publish.php");
-    if(isset($http_response_header)) {
+    if (isset($http_response_header)) {
         $responseHeader = $http_response_header[0];
         if ($responseHeader == "HTTP/1.1 404 Not Found") {
-            $resultOfACall = @file_get_contents($nameToBeCheked);
+            @file_get_contents($nameToBeCheked);
             $responseHeader = $http_response_header[0];
             if ($responseHeader != "HTTP/1.1 404 Not Found") {
-                updateStatusForDomain($domainName, $dom,2) ;
+                updateStatusForDomain($domainName, $dom, 2);
                 header('Location: index.php');
             } else {
                 echo "carica i file sull'host";
             }
         } else {
-            $resultOfACall = @file_get_contents($nameToBeCheked);
+            @file_get_contents($nameToBeCheked);
             $responseHeader = $http_response_header[0];
             if ($responseHeader != "HTTP/1.1 404 Not Found") {
-                updateStatusForDomain($domainName, $dom,2) ;
-                header('Location: index.php');
+                if ($resultOfACall == "0") {
+                    updateStatusForDomain($domainName, $dom, 2);
+                    header('Location: index.php');
+                } else {
+                    echo $resultOfACall;
+                }
             } else {
                 echo "errore nell'installazione";
             }
         }
-    }else{
-        echo $nameToBeCheked." non trovato";
+    } else {
+        echo $nameToBeCheked . " non trovato";
     }
 }
-
 
 function siteCompleted() {
     $files = getSitesByState(2);
@@ -107,7 +111,7 @@ function siteCompleted() {
 ";
         foreach ($files as $file) {
             $result.= "<tr>
-<td><a href=\"http://www.".$file['domainName'] .".".$file['domain'] ."\" target=\"_blank\">" . $file['nome'] . "</a></td>
+<td><a href=\"http://www." . $file['domainName'] . "." . $file['domain'] . "\" target=\"_blank\">" . $file['nome'] . "</a></td>
 </tr>
 ";
         }
@@ -144,13 +148,13 @@ function insertNewCreatedSiteInDb($newSite, $clientId, $source) {
     return true;
 }
 
-function updateStatusForDomain($domainName, $domain,$status) {
+function updateStatusForDomain($domainName, $domain, $status) {
     $con = mysql_connect(MYSQL_HOST, MYSQL_USER_NAME, MYSQL_PASSWORD);
     $sql = "UPDATE site_manager.sm_prodotti SET
-        status = ".$status.",
+        status = " . $status . ",
         upd = '" . date("Y-m-d H:i:s") . "'
-    WHERE sm_prodotti.domainName ='".$domainName."'
-    AND sm_prodotti.domain='".$domain."';";
+    WHERE sm_prodotti.domainName ='" . $domainName . "'
+    AND sm_prodotti.domain='" . $domain . "';";
     if (!mysql_query($sql, $con)) {
         echo "Could not update in db ";
         mysql_close($con);
@@ -163,16 +167,16 @@ function updateStatusForDomain($domainName, $domain,$status) {
 function updateStatusSiteInDb($id, $data) {
     $con = mysql_connect(MYSQL_HOST, MYSQL_USER_NAME, MYSQL_PASSWORD);
     $sql = "UPDATE site_manager.sm_prodotti SET
-        data_acquisto = '" . $data['dataacqui']. "',
+        data_acquisto = '" . $data['dataacqui'] . "',
         ref_mail = '" . $data['email'] . "',
-        ftp_host = '" . $data['ftphost']  . "',
-        ftp_username = '" . $data['ftpusername']  . "',
-        ftp_pwd = '" . $data['ftppwd']  . "',
+        ftp_host = '" . $data['ftphost'] . "',
+        ftp_username = '" . $data['ftpusername'] . "',
+        ftp_pwd = '" . $data['ftppwd'] . "',
         db = '" . $data['newDb'] . "',
-        dbusername = '" . $data['userName']  . "',
-        dbpwd = '" . $data['password']  . "',
-        hostdb = '" . $data['hostdb']  . "',
-        domain = '" . $data['domain']  . "',
+        dbusername = '" . $data['userName'] . "',
+        dbpwd = '" . $data['password'] . "',
+        hostdb = '" . $data['hostdb'] . "',
+        domain = '" . $data['domain'] . "',
         domainName = '" . $data['domainName'] . "',
         status = '1',
         upd = '" . date("Y-m-d H:i:s") . "'
@@ -226,18 +230,18 @@ function moveToRelease($id, $source, $newConfig) {
     $fileCloner->switchConfigFile("wp-config-locale.php", "wp-config-remote.php");
     $dbCloner = new DBCloner("db_" . $source, MYSQL_USER_NAME, MYSQL_PASSWORD, MYSQL_HOST, null, $source, "http://www." . $newConfig['domainName'] . "." . $newConfig['domain']);
     $dbCloner->exportDbToPath($newConfig['domainName'] . ".sql", $source, $newConfig);
-    writeInstaller($newConfig,$source);
+    writeInstaller($newConfig, $source);
     return updateStatusSiteInDb($id, $newConfig);
 }
 
-function writeInstaller($config,$source){
-    $fh = fopen(BASE_PATH.DIRECTORY_SEPARATOR.$source.DIRECTORY_SEPARATOR."install.php", 'w');
-    $stringData ="<?php
+function writeInstaller($config, $source) {
+    $fh = fopen(BASE_PATH . DIRECTORY_SEPARATOR . $source . DIRECTORY_SEPARATOR . "install.php", 'w');
+    $stringData = "<?php
 
-if (importDb(\"".$config['domainName'].".sql\", \"".$config['hostdb']."\", \"".$config['userName']."\", \"".$config['password']."\", \"".$config['newDb']."\")
+if (importDb(\"" . $config['domainName'] . ".sql\", \"" . $config['hostdb'] . "\", \"" . $config['userName'] . "\", \"" . $config['password'] . "\", \"" . $config['newDb'] . "\")
         && changeWpConfig(\"wp-config-remote.php\")) {
     unlink(__FILE__);
-    header('Location: /');
+    echo \"0\";
 }
 
 function importDb(\$dbDumpFile, \$mysqlHostName, \$mysqlUserName, \$mysqlPassword, \$mydb) {
