@@ -11,6 +11,7 @@
     <body>
         <?php
         include_once("config.php");
+        set_time_limit(120000);
         if (isset($_POST['sites'])) {
             $siteData = getSiteById($_POST['sites']);
             $today=date('d/m/Y');
@@ -40,7 +41,7 @@ domainName<input type=\"text\" name=\"domainname\">
 <option value=\"info\">.info</option>
 <option value=\"cc\">.cc</option>
 <option value=\"us\">.us</option>
-</select> <br>
+</select>/<input type=\"text\" name=\"secondsubdomain\"> <br>
 <input type=\"hidden\" value=\"" . $siteData['nome'] . "\" name=\"source\">
 <input type=\"hidden\" value=\"" . $siteData['id'] . "\" name=\"sourceid\">
 <input type=\"submit\" value=\"crea\">
@@ -68,7 +69,11 @@ domainName<input type=\"text\" name=\"domainname\">
             $input['userName'] = $_POST['username'];
             $input['password'] = $_POST['pwd'];
             $input['hostdb'] = $_POST['hostdb'];
-            $input['domain'] = $_POST['domain'];
+            if(isset ($_POST['secondsubdomain']) && $_POST['secondsubdomain'] !="" ){
+                $input['domain'] = $_POST['domain'].'/'.$_POST['secondsubdomain'];
+            }else {
+                $input['domain'] = $_POST['domain'];
+            }
             $input['domainName'] = $_POST['domainname'];
             if (moveToRelease($_POST['sourceid'], $_POST['source'], $input)){
                 header("Location: index.php");
