@@ -55,12 +55,12 @@ class DBCloner {
 
     function migrate() {
         $this->mysqlImportFilename = $this->mysqldumpOfDb(__DIR__);
-//        $command = "\"" . MYSQL_BIN_BASE_PATH . "mysqldump\" --opt --host=" . $this->mysqlHostName . " --user=" . $this->mysqlUserName . " --password=" . $this->mysqlPassword . " " . $this->mysqlDatabaseName . " --single-transaction > \"" . $this->mysqlImportFilename . "\" 2>&1";
-//        exec($command, $output, $worked);
-//        if ($worked == 1) {
-//            $this->errormsg .= "Impossibile esportare il file " . $this->mysqlImportFilename . " sul DB " . mysql_error();
-//            return false;
-//        }
+        $command = "\"" . MYSQL_BIN_BASE_PATH . "mysqldump\" --opt --host=" . $this->mysqlHostName . " --user=" . $this->mysqlUserName . " --password=" . $this->mysqlPassword . " " . $this->mysqlDatabaseName . " --single-transaction > \"" . $this->mysqlImportFilename . "\" 2>&1";
+        exec($command, $output, $worked);
+        if ($worked == 1) {
+            $this->errormsg .= "Impossibile esportare il file " . $this->mysqlImportFilename . " sul DB " . mysql_error();
+            return false;
+        }
 
         $sql = "CREATE DATABASE " . $this->mysqlDatabaseNameNew;
         if (!mysql_query($sql, $this->con)) {

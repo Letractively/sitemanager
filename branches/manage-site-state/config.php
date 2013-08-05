@@ -13,6 +13,7 @@ define("MASTER_DB","dbmaster");
 define("MASTER_SITE_EASY","master_easy");
 define("MASTER_DB_EASY","dbmastereasy");
 define("DEBUG",false);
+define("DB_SITEMANAGER_NAME","site_manager");
 
 include_once("WPMigrateFile.php");
 include_once("DBCloner.php");
