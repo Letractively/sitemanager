@@ -69,7 +69,7 @@ function siteToBePublished() {
 
 function manageInstallation($domainName, $dom) {
     $nameToBeCheked = "http://www." . $domainName . "." . $dom;
-    $resultOfACall = @file_get_contents($nameToBeCheked . "/publish.php");
+    $resultOfACall = @file_get_contents($nameToBeCheked . "/install.php");
     if (isset($http_response_header)) {
         $responseHeader = $http_response_header[0];
         if ($responseHeader == "HTTP/1.1 404 Not Found") {
@@ -97,7 +97,7 @@ function manageInstallation($domainName, $dom) {
         }
     } else {
         echo $nameToBeCheked . " non trovato";
-    }
+    } 
 }
 
 function siteCompleted() {
@@ -129,7 +129,7 @@ function validateInput($input) {
 }
 
 /**
- * inserti in DB the entry for the new created site
+ * insert in DB the entry for the new created site
  *
  * @param type $newSite: the name of the new site
  * @param type $clientId: this is the id of a client
@@ -138,7 +138,7 @@ function validateInput($input) {
  */
 function insertNewCreatedSiteInDb($newSite, $clientId, $source) {
     $con = mysql_connect(MYSQL_HOST, MYSQL_USER_NAME, MYSQL_PASSWORD);
-    $sql = "INSERT INTO `site_manager`.`sm_prodotti` (`id`, `nome`, `cliente_id`, `modello_id`, `ins`, `upd`) VALUES ('', '" . $newSite . "', ' " . $clientId . "', '" . $source . "', '" . date("Y-m-d H:i:s") . "', '" . date("Y-m-d H:i:s") . "');";
+    $sql = "INSERT INTO `".DB_SITEMANAGER_NAME."`.`sm_prodotti` (`id`, `nome`, `cliente_id`, `modello_id`, `ins`, `upd`) VALUES ('', '" . $newSite . "', ' " . $clientId . "', '" . $source . "', '" . date("Y-m-d H:i:s") . "', '" . date("Y-m-d H:i:s") . "');";
     if (!mysql_query($sql, $con)) {
         $this->errormsg = "Could not insert in db " . $this->mysqlDatabaseNameNew;
         mysql_close($con);
@@ -150,7 +150,7 @@ function insertNewCreatedSiteInDb($newSite, $clientId, $source) {
 
 function updateStatusForDomain($domainName, $domain, $status) {
     $con = mysql_connect(MYSQL_HOST, MYSQL_USER_NAME, MYSQL_PASSWORD);
-    $sql = "UPDATE site_manager.sm_prodotti SET
+    $sql = "UPDATE ".DB_SITEMANAGER_NAME.".sm_prodotti SET
         status = " . $status . ",
         upd = '" . date("Y-m-d H:i:s") . "'
     WHERE sm_prodotti.domainName ='" . $domainName . "'
@@ -166,7 +166,7 @@ function updateStatusForDomain($domainName, $domain, $status) {
 
 function updateStatusSiteInDb($id, $data) {
     $con = mysql_connect(MYSQL_HOST, MYSQL_USER_NAME, MYSQL_PASSWORD);
-    $sql = "UPDATE site_manager.sm_prodotti SET
+    $sql = "UPDATE ".DB_SITEMANAGER_NAME.".sm_prodotti SET
         data_acquisto = '" . $data['dataacqui'] . "',
         ref_mail = '" . $data['email'] . "',
         ftp_host = '" . $data['ftphost'] . "',
@@ -192,7 +192,7 @@ function updateStatusSiteInDb($id, $data) {
 
 function getSiteById($id) {
     $con = mysql_connect(MYSQL_HOST, MYSQL_USER_NAME, MYSQL_PASSWORD);
-    $sql = "SELECT * FROM `site_manager`.`sm_prodotti` WHERE id = " . $id;
+    $sql = "SELECT * FROM `".DB_SITEMANAGER_NAME."`.`sm_prodotti` WHERE id = " . $id;
     $castresult = mysql_query($sql) or die(mysql_error());
     mysql_close($con);
     return mysql_fetch_array($castresult);
@@ -200,7 +200,7 @@ function getSiteById($id) {
 
 function getSitesByState($state) {
     $con = mysql_connect(MYSQL_HOST, MYSQL_USER_NAME, MYSQL_PASSWORD);
-    $sql = "SELECT * FROM `site_manager`.`sm_prodotti` WHERE STATUS = " . $state . " ORDER BY upd DESC";
+    $sql = "SELECT * FROM `".DB_SITEMANAGER_NAME."`.`sm_prodotti` WHERE STATUS = " . $state . " ORDER BY upd DESC";
     $castresult = mysql_query($sql) or die(mysql_error());
     mysql_close($con);
     $rows = null;
@@ -229,65 +229,131 @@ function moveToRelease($id, $source, $newConfig) {
     $fileCloner->createReleaseConfigAndBckpLocal($newConfig);
     $fileCloner->switchConfigFile("wp-config-locale.php", "wp-config-remote.php");
     $dbCloner = new DBCloner("db_" . $source, MYSQL_USER_NAME, MYSQL_PASSWORD, MYSQL_HOST, null, $source, "http://www." . $newConfig['domainName'] . "." . $newConfig['domain']);
-    $dbCloner->exportDbToPath($newConfig['domainName'] . ".sql", $source, $newConfig);
-    writeInstaller($newConfig, $source);
+    $fileToMove[] = $dbCloner->exportDbToPath($newConfig['domainName'] . ".sql", $source, $newConfig);
+    $archiveFile = BASE_PATH . $source . DIRECTORY_SEPARATOR . $source . ".zip";
+    $fileToMove[] = $archiveFile;
+    Zip(BASE_PATH . $source, $archiveFile);
+    $fileToMove[] = writeInstaller($newConfig, $source);
+    allFileToMove(BASE_PATH_RELEASE . DIRECTORY_SEPARATOR . $source, $fileToMove);
     return updateStatusSiteInDb($id, $newConfig);
 }
 
-function writeInstaller($config, $source) {
-    $fh = fopen(BASE_PATH . DIRECTORY_SEPARATOR . $source . DIRECTORY_SEPARATOR . "install.php", 'w');
-    $stringData = "<?php
+function allFileToMove($destPath, $fileToMove) {
+    if (!file_exists(BASE_PATH_RELEASE) || (file_exists(BASE_PATH_RELEASE) && !is_dir(BASE_PATH_RELEASE))) {
+        mkdir(BASE_PATH_RELEASE);
+    }
+    if (!file_exists($destPath) || (file_exists($destPath) && !is_dir($destPath))) {
+        mkdir($destPath);
+    }
+    $tempBaseName = BASE_PATH_RELEASE . basename($destPath) . DIRECTORY_SEPARATOR;
+    foreach ($fileToMove as $thisfile) {
+        rename($thisfile, $tempBaseName . basename($thisfile));
+    }
+}
 
-if (importDb(\"" . $config['domainName'] . ".sql\", \"" . $config['hostdb'] . "\", \"" . $config['userName'] . "\", \"" . $config['password'] . "\", \"" . $config['newDb'] . "\")
-        && changeWpConfig(\"wp-config-remote.php\")) {
-    unlink(__FILE__);
-    echo \"0\";
+function Zip($source, $destination) {
+    if (!extension_loaded('zip') || !file_exists($source)) {
+        return false;
+    }
+
+    $zip = new ZipArchive();
+    if (!$zip->open($destination, ZIPARCHIVE::CREATE)) {
+        return false;
+    }
+
+    //$source = str_replace('\\', '/', realpath($source));
+
+    if (is_dir($source) === true) {
+        $files = new RecursiveIteratorIterator(new RecursiveDirectoryIterator($source), RecursiveIteratorIterator::SELF_FIRST);
+
+        foreach ($files as $file) {
+            $file = str_replace('\\', '/', $file);
+
+            // Ignore "." and ".." folders
+            if (in_array(substr($file, strrpos($file, '/') + 1), array('.', '..')))
+                continue;
+
+            $file = realpath($file);
+
+            if (is_dir($file) === true) {
+                $zip->addEmptyDir(str_replace($source . DIRECTORY_SEPARATOR, '', $file . DIRECTORY_SEPARATOR));
+            } else if (is_file($file) === true) {
+                if (basename($file) == "wp-config.php") {
+                    $zip->addFromString("wp-config-locale.php", file_get_contents($file));
+                } else if (basename($file) == "wp-config-remote.php") {
+                    $zip->addFromString("wp-config.php", file_get_contents($file));
+                } else {
+                    $zip->addFromString(str_replace($source . DIRECTORY_SEPARATOR, '', $file), file_get_contents($file));
+                }
+            }
+        }
+    } else if (is_file($source) === true) {
+        $zip->addFromString(basename($source), file_get_contents($source));
+    }
+
+    return $zip->close();
+}
+
+function writeInstaller($config, $source) {
+    $installerName = BASE_PATH . DIRECTORY_SEPARATOR . $source . DIRECTORY_SEPARATOR . "install.php";
+    $fh = fopen($installerName, 'w');
+    $stringData = "<?php
+set_time_limit (PHP_INT_MAX);
+function cleanBadFileFolder(){
+    if (\$handle = opendir('.')) {
+        while (false !== (\$entry = readdir(\$handle))) {
+            chmod(\$entry, 755); 
+            if (is_dir(\$entry) && strpos(\$entry,'\\\')>0 ){
+                rmdir(\$entry);
+            }
+        }
+        closedir(\$handle);
+    }
+}
+function unzipFiles(){
+    if (file_exists(\"" . $source . ".zip\")){
+       exec(\"unzip " . $source . ".zip\", \$result, \$returnval);
+    }
+    cleanBadFileFolder();
 }
 
 function importDb(\$dbDumpFile, \$mysqlHostName, \$mysqlUserName, \$mysqlPassword, \$mydb) {
     \$result = false;
-    if (file_exists(\$dbDumpFile)) {
-        \$mysqli = new mysqli(\$mysqlHostName, \$mysqlUserName, \$mysqlPassword, \$mydb);
-        if (\$mysqli->connect_errno) {
-            printf(\"Connessione fallita: %s\n\", \$mysqli->connect_error);
-            \$result = false;
-        } else {
-            \$command = \"mysql -h \" . \$mysqlHostName. \" -u \" . \$mysqlUserName . \" -p\" . \$mysqlPassword . \" \" . \$mydb . \" < \" . \$dbDumpFile;
-            exec(\$command, \$output = array(), \$worked);
-            if (\$worked == 1) {
-                echo \"Impossibile importare il file \" . \$dbDumpFile . \" sul DB\";
+    if(file_exists(\"".$config['domainName'] . ".sql\")){
+        if (file_exists(\$dbDumpFile)) {
+            \$mysqli = new mysqli(\$mysqlHostName, \$mysqlUserName, \$mysqlPassword, \$mydb);
+            if (\$mysqli->connect_errno) {
+                printf(\"Connessione fallita: %s\", \$mysqli->connect_error);
                 \$result = false;
             } else {
-                unlink(\$dbDumpFile);
-                \$result = true;
+                \$command = \"mysql -h \" . \$mysqlHostName. \" -u \" . \$mysqlUserName . \" -p\" . \$mysqlPassword . \" \" . \$mydb . \" < \" . \$dbDumpFile;
+                exec(\$command, \$output = array(), \$worked);
+                if (\$worked == 1) {
+                    echo \"Impossibile importare il file \" . \$dbDumpFile . \" sul DB\";
+                    \$result = false;
+                } else {
+                    \$result = true;
+                }
             }
+        } else {
+            echo \"Il file \" . \$dbDumpFile . \" non esiste <br>\";
+            \$result = false;
         }
-    } else {
-        echo \"Il file \" . \$dbDumpFile . \"non esiste <br>\";
-        \$result = false;
     }
     return \$result;
 }
 
-function changeWpConfig(\$configRemoteFile) {
-    if (file_exists(\$configRemoteFile)) {
-        if (!file_exists(\"wp-config.php\")) {
-            rename(\$configRemoteFile, \"wp-config.php\");
-        } else {
-            rename(\"wp-config.php\", \"wp-config-locale.php\");
-            rename(\$configRemoteFile, \"wp-config.php\");
-        }
-        \$result = true;
-    } else {
-        echo \"Il file \" . \$configRemoteFile . \" non esiste\";
-        \$result = false;
-    }
-    return \$result;
-}
+importDb(\"" . $config['domainName'] . ".sql\", \"" . $config['hostdb'] . "\", \"" . $config['userName'] . "\", \"" . $config['password'] . "\", \"" . $config['newDb'] . "\");
+unzipFiles();
+//unlink(\"" . $source . ".zip\");
+//unlink(\"" . $config['domainName'] . ".sql\");
+//unlink(__FILE__);
+echo \"0\";
 ?>";
 
     fwrite($fh, $stringData);
     fclose($fh);
+    return $installerName;
 }
 
 /**

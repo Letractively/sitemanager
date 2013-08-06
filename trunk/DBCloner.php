@@ -37,11 +37,14 @@ class DBCloner {
 
     public function mysqldumpOfDb($directory, $destFileName = null) {
         if ($destFileName != null) {
-            $returnedFilename = $directory . DIRECTORY_SEPARATOR . $destFileName;
+            $returnedFilename = $directory .$destFileName;
         } else {
             $returnedFilename = tempnam($directory, "");
         }
-        $command = "\"" . MYSQL_BIN_BASE_PATH . "mysqldump\" --opt --host=" . $this->mysqlHostName . " --user=" . $this->mysqlUserName . " --password=" . $this->mysqlPassword . " " . $this->mysqlDatabaseName . " --single-transaction > \"" . $returnedFilename . "\" 2>&1";
+        $command = "\"" . MYSQL_BIN_BASE_PATH . "mysqldump\" --host=" . $this->mysqlHostName . " --user=" . $this->mysqlUserName . " --password=" . $this->mysqlPassword . " " . $this->mysqlDatabaseName . " --single-transaction --opt > \"" . $returnedFilename . "\" 2>&1";
+        if (DEBUG){
+            echo $command;
+        }
         exec($command, $output, $worked);
         if ($worked == 1) {
             $this->errormsg .= "Impossibile esportare il file " . $this->mysqlImportFilename . " sul DB " . mysql_error();
@@ -52,12 +55,12 @@ class DBCloner {
 
     function migrate() {
         $this->mysqlImportFilename = $this->mysqldumpOfDb(__DIR__);
-//        $command = "\"" . MYSQL_BIN_BASE_PATH . "mysqldump\" --opt --host=" . $this->mysqlHostName . " --user=" . $this->mysqlUserName . " --password=" . $this->mysqlPassword . " " . $this->mysqlDatabaseName . " --single-transaction > \"" . $this->mysqlImportFilename . "\" 2>&1";
-//        exec($command, $output, $worked);
-//        if ($worked == 1) {
-//            $this->errormsg .= "Impossibile esportare il file " . $this->mysqlImportFilename . " sul DB " . mysql_error();
-//            return false;
-//        }
+        $command = "\"" . MYSQL_BIN_BASE_PATH . "mysqldump\" --opt --host=" . $this->mysqlHostName . " --user=" . $this->mysqlUserName . " --password=" . $this->mysqlPassword . " " . $this->mysqlDatabaseName . " --single-transaction > \"" . $this->mysqlImportFilename . "\" 2>&1";
+        exec($command, $output, $worked);
+        if ($worked == 1) {
+            $this->errormsg .= "Impossibile esportare il file " . $this->mysqlImportFilename . " sul DB " . mysql_error();
+            return false;
+        }
 
         $sql = "CREATE DATABASE " . $this->mysqlDatabaseNameNew;
         if (!mysql_query($sql, $this->con)) {
@@ -81,13 +84,14 @@ class DBCloner {
     }
 
     public function exportDbToPath($sqlPath,$source,$newConfig) {
-        $dumpFileOfDb = $this->mysqldumpOfDb(BASE_PATH.DIRECTORY_SEPARATOR.$source.DIRECTORY_SEPARATOR, $sqlPath);
+        $dumpFileOfDb = $this->mysqldumpOfDb(BASE_PATH.$source.DIRECTORY_SEPARATOR, $sqlPath);
         $content = file_get_contents($dumpFileOfDb);
         $replaced = str_replace("http://localhost/" . $source, "http://www." . $newConfig['domainName'] . "." . $newConfig['domain'], $content);
         $replaced = str_replace("db_" . $source, $newConfig['newDb'], $replaced);
         $replaced = str_replace($source, $newConfig['domainName'], $replaced);
         $replaced = str_replace("localhost", "www." . $newConfig['domainName'] . "." . $newConfig['domain'], $replaced);
         file_put_contents($dumpFileOfDb, $replaced);
+        return $dumpFileOfDb;
     }
 
     public function migrateDbFiles($fileName) {
