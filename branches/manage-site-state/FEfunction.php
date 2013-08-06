@@ -229,7 +229,7 @@ function moveToRelease($id, $source, $newConfig) {
     $fileCloner->createReleaseConfigAndBckpLocal($newConfig);
     $fileCloner->switchConfigFile("wp-config-locale.php", "wp-config-remote.php");
     $dbCloner = new DBCloner("db_" . $source, MYSQL_USER_NAME, MYSQL_PASSWORD, MYSQL_HOST, null, $source, "http://www." . $newConfig['domainName'] . "." . $newConfig['domain']);
-    $dbCloner->exportDbToPath($newConfig['domainName'] . ".sql", $source, $newConfig);
+    $fileToMove[] = $dbCloner->exportDbToPath($newConfig['domainName'] . ".sql", $source, $newConfig);
     $archiveFile = BASE_PATH . $source . DIRECTORY_SEPARATOR . $source . ".zip";
     $fileToMove[] = $archiveFile;
     Zip(BASE_PATH . $source, $archiveFile);
@@ -299,9 +299,8 @@ function writeInstaller($config, $source) {
     $fh = fopen($installerName, 'w');
     $stringData = "<?php
 set_time_limit (PHP_INT_MAX);
-if (file_exists(\"" . $source . ".zip\")){
-   exec(\"unzip " . $source . ".zip\", \$result, \$returnval);
-   if (\$handle = opendir('.')) {
+function cleanBadFileFolder(){
+    if (\$handle = opendir('.')) {
         while (false !== (\$entry = readdir(\$handle))) {
             chmod(\$entry, 755); 
             if (is_dir(\$entry) && strpos(\$entry,'\\\')>0 ){
@@ -310,39 +309,46 @@ if (file_exists(\"" . $source . ".zip\")){
         }
         closedir(\$handle);
     }
-   if(file_exists(\"".$config['domainName'] . ".sql\")){
-        if (importDb(\"" . $config['domainName'] . ".sql\", \"" . $config['hostdb'] . "\", \"" . $config['userName'] . "\", \"" . $config['password'] . "\", \"" . $config['newDb'] . "\")) {
-            //unlink(\"" . $source . ".zip\");
-            //unlink(\"" . $config['domainName'] . ".sql\");
-            //unlink(__FILE__);
-            echo \"0\";
-        }
+}
+function unzipFiles(){
+    if (file_exists(\"" . $source . ".zip\")){
+       exec(\"unzip " . $source . ".zip\", \$result, \$returnval);
     }
+    cleanBadFileFolder();
 }
 
 function importDb(\$dbDumpFile, \$mysqlHostName, \$mysqlUserName, \$mysqlPassword, \$mydb) {
     \$result = false;
-    if (file_exists(\$dbDumpFile)) {
-        \$mysqli = new mysqli(\$mysqlHostName, \$mysqlUserName, \$mysqlPassword, \$mydb);
-        if (\$mysqli->connect_errno) {
-            printf(\"Connessione fallita: %s\n\", \$mysqli->connect_error);
-            \$result = false;
-        } else {
-            \$command = \"mysql -h \" . \$mysqlHostName. \" -u \" . \$mysqlUserName . \" -p\" . \$mysqlPassword . \" \" . \$mydb . \" < \" . \$dbDumpFile;
-            exec(\$command, \$output = array(), \$worked);
-            if (\$worked == 1) {
-                echo \"Impossibile importare il file \" . \$dbDumpFile . \" sul DB\";
+    if(file_exists(\"".$config['domainName'] . ".sql\")){
+        if (file_exists(\$dbDumpFile)) {
+            \$mysqli = new mysqli(\$mysqlHostName, \$mysqlUserName, \$mysqlPassword, \$mydb);
+            if (\$mysqli->connect_errno) {
+                printf(\"Connessione fallita: %s\", \$mysqli->connect_error);
                 \$result = false;
             } else {
-                \$result = true;
+                \$command = \"mysql -h \" . \$mysqlHostName. \" -u \" . \$mysqlUserName . \" -p\" . \$mysqlPassword . \" \" . \$mydb . \" < \" . \$dbDumpFile;
+                exec(\$command, \$output = array(), \$worked);
+                if (\$worked == 1) {
+                    echo \"Impossibile importare il file \" . \$dbDumpFile . \" sul DB\";
+                    \$result = false;
+                } else {
+                    \$result = true;
+                }
             }
+        } else {
+            echo \"Il file \" . \$dbDumpFile . \" non esiste <br>\";
+            \$result = false;
         }
-    } else {
-        echo \"Il file \" . \$dbDumpFile . \" non esiste <br>\";
-        \$result = false;
     }
     return \$result;
 }
+
+importDb(\"" . $config['domainName'] . ".sql\", \"" . $config['hostdb'] . "\", \"" . $config['userName'] . "\", \"" . $config['password'] . "\", \"" . $config['newDb'] . "\");
+unzipFiles();
+//unlink(\"" . $source . ".zip\");
+//unlink(\"" . $config['domainName'] . ".sql\");
+//unlink(__FILE__);
+echo \"0\";
 ?>";
 
     fwrite($fh, $stringData);
