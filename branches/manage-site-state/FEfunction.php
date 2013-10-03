@@ -363,7 +363,7 @@ function unzipFiles(){
 
 function importDb(\$dbDumpFile, \$mysqlHostName, \$mysqlUserName, \$mysqlPassword, \$mydb) {
     \$result = false;
-    if(file_exists(\"" . $config['domainName'] . ".sql\")){
+    if(file_exists(\"" . $config['domainName'] ."." . $config['domain'] .".sql\")){
         if (file_exists(\$dbDumpFile)) {
             \$mysqli = new mysqli(\$mysqlHostName, \$mysqlUserName, \$mysqlPassword, \$mydb);
             if (\$mysqli->connect_errno) {
@@ -387,12 +387,12 @@ function importDb(\$dbDumpFile, \$mysqlHostName, \$mysqlUserName, \$mysqlPasswor
     return \$result;
 }
 
-importDb(\"" . $config['domainName'] . ".sql\", \"" . $config['hostdb'] . "\", \"" . $config['userName'] . "\", \"" . $config['password'] . "\", \"" . $config['newDb'] . "\");
+importDb(\"" . $config['domainName'] ."." . $config['domain'] .".sql\", \"" . $config['hostdb'] . "\", \"" . $config['userName'] . "\", \"" . $config['password'] . "\", \"" . $config['newDb'] . "\");
 rename(\"wp-config.php\", \"wp-config-locale.php\");
 rename(\"wp-config-remote.php\", \"wp-config.php\");
 //unzipFiles();
 //unlink(\"" . $source . ".zip\");
-unlink(\"" . $config['domainName'] . ".sql\");
+unlink(\"" . $config['domainName'] ."." . $config['domain'] .".sql\");
 unlink(__FILE__);
 echo \"0\";
 ?>";
