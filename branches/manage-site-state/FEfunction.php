@@ -49,8 +49,28 @@ function siteWorkInProgress() {
     return $result;
 }
 
-function siteToBePublished() {
+function siteToBeTransfered() {
     $files = getSitesByState(1);
+    $result = "";
+    if ($files != null && count($files) > 0) {
+        $result.="<table border =1>";
+        $result.= "<tr>
+<td>Siti da trasferire</td>
+</tr>
+";
+        foreach ($files as $file) {
+            $result.= "<tr>
+<td><a href=\"index.php?id=" . $file['id'] . "\">Trasferisci " . $file['nome'] . "</a></td>
+</tr>
+";
+        }
+        $result.="</table>";
+    }
+    return $result;
+}
+
+function siteToBePublished($isTrasfering = false) {
+    $files = getSitesByState(2);
     $result = "";
     if ($files != null && count($files) > 0) {
         $result.="<table border =1>";
@@ -59,14 +79,34 @@ function siteToBePublished() {
 </tr>
 ";
         foreach ($files as $file) {
-            $result.= "<tr>
+              if($isTrasfering) {
+              $result.= "<tr>
 <td><a href=\"index.php?nome=" . $file['domainName'] . "&domain=" . $file['domain'] . "\">Installa " . $file['nome'] . "</a></td>
 </tr>
+";}else{
+    $result.= "<tr>
+<td>In trasferimento: <b>" . $file['nome'] . "</b> (forse)</td>
+</tr>
 ";
+}
         }
         $result.="</table>";
     }
+
     return $result;
+}
+
+function trasferFtpFile($id) {
+    $infoOnSite = getSiteById($id);
+    $ftpMy = new FtpUploader($infoOnSite['ftp_username'], $infoOnSite['ftp_pwd'], $infoOnSite['ftp_host']);
+    $remoteDir = "www." . $infoOnSite['domainName'] . "." . $infoOnSite['domain'];
+    $sqlFile = $infoOnSite['domainName'] . "." . $infoOnSite['domain'] . ".sql";
+    $scriptFile = $ftpMy->createScriptFile($infoOnSite['nome'], $sqlFile, $remoteDir);
+    if (DEBUG) {
+        echo "Created file " . $scriptFile . "</br>";
+    }
+    $ftpMy->uploadUsingScript($scriptFile, true);
+    updateStatusForDomain($infoOnSite['domainName'], $infoOnSite['domain'], $infoOnSite['status'] + 1);
 }
 
 function manageInstallation($domainName, $dom) {
@@ -78,7 +118,7 @@ function manageInstallation($domainName, $dom) {
             @file_get_contents($nameToBeCheked);
             $responseHeader = $http_response_header[0];
             if ($responseHeader != "HTTP/1.1 404 Not Found") {
-                updateStatusForDomain($domainName, $dom, 2);
+                updateStatusForDomain($domainName, $dom, 3);
                 header('Location: index.php');
             } else {
                 echo "carica i file sull'host";
@@ -88,7 +128,7 @@ function manageInstallation($domainName, $dom) {
             $responseHeader = $http_response_header[0];
             if ($responseHeader != "HTTP/1.1 404 Not Found") {
                 if ($resultOfACall == "0") {
-                    updateStatusForDomain($domainName, $dom, 2);
+                    updateStatusForDomain($domainName, $dom, 3);
                     header('Location: index.php');
                 } else {
                     echo $resultOfACall;
@@ -103,7 +143,7 @@ function manageInstallation($domainName, $dom) {
 }
 
 function siteCompleted() {
-    $files = getSitesByState(2);
+    $files = getSitesByState(3);
     $result = "";
     if ($files != null && count($files) > 0) {
         $result.="<table border =1>";
@@ -231,7 +271,7 @@ function moveToRelease($id, $source, $newConfig) {
     $fileCloner->createReleaseConfigAndBckpLocal($newConfig);
     $fileCloner->switchConfigFile("wp-config-locale.php", "wp-config-remote.php");
     $dbCloner = new DBCloner("db_" . $source, MYSQL_USER_NAME, MYSQL_PASSWORD, MYSQL_HOST, null, $source, "http://www." . $newConfig['domainName'] . "." . $newConfig['domain']);
-    $fileToMove[] = $dbCloner->exportDbToPath($newConfig['domainName'] . ".sql", $source, $newConfig);
+    $fileToMove[] = $dbCloner->exportDbToPath($newConfig['domainName'] . "." . $newConfig['domain'] . ".sql", $source, $newConfig);
     $archiveFile = BASE_PATH . $source . DIRECTORY_SEPARATOR . $source . ".zip";
     $fileToMove[] = $archiveFile;
 //  Comment: not create zip file, is useless due to permission aruba problem

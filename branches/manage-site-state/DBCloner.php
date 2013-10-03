@@ -54,9 +54,14 @@ class DBCloner {
     }
 
     function migrate() {
-        $this->mysqlImportFilename = $this->mysqldumpOfDb(__DIR__);
+        $this->mysqlImportFilename = $this->mysqldumpOfDb("tmp");
         $command = "\"" . MYSQL_BIN_BASE_PATH . "mysqldump\" --opt --host=" . $this->mysqlHostName . " --user=" . $this->mysqlUserName . " --password=" . $this->mysqlPassword . " " . $this->mysqlDatabaseName . " --single-transaction > \"" . $this->mysqlImportFilename . "\" 2>&1";
         exec($command, $output, $worked);
+        if(DEBUG){
+            echo $command."</br>";
+            print_r($output);
+            
+        }
         if ($worked == 1) {
             $this->errormsg .= "Impossibile esportare il file " . $this->mysqlImportFilename . " sul DB " . mysql_error();
             return false;
@@ -75,7 +80,13 @@ class DBCloner {
         }
         $this->migrateDbFiles($this->mysqlImportFilename);
         $command = "\"" . MYSQL_BIN_BASE_PATH . "mysql\" --host=" . $this->mysqlHostName . " --user=" . $this->mysqlUserName . " --password=" . $this->mysqlPassword . " " . $this->mysqlDatabaseNameNew . " < \"" . $this->mysqlImportFilename . "\"";
-        @exec($command, $output = array(), $worked);
+        if (DEBUG){
+            @exec($command, $output = array(), $worked);
+        }else {
+            echo $command."</br>";
+            exec($command, $output = array(), $worked);
+            print_r($output);
+        }
         if ($worked == 1) {
             $this->errormsg .= "Impossibile importare il file " . $this->mysqlImportFilename . " sul DB";
             return false;
