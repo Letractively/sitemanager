@@ -29,7 +29,15 @@ include_once(\"FEfunction.php\");
     fclose($fp);
 } else {
     include_once($configFileName);
-    $query = "CREATE TABLE IF NOT EXISTS `sm_prodotti` (
+    $query = "CREATE TABLE IF NOT EXISTS `sm_processrunning` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `site_name` text NOT NULL,
+  `pid` int(11) NOT NULL,
+  `date_started` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`)
+) ENGINE=MyISAM  DEFAULT CHARSET=latin1 AUTO_INCREMENT=1 ;
+
+CREATE TABLE IF NOT EXISTS `sm_prodotti` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `nome` text NOT NULL,
   `cliente_id` int(11) NOT NULL,
@@ -49,7 +57,8 @@ include_once(\"FEfunction.php\");
   `ins` timestamp NULL DEFAULT NULL,
   `upd` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`)
-) ENGINE=MyISAM  DEFAULT CHARSET=latin1 AUTO_INCREMENT=3 ;";
+) ENGINE=MyISAM  DEFAULT CHARSET=latin1 AUTO_INCREMENT=1 ;";
+    
     $con = mysql_connect(MYSQL_HOST, MYSQL_USER_NAME, MYSQL_PASSWORD, DB_SITEMANAGER_NAME);
     mysql_query($query, $con);
 }
