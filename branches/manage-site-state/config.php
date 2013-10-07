@@ -20,5 +20,6 @@ include_once("DBCloner.php");
 include_once("WPMigrateFile.php");
 include_once("FEfunction.php");
 include_once("FtpUploader.php");
+include_once("ProcessManager.php");
 
 ?>

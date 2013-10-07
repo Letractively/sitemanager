@@ -100,7 +100,7 @@ function trasferFtpFile($id) {
     $infoOnSite = getSiteById($id);
     $ftpMy = new FtpUploader($infoOnSite['ftp_username'], $infoOnSite['ftp_pwd'], $infoOnSite['ftp_host']);
     $remoteDir = "www." . $infoOnSite['domainName'] . "." . $infoOnSite['domain'];
-    $sqlFile = $infoOnSite['domainName'] . "." . $infoOnSite['domain'] . ".sql";
+    $sqlFile = str_replace("/", ".", $infoOnSite['domainName'] . "." . $infoOnSite['domain'] . ".sql");
     $scriptFile = $ftpMy->createScriptFile($infoOnSite['nome'], $sqlFile, $remoteDir);
     if (DEBUG) {
         echo "Created file " . $scriptFile . "</br>";
@@ -271,7 +271,8 @@ function moveToRelease($id, $source, $newConfig) {
     $fileCloner->createReleaseConfigAndBckpLocal($newConfig);
     $fileCloner->switchConfigFile("wp-config-locale.php", "wp-config-remote.php");
     $dbCloner = new DBCloner("db_" . $source, MYSQL_USER_NAME, MYSQL_PASSWORD, MYSQL_HOST, null, $source, "http://www." . $newConfig['domainName'] . "." . $newConfig['domain']);
-    $fileToMove[] = $dbCloner->exportDbToPath($newConfig['domainName'] . "." . $newConfig['domain'] . ".sql", $source, $newConfig);
+    $exportFileName = str_replace("/", ".",$newConfig['domainName'] . "." . $newConfig['domain'] . ".sql");
+    $fileToMove[] = $dbCloner->exportDbToPath($exportFileName, $source, $newConfig);
     $archiveFile = BASE_PATH . $source . DIRECTORY_SEPARATOR . $source . ".zip";
     $fileToMove[] = $archiveFile;
 //  Comment: not create zip file, is useless due to permission aruba problem
@@ -340,6 +341,7 @@ function Zip($source, $destination) {
 function writeInstaller($config, $source) {
     $installerName = BASE_PATH . DIRECTORY_SEPARATOR . $source . DIRECTORY_SEPARATOR . "install.php";
     $fh = fopen($installerName, 'w');
+    $sqlDumpFileName = str_replace("/", ".",$config['domainName'] ."." . $config['domain']);
     $stringData = "<?php
 set_time_limit (PHP_INT_MAX);
 
@@ -363,8 +365,7 @@ function unzipFiles(){
 
 function importDb(\$dbDumpFile, \$mysqlHostName, \$mysqlUserName, \$mysqlPassword, \$mydb) {
     \$result = false;
-    if(file_exists(\"" . $config['domainName'] ."." . $config['domain'] .".sql\")){
-        if (file_exists(\$dbDumpFile)) {
+    if(file_exists(\$dbDumpFile)){
             \$mysqli = new mysqli(\$mysqlHostName, \$mysqlUserName, \$mysqlPassword, \$mydb);
             if (\$mysqli->connect_errno) {
                 printf(\"Connessione fallita: %s\", \$mysqli->connect_error);
@@ -378,21 +379,20 @@ function importDb(\$dbDumpFile, \$mysqlHostName, \$mysqlUserName, \$mysqlPasswor
                 } else {
                     \$result = true;
                 }
-            }
+          }
         } else {
             echo \"Il file \" . \$dbDumpFile . \" non esiste <br>\";
             \$result = false;
         }
-    }
     return \$result;
 }
 
-importDb(\"" . $config['domainName'] ."." . $config['domain'] .".sql\", \"" . $config['hostdb'] . "\", \"" . $config['userName'] . "\", \"" . $config['password'] . "\", \"" . $config['newDb'] . "\");
+importDb(\"" . $sqlDumpFileName.".sql\", \"" . $config['hostdb'] . "\", \"" . $config['userName'] . "\", \"" . $config['password'] . "\", \"" . $config['newDb'] . "\");
 rename(\"wp-config.php\", \"wp-config-locale.php\");
 rename(\"wp-config-remote.php\", \"wp-config.php\");
 //unzipFiles();
 //unlink(\"" . $source . ".zip\");
-unlink(\"" . $config['domainName'] ."." . $config['domain'] .".sql\");
+unlink(\"" . $sqlDumpFileName .".sql\");
 unlink(__FILE__);
 echo \"0\";
 ?>";

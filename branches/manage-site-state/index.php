@@ -7,19 +7,23 @@
         <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
     </head>
     <body>
-         <?php
+        <?php
         include_once("config.php");
-        exec("tasklist ", $task_list, $returnVal);
         $processes = "";
-        $showLinkToTrasferingSite =true;
-        foreach ($task_list as $task) {
-            if (strpos($task, "WinSCP") !== false) {
+        $processRunning = new ProcessManager();
+        $proces = $processRunning->getAllFtpProcessRunning("WinSCP.exe");
+        if (!empty($proces)) {
+            foreach ($proces as $task) {
                 $processes .=$task . "</br>";
             }
+        } else {
+            
         }
-        if ($processes != "" && DEBUG) {
+        $showLinkToTrasferingSite = true;
+        if ($processes != "") {
             echo $processes;
-            $showLinkToTrasferingSite=false;
+            $showLinkToTrasferingSite =false;
+            echo "</br><b>Sfortunatamente non ho un modo migliore per sapere se ha finito di trasferire</b>";
         }
         if (isset($_POST['nome']) && isset($_POST['tipo']) && validateInput($_POST['nome'])) {
             if ($_POST['tipo'] == "pro") {
@@ -46,7 +50,7 @@
             </tr>
         </table>
         </br>
-       
+
         </br>
         Inserisci il nome del nuovo sito da creare
         </br></br>
