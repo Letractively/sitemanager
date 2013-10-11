@@ -14,6 +14,11 @@ define("MASTER_SITE_EASY","master_easy");
 define("MASTER_DB_EASY","dbmastereasy");
 define("DEBUG",true);
 define("DB_SITEMANAGER_NAME","site_manager");
+define("STATUS_WORKING",0);
+define("STATUS_TO_TRANSFER",1);
+define("STATUS_TRASFERING",2);
+define("STATUS_TO_INSTALL",3);
+define("STATUS_INSTALLED",4);
 
 include_once("WPMigrateFile.php");
 include_once("DBCloner.php");
