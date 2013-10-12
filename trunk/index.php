@@ -11,19 +11,21 @@
         include_once("config.php");
         $processes = "";
         $processRunning = new ProcessManager();
-        $proces = $processRunning->getAllFtpProcessRunning("WinSCP.exe");
+        $proces = $processRunning->getAllFtpProcessRunning("WinSCP.com");
+        $pids = array();
         if (!empty($proces)) {
             foreach ($proces as $task) {
+                $parts = preg_split('/\s+/', $task);
+                $pids[] = $parts[1];
                 $processes .=$task . "</br>";
             }
-        } else {
-            
         }
-        $showLinkToTrasferingSite = true;
+        $processRunning->updateStateAndFile($pids);
         if ($processes != "") {
-            echo $processes;
-            $showLinkToTrasferingSite =false;
-            echo "</br><b>Sfortunatamente non ho un modo migliore per sapere se ha finito di trasferire</b>";
+            if (DEBUG) {
+                echo $processes;
+            }
+            echo "</br><b><a href=\"\">Ricarica</a> (magari ha finito...)</b>";
         }
         if (isset($_POST['nome']) && isset($_POST['tipo']) && validateInput($_POST['nome'])) {
             if ($_POST['tipo'] == "pro") {
@@ -36,8 +38,12 @@
             }
         } else if (isset($_GET['nome']) && isset($_GET['domain'])) {
             manageInstallation($_GET['nome'], $_GET['domain']);
-        } else if (isset($_GET['id']) && $_GET['id'] != "") {
+        } else if (isset($_GET['f'])&& $_GET['f'] == "t" && isset($_GET['id']) && $_GET['id'] != "") {
             trasferFtpFile($_GET['id']);
+        }else if (isset($_GET['f'])&& $_GET['f'] == "r" && isset($_GET['id'])&& $_GET['id'] != "") {
+            if (backToStatToTransfer($_GET['id'])){
+                header("Location: index.php");
+            }
         }
         ?>
         <table>
@@ -45,7 +51,8 @@
                 <td style="vertical-align:top"><?php echo createLinks(); ?></td>
                 <td style="vertical-align:top"><?php echo siteWorkInProgress(); ?></td>
                 <td style="vertical-align:top"><?php echo siteToBeTransfered(); ?></td>
-                <td style="vertical-align:top"><?php echo siteToBePublished($showLinkToTrasferingSite); ?></td>
+                <td style="vertical-align:top"><?php echo siteInTrasfering(); ?></td>
+                <td style="vertical-align:top"><?php echo siteToBePublished(); ?></td>
                 <td style="vertical-align:top"><?php echo siteCompleted(); ?></td>
             </tr>
         </table>
