@@ -16,26 +16,41 @@ define(\"MASTER_SITE\",\"master\");
 define(\"MASTER_DB\",\"dbmaster\");
 define(\"MASTER_SITE_EASY\",\"master_easy\");
 define(\"MASTER_DB_EASY\",\"dbmastereasy\");
-define(\"DEBUG\",false);
+define(\"DEBUG\",true);
 define(\"DB_SITEMANAGER_NAME\",\"site_manager\");
+define(\"STATUS_WORKING\",0);
+define(\"STATUS_TO_TRANSFER\",1);
+define(\"STATUS_TRASFERING\",2);
+define(\"STATUS_TO_INSTALL\",3);
+define(\"STATUS_INSTALLED\",4);
 
 include_once(\"WPMigrateFile.php\");
 include_once(\"DBCloner.php\");
 include_once(\"WPMigrateFile.php\");
 include_once(\"FEfunction.php\");
+include_once(\"FtpUploader.php\");
+include_once(\"ProcessManager.php\");
 
 ?>";
     fwrite($fp, $configString);
     fclose($fp);
 } else {
     include_once($configFileName);
-    $query = "CREATE TABLE IF NOT EXISTS `sm_processrunning` (
+    $query = "
+CREATE TABLE IF NOT EXISTS `sm_processrunning` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
-  `site_name` text NOT NULL,
+  `id_site` int(11) NOT NULL,
   `pid` int(11) NOT NULL,
   `date_started` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  `script_name` text NOT NULL,
   PRIMARY KEY (`id`)
 ) ENGINE=MyISAM  DEFAULT CHARSET=latin1 AUTO_INCREMENT=1 ;
+
+-- --------------------------------------------------------
+
+--
+-- Struttura della tabella `sm_prodotti`
+--
 
 CREATE TABLE IF NOT EXISTS `sm_prodotti` (
   `id` int(11) NOT NULL AUTO_INCREMENT,

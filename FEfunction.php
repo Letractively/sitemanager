@@ -26,7 +26,7 @@ function createLinks() {
 }
 
 function siteWorkInProgress() {
-    $files = getSitesByState(0);
+    $files = getSitesByState(STATUS_WORKING);
     $result = "";
 
     if ($files != null && count($files) > 0) {
@@ -49,8 +49,28 @@ function siteWorkInProgress() {
     return $result;
 }
 
+function siteInTrasfering() {
+    $files = getSitesByState(STATUS_TRASFERING);
+    $result = "";
+    if ($files != null && count($files) > 0) {
+        $result.="<table border =1>";
+        $result.= "<tr>
+<td>Siti in trasferimento</td>
+</tr>
+";
+        foreach ($files as $file) {
+            $result.= "<tr>
+<td>In trasferimento " . $file['nome'] . "</td>
+</tr>
+";
+        }
+        $result.="</table>";
+    }
+    return $result;
+}
+
 function siteToBeTransfered() {
-    $files = getSitesByState(1);
+    $files = getSitesByState(STATUS_TO_TRANSFER);
     $result = "";
     if ($files != null && count($files) > 0) {
         $result.="<table border =1>";
@@ -60,7 +80,7 @@ function siteToBeTransfered() {
 ";
         foreach ($files as $file) {
             $result.= "<tr>
-<td><a href=\"index.php?id=" . $file['id'] . "\">Trasferisci " . $file['nome'] . "</a></td>
+<td><a href=\"index.php?f=t&id=" . $file['id'] . "\">Trasferisci " . $file['nome'] . "</a></td>
 </tr>
 ";
         }
@@ -69,8 +89,8 @@ function siteToBeTransfered() {
     return $result;
 }
 
-function siteToBePublished($isTrasfering = false) {
-    $files = getSitesByState(2);
+function siteToBePublished() {
+    $files = getSitesByState(STATUS_TO_INSTALL);
     $result = "";
     if ($files != null && count($files) > 0) {
         $result.="<table border =1>";
@@ -79,16 +99,10 @@ function siteToBePublished($isTrasfering = false) {
 </tr>
 ";
         foreach ($files as $file) {
-              if($isTrasfering) {
-              $result.= "<tr>
+            $result.= "<tr>
 <td><a href=\"index.php?nome=" . $file['domainName'] . "&domain=" . $file['domain'] . "\">Installa " . $file['nome'] . "</a></td>
 </tr>
-";}else{
-    $result.= "<tr>
-<td>In trasferimento: <b>" . $file['nome'] . "</b> (forse)</td>
-</tr>
 ";
-}
         }
         $result.="</table>";
     }
@@ -101,6 +115,7 @@ function trasferFtpFile($id) {
     $ftpMy = new FtpUploader($infoOnSite['ftp_username'], $infoOnSite['ftp_pwd'], $infoOnSite['ftp_host']);
     $remoteDir = "www." . $infoOnSite['domainName'] . "." . $infoOnSite['domain'];
     $sqlFile = str_replace("/", ".", $infoOnSite['domainName'] . "." . $infoOnSite['domain'] . ".sql");
+    $ftpMy->setId_site($infoOnSite['id']);
     $scriptFile = $ftpMy->createScriptFile($infoOnSite['nome'], $sqlFile, $remoteDir);
     if (DEBUG) {
         echo "Created file " . $scriptFile . "</br>";
@@ -115,10 +130,10 @@ function manageInstallation($domainName, $dom) {
     if (isset($http_response_header)) {
         $responseHeader = $http_response_header[0];
         if ($responseHeader == "HTTP/1.1 404 Not Found") {
-            @file_get_contents($nameToBeCheked);
+            @file_get_contents($nameToBeCheked."/wp-admin/");
             $responseHeader = $http_response_header[0];
             if ($responseHeader != "HTTP/1.1 404 Not Found") {
-                updateStatusForDomain($domainName, $dom, 3);
+                updateStatusForDomain($domainName, $dom, STATUS_INSTALLED);
                 header('Location: index.php');
             } else {
                 echo "carica i file sull'host";
@@ -128,8 +143,8 @@ function manageInstallation($domainName, $dom) {
             $responseHeader = $http_response_header[0];
             if ($responseHeader != "HTTP/1.1 404 Not Found") {
                 if ($resultOfACall == "0") {
-                    updateStatusForDomain($domainName, $dom, 3);
-                    header('Location: index.php');
+                    updateStatusForDomain($domainName, $dom, STATUS_INSTALLED);
+                    //header('Location: index.php');
                 } else {
                     echo $resultOfACall;
                 }
@@ -137,23 +152,21 @@ function manageInstallation($domainName, $dom) {
                 echo "errore nell'installazione";
             }
         }
-    } else {
-        echo $nameToBeCheked . " non trovato";
     }
 }
 
 function siteCompleted() {
-    $files = getSitesByState(3);
+    $files = getSitesByState(STATUS_INSTALLED);
     $result = "";
     if ($files != null && count($files) > 0) {
         $result.="<table border =1>";
         $result.= "<tr>
-<td>Siti completati</td>
+<td colspan=\"2\">Siti completati</td>
 </tr>
 ";
         foreach ($files as $file) {
             $result.= "<tr>
-<td><a href=\"http://www." . $file['domainName'] . "." . $file['domain'] . "\" target=\"_blank\">" . $file['nome'] . "</a></td>
+<td><a href=\"http://www." . $file['domainName'] . "." . $file['domain'] . "\" target=\"_blank\">" . $file['nome'] . "</a></td><td><a href=\"index.php?f=r&id=".$file['id']."\">ritrasferisci</a></td>
 </tr>
 ";
         }
@@ -183,6 +196,36 @@ function insertNewCreatedSiteInDb($newSite, $clientId, $source) {
     $sql = "INSERT INTO `" . DB_SITEMANAGER_NAME . "`.`sm_prodotti` (`id`, `nome`, `cliente_id`, `modello_id`, `ins`, `upd`) VALUES ('', '" . $newSite . "', ' " . $clientId . "', '" . $source . "', '" . date("Y-m-d H:i:s") . "', '" . date("Y-m-d H:i:s") . "');";
     if (!mysql_query($sql, $con)) {
         $this->errormsg = "Could not insert in db " . $this->mysqlDatabaseNameNew;
+        mysql_close($con);
+        return false;
+    }
+    mysql_close($con);
+    return true;
+}
+
+ function backToStatToTransfer($id){
+     $con = mysql_connect(MYSQL_HOST, MYSQL_USER_NAME, MYSQL_PASSWORD);
+    $sql = "UPDATE " . DB_SITEMANAGER_NAME . ".sm_prodotti SET
+        status = " . STATUS_TO_TRANSFER . ",
+        upd = '" . date("Y-m-d H:i:s") . "'
+    WHERE sm_prodotti.id ='" . $id . "';";
+    if (!mysql_query($sql, $con)) {
+        echo "Could not update in db ";
+        mysql_close($con);
+        return false;
+    }
+    mysql_close($con);
+    return true;
+ }
+
+function updateStatusForDomainForId($id, $status) {
+    $con = mysql_connect(MYSQL_HOST, MYSQL_USER_NAME, MYSQL_PASSWORD);
+    $sql = "UPDATE " . DB_SITEMANAGER_NAME . ".sm_prodotti SET
+        status = " . $status . ",
+        upd = '" . date("Y-m-d H:i:s") . "'
+    WHERE sm_prodotti.id ='" . $id . "';";
+    if (!mysql_query($sql, $con)) {
+        echo "Could not update in db ";
         mysql_close($con);
         return false;
     }
@@ -271,7 +314,7 @@ function moveToRelease($id, $source, $newConfig) {
     $fileCloner->createReleaseConfigAndBckpLocal($newConfig);
     $fileCloner->switchConfigFile("wp-config-locale.php", "wp-config-remote.php");
     $dbCloner = new DBCloner("db_" . $source, MYSQL_USER_NAME, MYSQL_PASSWORD, MYSQL_HOST, null, $source, "http://www." . $newConfig['domainName'] . "." . $newConfig['domain']);
-    $exportFileName = str_replace("/", ".",$newConfig['domainName'] . "." . $newConfig['domain'] . ".sql");
+    $exportFileName = str_replace("/", ".", $newConfig['domainName'] . "." . $newConfig['domain'] . ".sql");
     $fileToMove[] = $dbCloner->exportDbToPath($exportFileName, $source, $newConfig);
     $archiveFile = BASE_PATH . $source . DIRECTORY_SEPARATOR . $source . ".zip";
     $fileToMove[] = $archiveFile;
@@ -341,7 +384,7 @@ function Zip($source, $destination) {
 function writeInstaller($config, $source) {
     $installerName = BASE_PATH . DIRECTORY_SEPARATOR . $source . DIRECTORY_SEPARATOR . "install.php";
     $fh = fopen($installerName, 'w');
-    $sqlDumpFileName = str_replace("/", ".",$config['domainName'] ."." . $config['domain']);
+    $sqlDumpFileName = str_replace("/", ".", $config['domainName'] . "." . $config['domain']);
     $stringData = "<?php
 set_time_limit (PHP_INT_MAX);
 
@@ -387,12 +430,12 @@ function importDb(\$dbDumpFile, \$mysqlHostName, \$mysqlUserName, \$mysqlPasswor
     return \$result;
 }
 
-importDb(\"" . $sqlDumpFileName.".sql\", \"" . $config['hostdb'] . "\", \"" . $config['userName'] . "\", \"" . $config['password'] . "\", \"" . $config['newDb'] . "\");
+importDb(\"" . $sqlDumpFileName . ".sql\", \"" . $config['hostdb'] . "\", \"" . $config['userName'] . "\", \"" . $config['password'] . "\", \"" . $config['newDb'] . "\");
 rename(\"wp-config.php\", \"wp-config-locale.php\");
 rename(\"wp-config-remote.php\", \"wp-config.php\");
 //unzipFiles();
 //unlink(\"" . $source . ".zip\");
-unlink(\"" . $sqlDumpFileName .".sql\");
+unlink(\"" . $sqlDumpFileName . ".sql\");
 unlink(__FILE__);
 echo \"0\";
 ?>";
