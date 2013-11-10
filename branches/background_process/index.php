@@ -25,7 +25,7 @@
             if (DEBUG) {
                 echo $processes;
             }
-            echo "</br><b><a href=\"\">Ricarica</a> (magari ha finito...)</b>";
+            echo "</br><b>Traferimento in corso...</br><a href=\"\">Ricarica</a> (magari ha finito)</b>";
         }
         if (isset($_POST['nome']) && isset($_POST['tipo']) && validateInput($_POST['nome'])) {
             if ($_POST['tipo'] == "pro") {

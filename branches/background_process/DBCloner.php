@@ -97,9 +97,17 @@ class DBCloner {
     public function exportDbToPath($sqlPath,$source,$newConfig) {
         $dumpFileOfDb = $this->mysqldumpOfDb(BASE_PATH.$source.DIRECTORY_SEPARATOR, $sqlPath);
         $content = file_get_contents($dumpFileOfDb);
+
+        //to replace domain ref
         $replaced = str_replace("http://localhost/" . $source, "http://www." . $newConfig['domainName'] . "." . $newConfig['domain'], $content);
+        
+        //to replace db ref
         $replaced = str_replace("db_" . $source, $newConfig['newDb'], $replaced);
-        $replaced = str_replace($source, $newConfig['domainName'], $replaced);
+        
+        //to replace something like C:/wamp/www/sitename with relative path
+        $replaced = str_replace(BASE_PATH."/" . $source,"", $replaced);
+        
+         //to replace last localhost ref
         $replaced = str_replace("localhost", "www." . $newConfig['domainName'] . "." . $newConfig['domain'], $replaced);
         file_put_contents($dumpFileOfDb, $replaced);
         return $dumpFileOfDb;
