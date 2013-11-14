@@ -28,7 +28,7 @@ class DBCloner {
 
     public function cleanAndClose() {
         if (!unlink($this->mysqlImportFilename)) {
-            $this->errormsg .= "</br>Impossibile cancellare il file temporaneo " . $this->mysqlImportFilename;
+            $this->errormsg .= "<br/>Impossibile cancellare il file temporaneo " . $this->mysqlImportFilename;
         }
         if ($this->con != null) {
             mysql_close($this->con);
@@ -43,11 +43,11 @@ class DBCloner {
         }
         $command = "\"" . MYSQL_BIN_BASE_PATH . "mysqldump\" --host=" . $this->mysqlHostName . " --user=" . $this->mysqlUserName . " --password=" . $this->mysqlPassword . " " . $this->mysqlDatabaseName . " --single-transaction --opt > \"" . $returnedFilename . "\" 2>&1";
         if (DEBUG){
-            echo $command;
+            echo "<br/>".$command;
         }
         exec($command, $output, $worked);
         if ($worked == 1) {
-            $this->errormsg .= "Impossibile esportare il file " . $this->mysqlImportFilename . " sul DB " . mysql_error();
+            $this->errormsg .= "<br/>Impossibile esportare il file " . $this->mysqlImportFilename . " sul DB " . mysql_error();
             return false;
         }
         return $returnedFilename;
@@ -58,12 +58,12 @@ class DBCloner {
         $command = "\"" . MYSQL_BIN_BASE_PATH . "mysqldump\" --opt --host=" . $this->mysqlHostName . " --user=" . $this->mysqlUserName . " --password=" . $this->mysqlPassword . " " . $this->mysqlDatabaseName . " --single-transaction > \"" . $this->mysqlImportFilename . "\" 2>&1";
         exec($command, $output, $worked);
         if(DEBUG){
-            echo $command."</br>";
+            echo "<br/>".$command;
             print_r($output);
             
         }
         if ($worked == 1) {
-            $this->errormsg .= "Impossibile esportare il file " . $this->mysqlImportFilename . " sul DB " . mysql_error();
+            $this->errormsg .= "<br/>Impossibile esportare il file " . $this->mysqlImportFilename . " sul DB " . mysql_error();
             return false;
         }
 

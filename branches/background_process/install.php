@@ -12,10 +12,10 @@ define(\"RELASE_BASE_PATH\",\"D:\\wamp\\www\\release\\\");
 define(\"MYSQL_USER_NAME\",\"root\");
 define(\"MYSQL_PASSWORD\",\"\");
 define(\"MYSQL_HOST\",\"localhost\");
-define(\"MASTER_SITE\",\"master\");
-define(\"MASTER_DB\",\"dbmaster\");
-define(\"MASTER_SITE_EASY\",\"master_easy\");
-define(\"MASTER_DB_EASY\",\"dbmastereasy\");
+\$masterWork = array(
+    \"master\" => \"dbmaster\",
+    \"master_easy\" => \"dbmastereasy\"
+    );
 define(\"DEBUG\",true);
 define(\"DB_SITEMANAGER_NAME\",\"site_manager\");
 define(\"STATUS_WORKING\",0);

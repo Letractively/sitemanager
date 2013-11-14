@@ -28,11 +28,7 @@
             echo "</br><b>Traferimento in corso...</br><a href=\"\">Ricarica</a> (magari ha finito)</b>";
         }
         if (isset($_POST['nome']) && isset($_POST['tipo']) && validateInput($_POST['nome'])) {
-            if ($_POST['tipo'] == "pro") {
-                $result = migrate(MASTER_SITE, $_POST['nome'], MASTER_DB);
-            } else if ($_POST['tipo'] == "easy") {
-                $result = migrate(MASTER_SITE_EASY, $_POST['nome'], MASTER_DB_EASY);
-            }
+            $result = migrate($_POST['tipo'], $_POST['nome'], $masterWork[$_POST['tipo']] );
             if (!$result) {
                 echo "un qualche errore di migrazione c'e' stato....<br>";
             }
@@ -63,8 +59,13 @@
         </br></br>
         <form method="post" name="newsite"  onsubmit="return validateForm()" >
             <input type="text" name="nome" value=""></br>
-            <input type="radio" name="tipo" value="easy">Easy<br>
-            <input type="radio" name="tipo" value="pro" checked>Pro<br>
+            <?php
+            foreach ($masterWork as $key=>$value){
+                if (file_exists(BASE_PATH.$key)){
+                    echo "<input type=\"radio\" name=\"tipo\" value=\"".$key."\">".$key."<br>";
+                }
+            }
+            ?>
             <input type="submit" value="crea">
         </form>
     </body>
