@@ -9,6 +9,8 @@
     <body>
         <?php
         include_once("config.php");
+        $siteLocal = createLinks();
+        $masterWork = $siteLocal['form'];
         $processes = "";
         $processRunning = new ProcessManager();
         $proces = $processRunning->getAllFtpProcessRunning("WinSCP.com");
@@ -44,7 +46,7 @@
         ?>
         <table>
             <tr>
-                <td style="vertical-align:top"><?php echo createLinks(); ?></td>
+                <td style="vertical-align:top"><?php echo $siteLocal['all'];?></td>
                 <td style="vertical-align:top"><?php echo siteWorkInProgress(); ?></td>
                 <td style="vertical-align:top"><?php echo siteToBeTransfered(); ?></td>
                 <td style="vertical-align:top"><?php echo siteInTrasfering(); ?></td>
@@ -57,16 +59,6 @@
         </br>
         Inserisci il nome del nuovo sito da creare
         </br></br>
-        <form method="post" name="newsite"  onsubmit="return validateForm()" >
-            <input type="text" name="nome" value=""></br>
-            <?php
-            foreach ($masterWork as $key=>$value){
-                if (file_exists(BASE_PATH.$key)){
-                    echo "<input type=\"radio\" name=\"tipo\" value=\"".$key."\">".$key."<br>";
-                }
-            }
-            ?>
-            <input type="submit" value="crea">
-        </form>
+        <?php echo createFormForNewSite($siteLocal['form']);?>
     </body>
 </html>
