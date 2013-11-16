@@ -28,7 +28,7 @@ class DBCloner {
 
     public function cleanAndClose() {
         if (!unlink($this->mysqlImportFilename)) {
-            $this->errormsg .= "</br>Impossibile cancellare il file temporaneo " . $this->mysqlImportFilename;
+            $this->errormsg .= "<br/>Impossibile cancellare il file temporaneo " . $this->mysqlImportFilename;
         }
         if ($this->con != null) {
             mysql_close($this->con);
@@ -43,11 +43,11 @@ class DBCloner {
         }
         $command = "\"" . MYSQL_BIN_BASE_PATH . "mysqldump\" --host=" . $this->mysqlHostName . " --user=" . $this->mysqlUserName . " --password=" . $this->mysqlPassword . " " . $this->mysqlDatabaseName . " --single-transaction --opt > \"" . $returnedFilename . "\" 2>&1";
         if (DEBUG){
-            echo $command;
+            echo "<br/>".$command;
         }
         exec($command, $output, $worked);
         if ($worked == 1) {
-            $this->errormsg .= "Impossibile esportare il file " . $this->mysqlImportFilename . " sul DB " . mysql_error();
+            $this->errormsg .= "<br/>Impossibile esportare il file " . $this->mysqlImportFilename . " sul DB " . mysql_error();
             return false;
         }
         return $returnedFilename;
@@ -58,12 +58,12 @@ class DBCloner {
         $command = "\"" . MYSQL_BIN_BASE_PATH . "mysqldump\" --opt --host=" . $this->mysqlHostName . " --user=" . $this->mysqlUserName . " --password=" . $this->mysqlPassword . " " . $this->mysqlDatabaseName . " --single-transaction > \"" . $this->mysqlImportFilename . "\" 2>&1";
         exec($command, $output, $worked);
         if(DEBUG){
-            echo $command."</br>";
+            echo "<br/>".$command;
             print_r($output);
             
         }
         if ($worked == 1) {
-            $this->errormsg .= "Impossibile esportare il file " . $this->mysqlImportFilename . " sul DB " . mysql_error();
+            $this->errormsg .= "<br/>Impossibile esportare il file " . $this->mysqlImportFilename . " sul DB " . mysql_error();
             return false;
         }
 
@@ -97,9 +97,17 @@ class DBCloner {
     public function exportDbToPath($sqlPath,$source,$newConfig) {
         $dumpFileOfDb = $this->mysqldumpOfDb(BASE_PATH.$source.DIRECTORY_SEPARATOR, $sqlPath);
         $content = file_get_contents($dumpFileOfDb);
+
+        //to replace domain ref
         $replaced = str_replace("http://localhost/" . $source, "http://www." . $newConfig['domainName'] . "." . $newConfig['domain'], $content);
+        
+        //to replace db ref
         $replaced = str_replace("db_" . $source, $newConfig['newDb'], $replaced);
-        $replaced = str_replace($source, $newConfig['domainName'], $replaced);
+        
+        //to replace something like C:/wamp/www/sitename with relative path
+        $replaced = str_replace(BASE_PATH."/" . $source,"", $replaced);
+        
+         //to replace last localhost ref
         $replaced = str_replace("localhost", "www." . $newConfig['domainName'] . "." . $newConfig['domain'], $replaced);
         file_put_contents($dumpFileOfDb, $replaced);
         return $dumpFileOfDb;
