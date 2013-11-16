@@ -81,11 +81,11 @@ class DBCloner {
         $this->migrateDbFiles($this->mysqlImportFilename);
         $command = "\"" . MYSQL_BIN_BASE_PATH . "mysql\" --host=" . $this->mysqlHostName . " --user=" . $this->mysqlUserName . " --password=" . $this->mysqlPassword . " " . $this->mysqlDatabaseNameNew . " < \"" . $this->mysqlImportFilename . "\"";
         if (DEBUG){
-            @exec($command, $output = array(), $worked);
-        }else {
             echo $command."</br>";
-            exec($command, $output = array(), $worked);
+            @exec($command, $output = array(), $worked);
             print_r($output);
+        }else {
+            exec($command, $output = array(), $worked);
         }
         if ($worked == 1) {
             $this->errormsg .= "Impossibile importare il file " . $this->mysqlImportFilename . " sul DB";
