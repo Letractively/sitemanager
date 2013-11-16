@@ -12,16 +12,37 @@ function createLinks() {
 <td>Siti in locale</td>
 </tr>
 ";
+    $masterWork = array();
     foreach ($files as $file) {
         if (is_dir($file)) {
             $basename = basename($file);
+            $dbConfigFile = BASE_PATH . $basename . DIRECTORY_SEPARATOR . "wp-config.php";
             $result.= "<tr>
 <td><a href=\"http://localhost/" . $basename . "\" target=\"_blank\">" . $basename . "</a></td>
 </tr>
 ";
+            if (file_exists($dbConfigFile)) {
+                $subject=file_get_contents ($dbConfigFile );
+                preg_match("/define\('DB_NAME', '(.+?)'\);/", $subject, $matches);
+                $masterWork[$basename]=$matches[1];
+            }
         }
     }
     $result.="</table>";
+    $totalResult['form']= $masterWork;
+    $totalResult['all'] =$result;
+    return $totalResult;
+}
+
+function createFormForNewSite($arrayOfDbSite){
+    $result="<form method=\"post\" name=\"newsite\"  onsubmit=\"return validateForm()\" >
+            <input type=\"text\" name=\"nome\" value=\"\"></br>";
+            foreach ($arrayOfDbSite as $key=>$value){
+                    $result.= "<input type=\"radio\" name=\"tipo\" value=\"".$key."\">".$key."<br>";
+            }
+       $result.="<input type=\"submit\" value=\"crea\">
+        </form>
+        ";
     return $result;
 }
 
@@ -130,7 +151,7 @@ function manageInstallation($domainName, $dom) {
     if (isset($http_response_header)) {
         $responseHeader = $http_response_header[0];
         if ($responseHeader == "HTTP/1.1 404 Not Found") {
-            @file_get_contents($nameToBeCheked."/wp-admin/");
+            @file_get_contents($nameToBeCheked . "/wp-admin/");
             $responseHeader = $http_response_header[0];
             if ($responseHeader != "HTTP/1.1 404 Not Found") {
                 updateStatusForDomain($domainName, $dom, STATUS_INSTALLED);
@@ -166,7 +187,7 @@ function siteCompleted() {
 ";
         foreach ($files as $file) {
             $result.= "<tr>
-<td><a href=\"http://www." . $file['domainName'] . "." . $file['domain'] . "\" target=\"_blank\">" . $file['nome'] . "</a></td><td><a href=\"index.php?f=r&id=".$file['id']."\">ritrasferisci</a></td>
+<td><a href=\"http://www." . $file['domainName'] . "." . $file['domain'] . "\" target=\"_blank\">" . $file['nome'] . "</a></td><td><a href=\"index.php?f=r&id=" . $file['id'] . "\">ritrasferisci</a></td>
 </tr>
 ";
         }
@@ -203,8 +224,8 @@ function insertNewCreatedSiteInDb($newSite, $clientId, $source) {
     return true;
 }
 
- function backToStatToTransfer($id){
-     $con = mysql_connect(MYSQL_HOST, MYSQL_USER_NAME, MYSQL_PASSWORD);
+function backToStatToTransfer($id) {
+    $con = mysql_connect(MYSQL_HOST, MYSQL_USER_NAME, MYSQL_PASSWORD);
     $sql = "UPDATE " . DB_SITEMANAGER_NAME . ".sm_prodotti SET
         status = " . STATUS_TO_TRANSFER . ",
         upd = '" . date("Y-m-d H:i:s") . "'
@@ -216,7 +237,7 @@ function insertNewCreatedSiteInDb($newSite, $clientId, $source) {
     }
     mysql_close($con);
     return true;
- }
+}
 
 function updateStatusForDomainForId($id, $status) {
     $con = mysql_connect(MYSQL_HOST, MYSQL_USER_NAME, MYSQL_PASSWORD);

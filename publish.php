@@ -18,19 +18,17 @@
             echo "Inserisci i dati per la pubblicazione di: " . $siteData['nome'] . "<br><br>
       ";
             echo "<form method=\"post\" name=\"datasubcription\" onsubmit=\"return validateSubscription()\">
-data acquisto dominio
+Data acquisto dominio
 <div><input type=\"text\" name=\"dataacqui\"  class=\"tcal\"  value=\"".$today."\"></div><br>
-email di riferimento<input type=\"text\" name=\"email\"><br>
-ftp host<input type=\"text\" name=\"ftphost\"><br>
-username ftp<input type=\"text\" name=\"ftpusername\"><br>
-password ftp<input type=\"text\" name=\"ftppwd\"><br>
-
-
-newDb<input type=\"text\" name=\"db\"><br>
-userName<input type=\"text\" name=\"username\"><br>
-password<input type=\"text\" name=\"pwd\"><br>
-hostdb<input type=\"text\" name=\"hostdb\"><br>
-domainName<input type=\"text\" name=\"domainname\">
+Email di riferimento<input type=\"text\" name=\"email\"><br>
+Ftp host<input type=\"text\" name=\"ftphost\"><br>
+Username ftp<input type=\"text\" name=\"ftpusername\"><br>
+Password ftp<input type=\"text\" name=\"ftppwd\"><br>
+Host Db<input type=\"text\" name=\"hostdb\"><br>
+User Name Db<input type=\"text\" name=\"username\"><br>
+Password Db<input type=\"text\" name=\"pwd\"><br>
+Db wordpress<input type=\"text\" name=\"db\"><br>
+Dominio sito<input type=\"text\" name=\"domainname\">
 <select name=\"domain\">
 <option value=\"com\">.com</option>
 <option selected=\"\" value=\"it\">.it</option>
