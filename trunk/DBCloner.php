@@ -27,7 +27,6 @@ class DBCloner {
     }
 
     public function cleanAndClose() {
-        $this->fixSerializedData();
         if (!unlink($this->mysqlImportFilename)) {
             $this->errormsg .= "<br/>Impossibile cancellare il file temporaneo " . $this->mysqlImportFilename;
         }
@@ -37,10 +36,6 @@ class DBCloner {
     }
 
     function recursive_unserialize_replace($data) {
-        if (DEBUG) {
-            echo $data . "<br/><br/>
-";
-        }
         if (is_string($data) && ( $unserialized = @unserialize($data) ) === false) {
             $data = html_entity_decode($data, ENT_QUOTES, 'UTF-8');
             $data = str_replace("\n", '', $data);
@@ -61,7 +56,7 @@ class DBCloner {
         $upd = false;
         $query = "SELECT option_id,option_name,option_value FROM " . "db_" .$this->destName  . ".wp_options WHERE option_name IN ('arras_options','widget_text','WPS_setting','dashboard_widget_options','aio-favicon_settings')";
         if (DEBUG) {
-            echo $query;
+            echo $query."<br/>";
         }
         if (!($data = mysql_query($query, $this->con))) {
             echo mysql_error();
@@ -79,7 +74,6 @@ class DBCloner {
         if ($upd) {
             foreach ($update_sql as $updQuery) {
                 $result = mysql_query($updQuery, $this->con);
-                echo ("Execute query");
                 if (!$result) {
                     print_r(mysql_error());
                 }
@@ -107,17 +101,6 @@ class DBCloner {
 
     function migrate() {
         $this->mysqlImportFilename = $this->mysqldumpOfDb("tmp");
-        $command = "\"" . MYSQL_BIN_BASE_PATH . "mysqldump\" --opt --host=" . $this->mysqlHostName . " --user=" . $this->mysqlUserName . " --password=" . $this->mysqlPassword . " " . $this->mysqlDatabaseName . " --single-transaction > \"" . $this->mysqlImportFilename . "\" 2>&1";
-        exec($command, $output, $worked);
-        if (DEBUG) {
-            echo "<br/>" . $command;
-            print_r($output);
-        }
-        if ($worked == 1) {
-            $this->errormsg .= "<br/>Impossibile esportare il file " . $this->mysqlImportFilename . " sul DB " . mysql_error();
-            return false;
-        }
-
         $sql = "CREATE DATABASE " . $this->mysqlDatabaseNameNew;
         if (!mysql_query($sql, $this->con)) {
             $this->errormsg .= "Could not create db " . $this->mysqlDatabaseNameNew . " " . mysql_error();
@@ -134,7 +117,10 @@ class DBCloner {
         if (DEBUG) {
             echo $command . "</br>";
             @exec($command, $output = array(), $worked);
-            print_r($output);
+            if ($output!=null){
+                print_r($output);
+                echo "</br>";
+            }
         } else {
             exec($command, $output = array(), $worked);
         }
