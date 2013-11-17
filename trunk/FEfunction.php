@@ -452,6 +452,33 @@ function importDb(\$dbDumpFile, \$mysqlHostName, \$mysqlUserName, \$mysqlPasswor
 }
 
 importDb(\"" . $sqlDumpFileName . ".sql\", \"" . $config['hostdb'] . "\", \"" . $config['userName'] . "\", \"" . $config['password'] . "\", \"" . $config['newDb'] . "\");
+
+\$update_sql = array();
+\$upd = false;
+\$query = \"SELECT option_id, option_name, option_value FROM \" .". $config['hostdb'].".wp_options WHERE option_name IN ('arras_options', 'widget_text', 'WPS_setting', 'dashboard_widget_options', 'aio-favicon_settings')\";
+\$con= mysql_connect(" . $config['hostdb'] . ", " . $config['userName'] . ", " . $config['password'] . ");
+if (!(\$data = mysql_query(\$query, \$con))) {
+    echo mysql_error();
+}
+
+while (\$row = mysql_fetch_array(\$data)) {
+    \$edited_data = \$data_to_fix = \$row['option_value'];
+    \$edited_data = \$this->recursive_unserialize_replace($\data_to_fix);
+    if (\$edited_data != \$data_to_fix) {
+        \$update_sql[] = 'UPDATE ' . ". $config['hostdb'].".wp_options SET option_value = \"' . mysql_real_escape_string(\$edited_data) . '\" WHERE option_id = ' . \$row['option_id'];
+        \$upd = true;
+    }
+}
+if (\$upd) {
+    foreach (\$update_sql as \$updQuery) {
+        \$result = mysql_query(\$updQuery, \$con);
+        if (!\$result) {
+            print_r(mysql_error());
+        }
+    }
+}
+
+
 rename(\"wp-config.php\", \"wp-config-locale.php\");
 rename(\"wp-config-remote.php\", \"wp-config.php\");
 //unzipFiles();
