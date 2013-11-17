@@ -455,7 +455,7 @@ importDb(\"" . $sqlDumpFileName . ".sql\", \"" . $config['hostdb'] . "\", \"" . 
 
 \$update_sql = array();
 \$upd = false;
-\$query = \"SELECT option_id, option_name, option_value FROM ". $config['hostdb'].".wp_options WHERE option_name IN ('arras_options', 'widget_text', 'WPS_setting', 'dashboard_widget_options', 'aio-favicon_settings')\";
+\$query = \"SELECT option_id, option_name, option_value FROM " . $config['hostdb'] . ".wp_options WHERE option_name IN ('arras_options', 'widget_text', 'WPS_setting', 'dashboard_widget_options', 'aio-favicon_settings')\";
 \$con= mysql_connect(\"" . $config['hostdb'] . "\", \"" . $config['userName'] . "\", \"" . $config['password'] . "\");
 if (!(\$data = mysql_query(\$query, \$con))) {
     echo mysql_error();
@@ -465,7 +465,7 @@ while (\$row = mysql_fetch_array(\$data)) {
     \$edited_data = \$data_to_fix = \$row['option_value'];
     \$edited_data = \$this->recursive_unserialize_replace(\$data_to_fix);
     if (\$edited_data != \$data_to_fix) {
-        \$update_sql[] = 'UPDATE ". $config['hostdb'].".wp_options SET option_value = \"' . mysql_real_escape_string(\$edited_data) . '\" WHERE option_id = ' . \$row['option_id'];
+        \$update_sql[] = 'UPDATE " . $config['hostdb'] . ".wp_options SET option_value = \"' . mysql_real_escape_string(\$edited_data) . '\" WHERE option_id = ' . \$row['option_id'];
         \$upd = true;
     }
 }
@@ -508,7 +508,8 @@ function migrate($source, $newSite, $mysqlDatabaseName) {
         echo $dbCloner->errormsg . "</br>";
         return false;
     }
-    if(!DEBUG){
+    $dbCloner->fixSerializedData();
+    if (!DEBUG) {
         $dbCloner->cleanAndClose();
     }
     $fileCloner = new WPMigrateFile(BASE_PATH . $source, BASE_PATH . $newSite);
