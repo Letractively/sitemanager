@@ -455,7 +455,7 @@ importDb(\"" . $sqlDumpFileName . ".sql\", \"" . $config['hostdb'] . "\", \"" . 
 
 \$update_sql = array();
 \$upd = false;
-\$query = \"SELECT option_id, option_name, option_value FROM " . $config['hostdb'] . ".wp_options WHERE option_name IN ('arras_options', 'widget_text', 'WPS_setting', 'dashboard_widget_options', 'aio-favicon_settings')\";
+\$query = \"SELECT option_id, option_name, option_value FROM " . $config['hostdb'] . ".wp_options WHERE option_name IN ('arras_options', 'widget_text', 'WPS_setting', 'dashboard_widget_options', 'aio-favicon_settings','theme_mods_arras.1.5.3-RC1/arras')\";
 \$con= mysql_connect(\"" . $config['hostdb'] . "\", \"" . $config['userName'] . "\", \"" . $config['password'] . "\");
 if (!(\$data = mysql_query(\$query, \$con))) {
     echo mysql_error();
