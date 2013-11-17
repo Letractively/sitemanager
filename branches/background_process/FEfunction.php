@@ -22,25 +22,25 @@ function createLinks() {
 </tr>
 ";
             if (file_exists($dbConfigFile)) {
-                $subject=file_get_contents ($dbConfigFile );
+                $subject = file_get_contents($dbConfigFile);
                 preg_match("/define\('DB_NAME', '(.+?)'\);/", $subject, $matches);
-                $masterWork[$basename]=$matches[1];
+                $masterWork[$basename] = $matches[1];
             }
         }
     }
     $result.="</table>";
-    $totalResult['form']= $masterWork;
-    $totalResult['all'] =$result;
+    $totalResult['form'] = $masterWork;
+    $totalResult['all'] = $result;
     return $totalResult;
 }
 
-function createFormForNewSite($arrayOfDbSite){
-    $result="<form method=\"post\" name=\"newsite\"  onsubmit=\"return validateForm()\" >
+function createFormForNewSite($arrayOfDbSite) {
+    $result = "<form method=\"post\" name=\"newsite\"  onsubmit=\"return validateForm()\" >
             <input type=\"text\" name=\"nome\" value=\"\"></br>";
-            foreach ($arrayOfDbSite as $key=>$value){
-                    $result.= "<input type=\"radio\" name=\"tipo\" value=\"".$key."\">".$key."<br>";
-            }
-       $result.="<input type=\"submit\" value=\"crea\">
+    foreach ($arrayOfDbSite as $key => $value) {
+        $result.= "<input type=\"radio\" name=\"tipo\" value=\"" . $key . "\">" . $key . "<br>";
+    }
+    $result.="<input type=\"submit\" value=\"crea\">
         </form>
         ";
     return $result;
@@ -490,7 +490,6 @@ function migrate($source, $newSite, $mysqlDatabaseName) {
     }
 
     $fileCloner->changeWpconfig($mysqlDatabaseName, "db_" . $newSite);
-
     insertNewCreatedSiteInDb($newSite, null, $source);
     return true;
 }
