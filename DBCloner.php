@@ -54,7 +54,7 @@ class DBCloner {
     public function fixSerializedData() {
         $update_sql = array();
         $upd = false;
-        $query = "SELECT option_id,option_name,option_value FROM " . "db_" .$this->destName  . ".wp_options WHERE option_name IN ('arras_options','widget_text','WPS_setting','dashboard_widget_options','aio-favicon_settings')";
+        $query = "SELECT option_id,option_name,option_value FROM " . "db_" .$this->destName  . ".wp_options WHERE option_name IN ('arras_options','widget_text','WPS_setting','dashboard_widget_options','aio-favicon_settings','theme_mods_arras.1.5.3-RC1/arras')";
         if (DEBUG) {
             echo $query."<br/>";
         }
