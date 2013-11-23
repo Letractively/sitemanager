@@ -1,29 +1,26 @@
 <?php
 
+include("DBConfig.php");
+
 class DBCloner {
 
-    public $mysqlDatabaseName;
-    public $mysqlUserName;
-    public $mysqlPassword;
-    public $mysqlHostName;
-    public $mysqlImportFilename;
-    public $filePutOutput;
+    public $dbConfigSource;
     public $errormsg;
+    public $mysqlDatabaseName;
     public $mysqlDatabaseNameNew;
     public $sourcename;
     public $destName;
     private $con = null;
-    private $importFilename;
 
     function __construct($mysqlDatabaseName, $mysqlUserName, $mysqlPassword, $mysqlHostName, $mysqlDatabaseNameNew, $source, $dest) {
+        $this->dbConfigSource = new DBConfig($mysqlHostName, $mysqlUserName, $mysqlPassword);
+
         $this->mysqlDatabaseName = $mysqlDatabaseName;
-        $this->mysqlUserName = $mysqlUserName;
-        $this->mysqlPassword = $mysqlPassword;
-        $this->mysqlHostName = $mysqlHostName;
         $this->mysqlDatabaseNameNew = $mysqlDatabaseNameNew;
         $this->sourcename = $source;
         $this->destName = $dest;
-        $this->con = mysql_connect($this->mysqlHostName, $this->mysqlUserName, $this->mysqlPassword);
+
+        $this->con = $this->dbConfigSource->connect();
     }
 
     public function cleanAndClose() {
@@ -35,50 +32,19 @@ class DBCloner {
         }
     }
 
-    function recursive_unserialize_replace($data) {
+    function fixLength($match) {
+        $temp = intval(strlen($match[2]));
+        $result = 's:' . $temp . ':"' . $match[2] . '";';
+        return $result;
+    }
+
+    function recursive_unserialize_replace($data, $key = null) {
         if (is_string($data) && ( $unserialized = @unserialize($data) ) === false) {
             $data = html_entity_decode($data, ENT_QUOTES, 'UTF-8');
-            $data = str_replace("\n", '', $data);
-            $data = str_replace("\r", '', $data);
-            $data = str_replace("\r\n", '', $data);
-            $data = preg_replace_callback('/s:(\d+):"(.*?)";/', function($match) {
-                        $temp = strlen($match[2]);
-                        $result = "s:" . $temp . ":\"" . $match[2] . "\";";
-                        return $result;
-                    }, $data);
+            $data = preg_replace_callback('/s:(\d+):"(.*?)";/', array(&$this, 'fixLength'), $data);
         }
         $obj = unserialize($data);
         return $data;
-    }
-
-    public function fixSerializedData() {
-        $update_sql = array();
-        $upd = false;
-        $query = "SELECT option_id,option_name,option_value FROM " . "db_" .$this->destName  . ".wp_options WHERE option_name IN ('arras_options','widget_text','WPS_setting','dashboard_widget_options','aio-favicon_settings','theme_mods_arras.1.5.3-RC1/arras')";
-        if (DEBUG) {
-            echo $query."<br/>";
-        }
-        if (!($data = mysql_query($query, $this->con))) {
-            echo mysql_error();
-            return false;
-        }
-        while ($row = mysql_fetch_array($data)) {
-            $edited_data = $data_to_fix = $row['option_value'];
-            $edited_data = $this->recursive_unserialize_replace($data_to_fix);
-            // Something was changed
-            if ($edited_data != $data_to_fix) {
-                $update_sql[] = 'UPDATE ' . "db_" .$this->destName  . '.wp_options SET option_value = "' . mysql_real_escape_string($edited_data) . '" WHERE option_id = ' . $row['option_id'];
-                $upd = true;
-            }
-        }
-        if ($upd) {
-            foreach ($update_sql as $updQuery) {
-                $result = mysql_query($updQuery, $this->con);
-                if (!$result) {
-                    print_r(mysql_error());
-                }
-            }
-        }
     }
 
     public function mysqldumpOfDb($directory, $destFileName = null) {
@@ -87,9 +53,9 @@ class DBCloner {
         } else {
             $returnedFilename = tempnam($directory, "");
         }
-        $command = "\"" . MYSQL_BIN_BASE_PATH . "mysqldump\" --host=" . $this->mysqlHostName . " --user=" . $this->mysqlUserName . " --password=" . $this->mysqlPassword . " " . $this->mysqlDatabaseName . " --single-transaction --opt > \"" . $returnedFilename . "\" 2>&1";
+        $command = "\"" . MYSQL_BIN_BASE_PATH . "mysqldump\" --host=" . $this->dbConfigSource->getHostDb() . " --user=" . $this->dbConfigSource->getUsernameDb() . " --password=" . $this->dbConfigSource->getPasswordDb() . " " . $this->mysqlDatabaseName . " --single-transaction --opt > \"" . $returnedFilename . "\" 2>&1";
         if (DEBUG) {
-            echo "<br/>" . $command;
+            echo "<br/>" . $command . "<br/>";
         }
         exec($command, $output, $worked);
         if ($worked == 1) {
@@ -99,7 +65,7 @@ class DBCloner {
         return $returnedFilename;
     }
 
-    function migrate() {
+    function migrate($isLocal = true) {
         $this->mysqlImportFilename = $this->mysqldumpOfDb("tmp");
         $sql = "CREATE DATABASE " . $this->mysqlDatabaseNameNew;
         if (!mysql_query($sql, $this->con)) {
@@ -112,12 +78,12 @@ class DBCloner {
             $this->errormsg .= "Could not select db " . $this->mysqlDatabaseNameNew . " " . mysql_error();
             return false;
         }
-        $this->migrateDbFiles($this->mysqlImportFilename);
-        $command = "\"" . MYSQL_BIN_BASE_PATH . "mysql\" --host=" . $this->mysqlHostName . " --user=" . $this->mysqlUserName . " --password=" . $this->mysqlPassword . " " . $this->mysqlDatabaseNameNew . " < \"" . $this->mysqlImportFilename . "\"";
+        $this->migrateDbFiles($this->mysqlImportFilename, $isLocal);
+        $command = "\"" . MYSQL_BIN_BASE_PATH . "mysql\" --host=" . $this->dbConfigSource->getHostDb() . " --user=" . $this->dbConfigSource->getUsernameDb() . " --password=" . $this->dbConfigSource->getPasswordDb() . " " . $this->mysqlDatabaseNameNew . " < \"" . $this->mysqlImportFilename . "\"";
         if (DEBUG) {
             echo $command . "</br>";
             @exec($command, $output = array(), $worked);
-            if ($output!=null){
+            if ($output != null) {
                 print_r($output);
                 echo "</br>";
             }
@@ -131,30 +97,40 @@ class DBCloner {
         return true;
     }
 
-    public function exportDbToPath($sqlPath, $source, $newConfig) {
-        $dumpFileOfDb = $this->mysqldumpOfDb(BASE_PATH . $source . DIRECTORY_SEPARATOR, $sqlPath);
-        $content = file_get_contents($dumpFileOfDb);
-
-        //to replace domain ref
-        $replaced = str_replace("http://localhost/" . $source, "http://www." . $newConfig['domainName'] . "." . $newConfig['domain'], $content);
-
-        //to replace db ref
-        $replaced = str_replace("db_" . $source, $newConfig['newDb'], $replaced);
-
-        //to replace something like C:/wamp/www/sitename with relative path
-        $replaced = str_replace(BASE_PATH . "/" . $source, "", $replaced);
-
-        //to replace last localhost ref
-        $replaced = str_replace("localhost", "www." . $newConfig['domainName'] . "." . $newConfig['domain'], $replaced);
-        file_put_contents($dumpFileOfDb, $replaced);
+    public function exportDbToPath($sqlPath) {
+        $dumpFileOfDb = $this->mysqldumpOfDb(BASE_PATH . $this->sourcename . DIRECTORY_SEPARATOR, $sqlPath);
+        $this->migrateDbFiles($dumpFileOfDb);
         return $dumpFileOfDb;
     }
 
-    public function migrateDbFiles($fileName) {
+    public function sqlFileCheckProperties($match) {
+        if (strpos($match[3], ":") > 0 && strpos($match[3], "{") && strpos($match[3], $this->destName)) {
+            $cleaned = str_replace('\"', '"', $match[3]);
+            $cleaned = str_replace(PHP_EOL, "", $cleaned);
+            $cleaned = str_replace("\\r\\n", "", $cleaned);
+            $cleaned = str_replace("\r\n", "", $cleaned);
+            $cleaned = $this->recursive_unserialize_replace($cleaned, $match[3]);
+            $result = "(" . $match[1] . ",'" . $match[2] . "','" . mysql_real_escape_string($cleaned) . "','" . $match[4] . "')";
+        } else {
+            $result = $match[0];
+        }
+        return $result;
+    }
+
+    public function migrateDbFiles($fileName, $isLocal = true) {
         $content = file_get_contents($fileName);
-        $replaced = str_replace($this->sourcename, $this->destName, $content);
-        $replaced = str_replace($this->mysqlDatabaseName, $this->mysqlDatabaseNameNew, $replaced);
-        file_put_contents($fileName, $replaced);
+        if (DEBUG) {
+            echo "replace [" . $this->sourcename . "]  with [" . $this->destName . "]<br/>";
+        }
+        if ($isLocal) {
+            $content = str_replace($this->sourcename, $this->destName, $content);
+        } else {
+            $content = str_replace("http://localhost/" . $this->sourcename, "http://localhost/" . $this->destName, $content);
+        }
+        $content = str_replace($this->mysqlDatabaseName, $this->mysqlDatabaseNameNew, $content);
+        $pattern = "/\((\d+),'(.+?)','(.?|.+?)','(...?)'\)/";
+        $content = preg_replace_callback($pattern, array($this, 'sqlFileCheckProperties'), $content);
+        file_put_contents($fileName, $content);
     }
 
     private function cancellDB() {
