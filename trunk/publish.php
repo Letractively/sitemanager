@@ -14,24 +14,32 @@
         set_time_limit(120000);
         if (isset($_POST['sites'])) {
             $siteData = getSiteById($_POST['sites']);
-            $today=date('d/m/Y');
+            $today = date('d/m/Y');
             echo "Inserisci i dati per la pubblicazione di: " . $siteData['nome'] . "<br><br>
       ";
+            $subdomainExploded = explode("/", $siteData['domain'], 2);
+            if (count($subdomainExploded) == 1) {
+                $subdomainExploded[0];
+                $siteData['subdomain'] = "";
+            } else {
+                $subdomainExploded[0];
+                $siteData['subdomain'] = $subdomainExploded[1];
+            }
             echo "<form method=\"post\" name=\"datasubcription\" onsubmit=\"return validateSubscription()\">
 Data acquisto dominio
-<div><input type=\"text\" name=\"dataacqui\"  class=\"tcal\"  value=\"".$today."\"></div><br>
-Email di riferimento<input type=\"text\" name=\"email\"><br>
-Ftp host<input type=\"text\" name=\"ftphost\"><br>
-Username ftp<input type=\"text\" name=\"ftpusername\"><br>
-Password ftp<input type=\"text\" name=\"ftppwd\"><br>
-Host Db<input type=\"text\" name=\"hostdb\"><br>
-User Name Db<input type=\"text\" name=\"username\"><br>
-Password Db<input type=\"text\" name=\"pwd\"><br>
-Db wordpress<input type=\"text\" name=\"db\"><br>
-Dominio sito<input type=\"text\" name=\"domainname\">
+<div><input type=\"text\" name=\"dataacqui\"  class=\"tcal\"  value=\"" . $today . "\"></div><br>
+Email di riferimento<input type=\"text\" name=\"email\" value=\"" . $siteData['ref_mail'] . "\"><br>
+Ftp host<input type=\"text\" name=\"ftphost\" value=\"" . $siteData['ftp_host'] . "\"><br>
+Username ftp<input type=\"text\" name=\"ftpusername\" value=\"" . $siteData['ftp_username'] . "\"><br>
+Password ftp<input type=\"text\" name=\"ftppwd\" value=\"" . $siteData['ftp_pwd'] . "\"><br>
+Host Db<input type=\"text\" name=\"hostdb\" value=\"" . $siteData['hostdb'] . "\"><br>
+User Name Db<input type=\"text\" name=\"username\" value=\"" . $siteData['dbusername'] . "\"><br>
+Password Db<input type=\"text\" name=\"pwd\" value=\"" . $siteData['dbpwd'] . "\"><br>
+Db wordpress<input type=\"text\" name=\"db\" value=\"" . $siteData['db'] . "\"><br>
+Dominio sito<input type=\"text\" name=\"domainname\" value=\"" . $siteData['domainName'] . "\">
 <select name=\"domain\">
 <option value=\"com\">.com</option>
-<option selected=\"\" value=\"it\">.it</option>
+<option selected value=\"it\">.it</option>
 <option value=\"eu\">.eu</option>
 <option value=\"net\">.net</option>
 <option value=\"org\">.org</option>
@@ -39,7 +47,7 @@ Dominio sito<input type=\"text\" name=\"domainname\">
 <option value=\"info\">.info</option>
 <option value=\"cc\">.cc</option>
 <option value=\"us\">.us</option>
-</select>/<input type=\"text\" name=\"secondsubdomain\"> <br>
+</select>/<input type=\"text\" name=\"secondsubdomain\" value=\"" . $siteData['subdomain'] . "\"> <br>
 <input type=\"hidden\" value=\"" . $siteData['nome'] . "\" name=\"source\">
 <input type=\"hidden\" value=\"" . $siteData['id'] . "\" name=\"sourceid\">
 <input type=\"submit\" value=\"crea\">
@@ -67,13 +75,13 @@ Dominio sito<input type=\"text\" name=\"domainname\">
             $input['userName'] = $_POST['username'];
             $input['password'] = $_POST['pwd'];
             $input['hostdb'] = $_POST['hostdb'];
-            if(isset ($_POST['secondsubdomain']) && $_POST['secondsubdomain'] !="" ){
-                $input['domain'] = $_POST['domain'].'/'.$_POST['secondsubdomain'];
-            }else {
+            if (isset($_POST['secondsubdomain']) && $_POST['secondsubdomain'] != "") {
+                $input['domain'] = $_POST['domain'] . '/' . $_POST['secondsubdomain'];
+            } else {
                 $input['domain'] = $_POST['domain'];
             }
             $input['domainName'] = $_POST['domainname'];
-            if (moveToRelease($_POST['sourceid'], $_POST['source'], $input)){
+            if (moveToRelease($_POST['sourceid'], $_POST['source'], $input)) {
                 header("Location: index.php");
             }
         } else {
