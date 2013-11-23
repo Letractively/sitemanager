@@ -336,7 +336,7 @@ function moveToRelease($id, $source, $newConfig) {
     $fileCloner->switchConfigFile("wp-config-locale.php", "wp-config-remote.php");
     $dbCloner = new DBCloner("db_" . $source, MYSQL_USER_NAME, MYSQL_PASSWORD, MYSQL_HOST, null, $source, "http://www." . $newConfig['domainName'] . "." . $newConfig['domain']);
     $exportFileName = str_replace("/", ".", $newConfig['domainName'] . "." . $newConfig['domain'] . ".sql");
-    $fileToMove[] = $dbCloner->exportDbToPath($exportFileName, $source, $newConfig);
+    $fileToMove[] = $dbCloner->exportDbToPath($exportFileName);
     $archiveFile = BASE_PATH . $source . DIRECTORY_SEPARATOR . $source . ".zip";
     $fileToMove[] = $archiveFile;
 //  Comment: not create zip file, is useless due to permission aruba problem
@@ -508,7 +508,6 @@ function migrate($source, $newSite, $mysqlDatabaseName) {
         echo $dbCloner->errormsg . "</br>";
         return false;
     }
-    $dbCloner->fixSerializedData();
     if (!DEBUG) {
         $dbCloner->cleanAndClose();
     }
@@ -519,6 +518,24 @@ function migrate($source, $newSite, $mysqlDatabaseName) {
     }
 
     $fileCloner->changeWpconfig($mysqlDatabaseName, "db_" . $newSite);
+    $htaccess = BASE_PATH . $newSite . DIRECTORY_SEPARATOR . ".htaccess";
+    $file = file_get_contents($htaccess);
+
+    if ((!file_exists($file) && is_writable(BASE_PATH . $newSite) ) || is_writable($file)) {
+        $rules = explode("\n", $file);
+        foreach ($rules as $key => $line) {
+            $rules[$key] = str_replace($source, $newSite, $line);
+        }
+        $file = implode("\n", $rules);
+    } else {
+        echo $htaccess . " non aperto<br>";
+    }
+    $fh = fopen($htaccess, 'w');
+    if (fwrite($fh, $file) === false) {
+        echo "Cannot write to file ($htaccess)<br>";
+    }
+    fclose($fh);
+
     insertNewCreatedSiteInDb($newSite, null, $source);
     return true;
 }
