@@ -1,6 +1,7 @@
 <?php
 
 include_once("config.php");
+include_once("HtAccessMigrate.php");
 
 ini_set("memory_limit", "256M");
 
@@ -336,9 +337,12 @@ function moveToRelease($id, $source, $newConfig) {
     $fileCloner->switchConfigFile("wp-config-locale.php", "wp-config-remote.php");
     $dbCloner = new DBCloner("db_" . $source, MYSQL_USER_NAME, MYSQL_PASSWORD, MYSQL_HOST, null, $source, "http://www." . $newConfig['domainName'] . "." . $newConfig['domain']);
     $exportFileName = str_replace("/", ".", $newConfig['domainName'] . "." . $newConfig['domain'] . ".sql");
-    $fileToMove[] = $dbCloner->exportDbToPath($exportFileName,false);
+    $fileToMove[] = $dbCloner->exportDbToPath($exportFileName, false);
     $archiveFile = BASE_PATH . $source . DIRECTORY_SEPARATOR . $source . ".zip";
     $fileToMove[] = $archiveFile;
+    $htaAcces = new HtAccessMigrate("http://www." . $newConfig['domainName'] . "." . $newConfig['domain'], $source);
+    $htaAcces->changeHtAccess(false);
+    $fileToMove[] = $htaAcces->getFileName();
 //  Comment: not create zip file, is useless due to permission aruba problem
 //  Zip(BASE_PATH . $source, $archiveFile);
     $fileToMove[] = writeInstaller($newConfig, $source);
@@ -457,6 +461,8 @@ importDb(\"" . $sqlDumpFileName . ".sql\", \"" . $config['hostdb'] . "\", \"" . 
 
 rename(\"wp-config.php\", \"wp-config-locale.php\");
 rename(\"wp-config-remote.php\", \"wp-config.php\");
+unlink(\".htaccess\");
+rename(\".htaccess-remote\", \".htaccess\");
 //unzipFiles();
 //unlink(\"" . $source . ".zip\");
 unlink(\"" . $sqlDumpFileName . ".sql\");
@@ -494,24 +500,8 @@ function migrate($source, $newSite, $mysqlDatabaseName) {
     }
 
     $fileCloner->changeWpconfig($mysqlDatabaseName, "db_" . $newSite);
-    $htaccess = BASE_PATH . $newSite . DIRECTORY_SEPARATOR . ".htaccess";
-    $file = file_get_contents($htaccess);
-
-    if ((!file_exists($file) && is_writable(BASE_PATH . $newSite) ) || is_writable($file)) {
-        $rules = explode("\n", $file);
-        foreach ($rules as $key => $line) {
-            $rules[$key] = str_replace($source, $newSite, $line);
-        }
-        $file = implode("\n", $rules);
-    } else {
-        echo $htaccess . " non aperto<br>";
-    }
-    $fh = fopen($htaccess, 'w');
-    if (fwrite($fh, $file) === false) {
-        echo "Cannot write to file ($htaccess)<br>";
-    }
-    fclose($fh);
-
+    $htaAcces = new HtAccessMigrate($newSite, $source);
+    $htaAcces->changeHtAccess(true);
     insertNewCreatedSiteInDb($newSite, null, $source);
     return true;
 }
