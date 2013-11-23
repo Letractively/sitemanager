@@ -97,9 +97,9 @@ class DBCloner {
         return true;
     }
 
-    public function exportDbToPath($sqlPath) {
+    public function exportDbToPath($sqlPath,$isLocal=true) {
         $dumpFileOfDb = $this->mysqldumpOfDb(BASE_PATH . $this->sourcename . DIRECTORY_SEPARATOR, $sqlPath);
-        $this->migrateDbFiles($dumpFileOfDb);
+        $this->migrateDbFiles($dumpFileOfDb,$isLocal);
         return $dumpFileOfDb;
     }
 
@@ -124,8 +124,8 @@ class DBCloner {
         }
         if ($isLocal) {
             $content = str_replace($this->sourcename, $this->destName, $content);
-        } else {
-            $content = str_replace("http://localhost/" . $this->sourcename, "http://localhost/" . $this->destName, $content);
+        }else {
+            $content = str_replace("http://localhost/".$this->sourcename, $this->destName, $content);
         }
         $content = str_replace($this->mysqlDatabaseName, $this->mysqlDatabaseNameNew, $content);
         $pattern = "/\((\d+),'(.+?)','(.?|.+?)','(...?)'\)/";

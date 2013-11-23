@@ -336,7 +336,7 @@ function moveToRelease($id, $source, $newConfig) {
     $fileCloner->switchConfigFile("wp-config-locale.php", "wp-config-remote.php");
     $dbCloner = new DBCloner("db_" . $source, MYSQL_USER_NAME, MYSQL_PASSWORD, MYSQL_HOST, null, $source, "http://www." . $newConfig['domainName'] . "." . $newConfig['domain']);
     $exportFileName = str_replace("/", ".", $newConfig['domainName'] . "." . $newConfig['domain'] . ".sql");
-    $fileToMove[] = $dbCloner->exportDbToPath($exportFileName);
+    $fileToMove[] = $dbCloner->exportDbToPath($exportFileName,false);
     $archiveFile = BASE_PATH . $source . DIRECTORY_SEPARATOR . $source . ".zip";
     $fileToMove[] = $archiveFile;
 //  Comment: not create zip file, is useless due to permission aruba problem
@@ -452,30 +452,6 @@ function importDb(\$dbDumpFile, \$mysqlHostName, \$mysqlUserName, \$mysqlPasswor
 }
 
 importDb(\"" . $sqlDumpFileName . ".sql\", \"" . $config['hostdb'] . "\", \"" . $config['userName'] . "\", \"" . $config['password'] . "\", \"" . $config['newDb'] . "\");
-
-\$update_sql = array();
-\$upd = false;
-\$query = \"SELECT option_id, option_name, option_value FROM " . $config['hostdb'] . ".wp_options WHERE option_name IN ('arras_options', 'widget_text', 'WPS_setting', 'dashboard_widget_options', 'aio-favicon_settings','theme_mods_arras.1.5.3-RC1/arras')\";
-\$con= mysql_connect(\"" . $config['hostdb'] . "\", \"" . $config['userName'] . "\", \"" . $config['password'] . "\");
-if (!(\$data = mysql_query(\$query, \$con))) {
-    echo mysql_error();
-}
-
-while (\$row = mysql_fetch_array(\$data)) {
-    \$edited_data = \$data_to_fix = \$row['option_value'];
-    \$edited_data = \$this->recursive_unserialize_replace(\$data_to_fix);
-    if (\$edited_data != \$data_to_fix) {
-        \$update_sql[] = 'UPDATE " . $config['hostdb'] . ".wp_options SET option_value = \"' . mysql_real_escape_string(\$edited_data) . '\" WHERE option_id = ' . \$row['option_id'];
-        \$upd = true;
-    }
-}
-if (\$upd) {
-    foreach (\$update_sql as \$updQuery) {
-        \$result = mysql_query(\$updQuery, \$con);
-        if (!\$result) {
-            print_r(mysql_error());
-        }
-    }
 }
 
 
@@ -504,7 +480,7 @@ echo \"0\";
 function migrate($source, $newSite, $mysqlDatabaseName) {
     set_time_limit(60000);
     $dbCloner = new DBCloner($mysqlDatabaseName, MYSQL_USER_NAME, MYSQL_PASSWORD, MYSQL_HOST, "db_" . $newSite, $source, $newSite);
-    if (!$dbCloner->migrate()) {
+    if (!$dbCloner->migrate(true)) {
         echo $dbCloner->errormsg . "</br>";
         return false;
     }
