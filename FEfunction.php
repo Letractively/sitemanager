@@ -2,6 +2,9 @@
 
 include_once("config.php");
 include_once("HtAccessMigrate.php");
+include_once("WPMigrateFile.php");
+include_once("DBCloner.php");
+include_once("FtpUploader.php");
 
 ini_set("memory_limit", "256M");
 
@@ -413,24 +416,6 @@ function writeInstaller($config, $source) {
     $stringData = "<?php
 set_time_limit (PHP_INT_MAX);
 
-function cleanBadFileFolder(){
-    if (\$handle = opendir('.')) {
-        while (false !== (\$entry = readdir(\$handle))) {
-            chmod(\$entry, 755); 
-            if (is_dir(\$entry) && strpos(\$entry,'\\\')>0 ){
-                rmdir(\$entry);
-            }
-        }
-        closedir(\$handle);
-    }
-}
-function unzipFiles(){
-    if (file_exists(\"" . $source . ".zip\")){
-       exec(\"unzip " . $source . ".zip\", \$result, \$returnval);
-    }
-    cleanBadFileFolder();
-}
-
 function importDb(\$dbDumpFile, \$mysqlHostName, \$mysqlUserName, \$mysqlPassword, \$mydb) {
     \$result = false;
     if(file_exists(\$dbDumpFile)){
@@ -456,7 +441,7 @@ function importDb(\$dbDumpFile, \$mysqlHostName, \$mysqlUserName, \$mysqlPasswor
 }
 
 importDb(\"" . $sqlDumpFileName . ".sql\", \"" . $config['hostdb'] . "\", \"" . $config['userName'] . "\", \"" . $config['password'] . "\", \"" . $config['newDb'] . "\");
-}
+
 
 
 rename(\"wp-config.php\", \"wp-config-locale.php\");

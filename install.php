@@ -20,12 +20,7 @@ define(\"STATUS_TRASFERING\",2);
 define(\"STATUS_TO_INSTALL\",3);
 define(\"STATUS_INSTALLED\",4);
 
-include_once(\"WPMigrateFile.php\");
-include_once(\"DBCloner.php\");
-include_once(\"WPMigrateFile.php\");
 include_once(\"FEfunction.php\");
-include_once(\"FtpUploader.php\");
-include_once(\"ProcessManager.php\");
 
 ?>";
     fwrite($fp, $configString);
