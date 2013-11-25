@@ -1,4 +1,6 @@
 <?php
+include_once("WPMigrateFile.php");
+include_once("DBCloner.php");
 
 /*
  * To change this template, choose Tools | Templates

@@ -9,6 +9,8 @@
     <body>
         <?php
         include_once("config.php");
+        include_once("ProcessManager.php");
+
         $siteLocal = createLinks();
         $masterWork = $siteLocal['form'];
         $processes = "";
