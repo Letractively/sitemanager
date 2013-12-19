@@ -186,12 +186,14 @@ function siteCompleted() {
     if ($files != null && count($files) > 0) {
         $result.="<table border =1>";
         $result.= "<tr>
-<td colspan=\"2\">Siti completati</td>
+<td colspan=\"3\">Siti completati</td>
 </tr>
 ";
         foreach ($files as $file) {
             $result.= "<tr>
-<td><a href=\"http://www." . $file['domainName'] . "." . $file['domain'] . "\" target=\"_blank\">" . $file['nome'] . "</a></td><td><a href=\"index.php?f=r&id=" . $file['id'] . "\">ritrasferisci</a></td>
+<td><a href=\"http://www." . $file['domainName'] . "." . $file['domain'] . "\" target=\"_blank\">" . $file['nome'] . "</a></td>
+<td><img src=\"img/info.png\" id=\"".$file['id']."\" class=\"info\"></td>
+<td><a href=\"index.php?f=r&id=" . $file['id'] . "\">ritrasferisci</a></td>
 </tr>
 ";
         }

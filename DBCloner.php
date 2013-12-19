@@ -12,6 +12,18 @@ class DBCloner {
     public $destName;
     private $con = null;
 
+    /**
+     * 
+     * 
+     * 
+     * @param type $mysqlDatabaseName : database source, where to connect
+     * @param type $mysqlUserName : username used to connect to DB
+     * @param type $mysqlPassword : password used to connect to DB
+     * @param type $mysqlHostName : host of the DB
+     * @param type $mysqlDatabaseNameNew : new database name
+     * @param type $source : string in the DB sql file to search for
+     * @param type $dest : string in the DB sql file to replace with
+     */
     function __construct($mysqlDatabaseName, $mysqlUserName, $mysqlPassword, $mysqlHostName, $mysqlDatabaseNameNew, $source, $dest) {
         $this->dbConfigSource = new DBConfig($mysqlHostName, $mysqlUserName, $mysqlPassword);
 
@@ -32,7 +44,7 @@ class DBCloner {
         }
     }
 
-    function fixLength($match) {
+    private function fixLength($match) {
         $temp = intval(strlen($match[2]));
         $result = 's:' . $temp . ':"' . $match[2] . '";';
         return $result;
