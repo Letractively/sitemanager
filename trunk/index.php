@@ -4,7 +4,7 @@
         <title></title>
         <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
         <script type="application/javascript" src="js/check.js"></script>
-        <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+        <script src="js/jquery-1.4.2.min.js"></script>
         <script src="js/ajaxCall.js"></script>
     </head>
     <body>

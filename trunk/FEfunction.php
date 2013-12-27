@@ -307,7 +307,7 @@ function getSiteById($id) {
     $sql = "SELECT * FROM `" . DB_SITEMANAGER_NAME . "`.`sm_prodotti` WHERE id = " . $id;
     $castresult = mysql_query($sql) or die(mysql_error());
     mysql_close($con);
-    return mysql_fetch_array($castresult);
+    return mysql_fetch_array($castresult,MYSQL_ASSOC);
 }
 
 function getSitesByState($state) {
