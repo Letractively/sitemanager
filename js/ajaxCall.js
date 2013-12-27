@@ -7,11 +7,11 @@ $(document).ready(function(){
         var dataString = {
             id: ''+ sentId+''
         };
+        if ($(".infotable").is(':visible')){
+            $(".infoclasses").remove();
+        }
         $.post('showinfo.php', dataString , function(data,status){
             if (data.length>0){
-                if ($(".infotable").is(":visible") ){
-                    $(".infotable").empty();
-                }
                 obj = JSON.parse(data);
                 var tablecontents = "";
                 var subdomainExploded = obj.domain.split("/");
@@ -28,11 +28,11 @@ $(document).ready(function(){
                 tablecontents += "<tr><td rowspan=\"3\" align=\"center\" valign=\"middle\" >Credenziali FTP</td><td>Username</td><td>"+obj.ftp_username+"</td></tr><tr><td>Password</td><td>"+obj.ftp_pwd+ "</td></tr><tr><td>host</td><td>" +obj.ftp_host+ "</td></tr>";
                 tablecontents += "<tr><td  colspan=\"3\"><a href=\""+myslqControlPanel+"\" target=\"_blank\">" +myslqControlPanel+ "</a></td></tr>";
                 tablecontents += "<tbody><tr><td rowspan=\"4\" align=\"center\" valign=\"middle\" >Credenziali Data Base</td><td>Username</td><td>"+obj.dbusername+"</td></tr><tr><td>Password</td><td>" +obj.dbpwd+ "</td></tr><tr><td>Nome DB</td><td >"+obj.db;
-                +"</td></tr><tr><td>host</td><td>" +obj.hostdb+ "</td></tr>";
+                tablecontents += "</td></tr><tr><td>host</td><td>" +obj.hostdb+ "</td></tr>";
                 tablecontents += "</tbody></table>";
                 $("#infotableid").append(tablecontents);
             }
-        });
+        });  
 
     });
 });
