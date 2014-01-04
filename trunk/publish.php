@@ -32,11 +32,11 @@ Email di riferimento<input type=\"text\" name=\"email\" value=\"" . $siteData['r
 Ftp host<input type=\"text\" name=\"ftphost\" value=\"" . $siteData['ftp_host'] . "\"><br>
 Username ftp<input type=\"text\" name=\"ftpusername\" value=\"" . $siteData['ftp_username'] . "\"><br>
 Password ftp<input type=\"text\" name=\"ftppwd\" value=\"" . $siteData['ftp_pwd'] . "\"><br>
-Host Db<input type=\"text\" name=\"hostdb\" value=\"" . $siteData['hostdb'] . "\"><br>
+Host Db (Example: 64.220.150.22)<input type=\"text\" name=\"hostdb\" value=\"" . $siteData['hostdb'] . "\"><br>
 User Name Db<input type=\"text\" name=\"username\" value=\"" . $siteData['dbusername'] . "\"><br>
 Password Db<input type=\"text\" name=\"pwd\" value=\"" . $siteData['dbpwd'] . "\"><br>
 Db wordpress<input type=\"text\" name=\"db\" value=\"" . $siteData['db'] . "\"><br>
-Dominio sito<input type=\"text\" name=\"domainname\" value=\"" . $siteData['domainName'] . "\">
+Dominio sito: http://www.<input type=\"text\" name=\"domainname\" value=\"" . $siteData['domainName'] . "\">
 <select name=\"domain\">
 <option value=\"com\">.com</option>
 <option selected value=\"it\">.it</option>
@@ -47,7 +47,7 @@ Dominio sito<input type=\"text\" name=\"domainname\" value=\"" . $siteData['doma
 <option value=\"info\">.info</option>
 <option value=\"cc\">.cc</option>
 <option value=\"us\">.us</option>
-</select>/<input type=\"text\" name=\"secondsubdomain\" value=\"" . $siteData['subdomain'] . "\"> <br>
+</select>/<input type=\"text\" name=\"secondsubdomain\" value=\"" . $siteData['subdomain'] . "\"> <br>    
 <input type=\"hidden\" value=\"" . $siteData['nome'] . "\" name=\"source\">
 <input type=\"hidden\" value=\"" . $siteData['id'] . "\" name=\"sourceid\">
 <input type=\"submit\" value=\"crea\">
