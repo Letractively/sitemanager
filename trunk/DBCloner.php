@@ -71,7 +71,7 @@ class DBCloner {
         }
         exec($command, $output, $worked);
         if ($worked == 1) {
-            $this->errormsg .= "<br/>Impossibile esportare il file " . $this->mysqlImportFilename . " sul DB " . mysql_error();
+            $this->errormsg .= "<br/>Impossibile esportare il DB " . $this->mysqlDatabaseName . " " . mysql_error();
             return false;
         }
         return $returnedFilename;
@@ -131,18 +131,21 @@ class DBCloner {
 
     public function changeNextGenOption() {
         $sql = "USE " . $this->mysqlDatabaseNameNew;
-        if (!mysql_query($sql, $this->con)) {
-            $this->errormsg .= "Could not select db " . $this->mysqlDatabaseNameNew . " " . mysql_error();
-            return false;
-        }
+        mysql_query($sql, $this->con);
         $sql = "SELECT ID, post_content FROM wp_posts WHERE post_type='lightbox_library'";
         $result = mysql_query($sql, $this->con);
-        while ($row = mysqli_fetch_array($result)) {
+        if (!$result) {
+            die("Database query failed: " . mysql_error());
+        }
+        while ($row = mysql_fetch_assoc($result)) {
             $newString = str_replace('\/', '/', base64_decode($row['post_content']));
             $newString = str_replace($this->sourcename, $this->destName, $newString);
-            $cleaned = base64_encode(json_encode($newString));
-            $updQuery = "UPDATE wp_posts SET post_content=" . $cleaned . " WHERE some_column=" . $row['ID'];
-            mysql_query($updQuery, $this->con);
+            $newString = str_replace('/', '\/', $newString);
+            $cleaned = base64_encode($newString);
+            $updQuery = "UPDATE wp_posts SET post_content='" . $cleaned . "',post_content_filtered='" . $cleaned . "' WHERE ID=" . $row['ID'];
+            if (!mysql_query($updQuery, $this->con)) {
+                die("Database query failed: " . mysql_error());
+            }
         }
     }
 
