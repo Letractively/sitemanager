@@ -418,6 +418,21 @@ function writeInstaller($config, $source) {
     $stringData = "<?php
 set_time_limit (PHP_INT_MAX);
 
+function changeNextGenOption() {
+    \$old = array(\"http://localhost/".$source."\", \"http://localhost/master_easy\", \"http://localhost/mybpa\");
+    \$new = \"http://www." . $config['domainName'] . "." . $config['domain']."\";
+    \$mysqli = new mysqli(\"".$config['hostdb']."\", \"". $config['userName'] . "\", \"" . $config['password'] . "\", \"" . $config['newDb'] . "\");
+    \$result = \$mysqli->query(\"SELECT ID, post_content FROM wp_posts WHERE post_type='lightbox_library'\");
+    while (\$row = mysqli_fetch_array(\$result)) {
+        \$newString = str_replace('\/', '/', base64_decode(\$row['post_content']));
+        \$newString = str_replace(\$old, \$new, \$newString);
+	\$newString = str_replace('/', '\/',\$newString);
+        \$cleaned = base64_encode(\$newString);
+        \$updQuery = \"UPDATE wp_posts SET post_content='\" . \$cleaned . \"',post_content_filtered='\" . \$cleaned . \"' WHERE ID=\" . \$row['ID'];
+        \$mysqli->query(\$updQuery);
+    }
+}
+
 function importDb(\$dbDumpFile, \$mysqlHostName, \$mysqlUserName, \$mysqlPassword, \$mydb) {
     \$result = false;
     if(file_exists(\$dbDumpFile)){
@@ -443,7 +458,7 @@ function importDb(\$dbDumpFile, \$mysqlHostName, \$mysqlUserName, \$mysqlPasswor
 }
 
 importDb(\"" . $sqlDumpFileName . ".sql\", \"" . $config['hostdb'] . "\", \"" . $config['userName'] . "\", \"" . $config['password'] . "\", \"" . $config['newDb'] . "\");
-
+changeNextGenOption();
 
 
 rename(\"wp-config.php\", \"wp-config-locale.php\");

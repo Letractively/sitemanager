@@ -109,9 +109,9 @@ class DBCloner {
         return true;
     }
 
-    public function exportDbToPath($sqlPath,$isLocal=true) {
+    public function exportDbToPath($sqlPath, $isLocal = true) {
         $dumpFileOfDb = $this->mysqldumpOfDb(BASE_PATH . $this->sourcename . DIRECTORY_SEPARATOR, $sqlPath);
-        $this->migrateDbFiles($dumpFileOfDb,$isLocal);
+        $this->migrateDbFiles($dumpFileOfDb, $isLocal);
         return $dumpFileOfDb;
     }
 
@@ -129,6 +129,23 @@ class DBCloner {
         return $result;
     }
 
+    public function changeNextGenOption() {
+        $sql = "USE " . $this->mysqlDatabaseNameNew;
+        if (!mysql_query($sql, $this->con)) {
+            $this->errormsg .= "Could not select db " . $this->mysqlDatabaseNameNew . " " . mysql_error();
+            return false;
+        }
+        $sql = "SELECT ID, post_content FROM wp_posts WHERE post_type='lightbox_library'";
+        $result = mysql_query($sql, $this->con);
+        while ($row = mysqli_fetch_array($result)) {
+            $newString = str_replace('\/', '/', base64_decode($row['post_content']));
+            $newString = str_replace($this->sourcename, $this->destName, $newString);
+            $cleaned = base64_encode(json_encode($newString));
+            $updQuery = "UPDATE wp_posts SET post_content=" . $cleaned . " WHERE some_column=" . $row['ID'];
+            mysql_query($updQuery, $this->con);
+        }
+    }
+
     public function migrateDbFiles($fileName, $isLocal = true) {
         $content = file_get_contents($fileName);
         if (DEBUG) {
@@ -136,8 +153,8 @@ class DBCloner {
         }
         if ($isLocal) {
             $content = str_replace($this->sourcename, $this->destName, $content);
-        }else {
-            $content = str_replace("http://localhost/".$this->sourcename, $this->destName, $content);
+        } else {
+            $content = str_replace("http://localhost/" . $this->sourcename, $this->destName, $content);
         }
         $content = str_replace($this->mysqlDatabaseName, $this->mysqlDatabaseNameNew, $content);
         $pattern = "/\((\d+),'(.+?)','(.?|.+?)','(...?)'\)/";
