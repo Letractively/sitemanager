@@ -160,7 +160,7 @@ class DBCloner {
             $content = str_replace("http://localhost/" . $this->sourcename, $this->destName, $content);
         }
         $content = str_replace($this->mysqlDatabaseName, $this->mysqlDatabaseNameNew, $content);
-        $pattern = "/\((\d+),'(.+?)','(.?|.+?)','(...?)'\)/";
+        $pattern = "/\((\d+),\s?'(.+?)',\s?'(.?|.+?)',\s?'(...?)'\)/";
         $content = preg_replace_callback($pattern, array($this, 'sqlFileCheckProperties'), $content);
         file_put_contents($fileName, $content);
     }

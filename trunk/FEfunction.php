@@ -429,14 +429,19 @@ function changeNextGenOption() {
 	\$newString = str_replace('/', '\/',\$newString);
         \$cleaned = base64_encode(\$newString);
         \$updQuery = \"UPDATE wp_posts SET post_content='\" . \$cleaned . \"',post_content_filtered='\" . \$cleaned . \"' WHERE ID=\" . \$row['ID'];
-        \$mysqli->query(\$updQuery);
+        if (\$mysqli->query(\$updQuery)=== TRUE){
+            \$mysqli->close();
+            return true;
+        }else{
+            return false;
+        }
     }
 }
 
-function importDb(\$dbDumpFile, \$mysqlHostName, \$mysqlUserName, \$mysqlPassword, \$mydb) {
+function importDb() {
     \$result = false;
-    if(file_exists(\$dbDumpFile)){
-            \$mysqli = new mysqli(\$mysqlHostName, \$mysqlUserName, \$mysqlPassword, \$mydb);
+    if(file_exists(\"" . $sqlDumpFileName . ".sql\")){
+            \$mysqli = new mysqli(\"" . $config['hostdb'] . "\", \"" . $config['userName'] . "\", \"" . $config['password'] . "\", \"" . $config['newDb'] . "\");
             if (\$mysqli->connect_errno) {
                 printf(\"Connessione fallita: %s\", \$mysqli->connect_error);
                 \$result = false;
@@ -451,25 +456,34 @@ function importDb(\$dbDumpFile, \$mysqlHostName, \$mysqlUserName, \$mysqlPasswor
                 }
           }
         } else {
-            echo \"Il file \" . \$dbDumpFile . \" non esiste <br>\";
+            echo \"Il file " . $sqlDumpFileName . ".sql non esiste <br>\";
             \$result = false;
         }
     return \$result;
 }
 
-importDb(\"" . $sqlDumpFileName . ".sql\", \"" . $config['hostdb'] . "\", \"" . $config['userName'] . "\", \"" . $config['password'] . "\", \"" . $config['newDb'] . "\");
-changeNextGenOption();
+if (importDb()){
+    if (changeNextGenOption()){
+        \$isOk =true;
+    }else{
+        \$isOk =false; 
+    }
+}else{
+    \$isOk =false; 
+}
 
 
 rename(\"wp-config.php\", \"wp-config-locale.php\");
 rename(\"wp-config-remote.php\", \"wp-config.php\");
 unlink(\".htaccess\");
 rename(\".htaccess-remote\", \".htaccess\");
-//unzipFiles();
-//unlink(\"" . $source . ".zip\");
-unlink(\"" . $sqlDumpFileName . ".sql\");
-unlink(__FILE__);
-echo \"0\";
+if (\$isOk){
+    unlink(\"" . $sqlDumpFileName . ".sql\");
+    unlink(__FILE__);
+    echo \"0\";
+}else {
+    echo \"Errore\";
+}
 ?>";
 
     fwrite($fh, $stringData);
