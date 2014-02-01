@@ -8,7 +8,7 @@ include_once("../DBCloner.php");
  */
 
 $nomeSitoLocale = "ideagiardinosrlroma2";
-$nomesitoRemoto = "http://www.ideagiardinosrlroma.it";
+$nomesitoRemoto = "http://www.meloshpub.it/testme";
 $nomeFile ="C:\Users\Miro\Documents\Desktop\db_ideagiardinosrlroma2.sql";
 
 $db = new DBCloner("db_" . $nomeSitoLocale, MYSQL_USER_NAME, MYSQL_PASSWORD, MYSQL_HOST, null, $nomeSitoLocale, $nomesitoRemoto);

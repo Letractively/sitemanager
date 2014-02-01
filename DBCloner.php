@@ -159,6 +159,8 @@ class DBCloner {
         } else {
             $content = str_replace("http://localhost/" . $this->sourcename, $this->destName, $content);
         }
+        $pathTobeRemoved =  str_replace ( "\\" ,"/" ,dirname(BASE_PATH.$this->sourcename ."\\index.php")."\\");
+        $content = str_replace($pathTobeRemoved, "", $content);
         $content = str_replace($this->mysqlDatabaseName, $this->mysqlDatabaseNameNew, $content);
         $pattern = "/\((\d+),\s?'(.+?)',\s?'(.?|.+?)',\s?'(...?)'\)/";
         $content = preg_replace_callback($pattern, array($this, 'sqlFileCheckProperties'), $content);
