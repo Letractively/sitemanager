@@ -192,7 +192,7 @@ function siteCompleted() {
         foreach ($files as $file) {
             $result.= "<tr>
 <td><a href=\"http://www." . $file['domainName'] . "." . $file['domain'] . "\" target=\"_blank\">" . $file['nome'] . "</a></td>
-<td><img src=\"img/info.png\" id=\"".$file['id']."\" class=\"info\"></td>
+<td><img src=\"img/info.png\" id=\"" . $file['id'] . "\" class=\"info\"></td>
 <td><a href=\"index.php?f=r&id=" . $file['id'] . "\">ritrasferisci</a></td>
 </tr>
 ";
@@ -307,7 +307,7 @@ function getSiteById($id) {
     $sql = "SELECT * FROM `" . DB_SITEMANAGER_NAME . "`.`sm_prodotti` WHERE id = " . $id;
     $castresult = mysql_query($sql) or die(mysql_error());
     mysql_close($con);
-    return mysql_fetch_array($castresult,MYSQL_ASSOC);
+    return mysql_fetch_array($castresult, MYSQL_ASSOC);
 }
 
 function getSitesByState($state) {
@@ -419,9 +419,9 @@ function writeInstaller($config, $source) {
 set_time_limit (PHP_INT_MAX);
 
 function changeNextGenOption() {
-    \$old = array(\"http://localhost/".$source."\", \"http://localhost/master_easy\", \"http://localhost/mybpa\");
-    \$new = \"http://www." . $config['domainName'] . "." . $config['domain']."\";
-    \$mysqli = new mysqli(\"".$config['hostdb']."\", \"". $config['userName'] . "\", \"" . $config['password'] . "\", \"" . $config['newDb'] . "\");
+    \$old = array(\"http://localhost/" . $source . "\", \"http://localhost/master_easy\", \"http://localhost/mybpa\");
+    \$new = \"http://www." . $config['domainName'] . "." . $config['domain'] . "\";
+    \$mysqli = new mysqli(\"" . $config['hostdb'] . "\", \"" . $config['userName'] . "\", \"" . $config['password'] . "\", \"" . $config['newDb'] . "\");
     \$result = \$mysqli->query(\"SELECT ID, post_content FROM wp_posts WHERE post_type='lightbox_library'\");
     while (\$row = mysqli_fetch_array(\$result)) {
         \$newString = str_replace('\/', '/', base64_decode(\$row['post_content']));
@@ -446,10 +446,9 @@ function importDb() {
                 printf(\"Connessione fallita: %s\", \$mysqli->connect_error);
                 \$result = false;
             } else {
-                \$command = \"mysql -h \" . \$mysqlHostName. \" -u \" . \$mysqlUserName . \" -p\" . \$mysqlPassword . \" \" . \$mydb . \" < \" . \$dbDumpFile;
-                exec(\$command, \$output = array(), \$worked);
-                if (\$worked == 1) {
-                    echo \"Impossibile importare il file \" . \$dbDumpFile . \" sul DB\";
+                \$sql = file_get_contents(\"" . $sqlDumpFileName . ".sql\");
+                if (!mysqli_multi_query(\$mysqli,\$sql)) {
+                    echo \"Impossibile importare il file " . $sqlDumpFileName . ".sql sul DB\";
                     \$result = false;
                 } else {
                     \$result = true;
@@ -473,11 +472,11 @@ if (importDb()){
 }
 
 
-rename(\"wp-config.php\", \"wp-config-locale.php\");
-rename(\"wp-config-remote.php\", \"wp-config.php\");
-unlink(\".htaccess\");
-rename(\".htaccess-remote\", \".htaccess\");
 if (\$isOk){
+    rename(\"wp-config.php\", \"wp-config-locale.php\");
+    rename(\"wp-config-remote.php\", \"wp-config.php\");
+    unlink(\".htaccess\");
+    rename(\".htaccess-remote\", \".htaccess\");
     unlink(\"" . $sqlDumpFileName . ".sql\");
     unlink(__FILE__);
     echo \"0\";
