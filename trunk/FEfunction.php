@@ -423,19 +423,23 @@ function changeNextGenOption() {
     \$new = \"http://www." . $config['domainName'] . "." . $config['domain'] . "\";
     \$mysqli = new mysqli(\"" . $config['hostdb'] . "\", \"" . $config['userName'] . "\", \"" . $config['password'] . "\", \"" . $config['newDb'] . "\");
     \$result = \$mysqli->query(\"SELECT ID, post_content FROM wp_posts WHERE post_type='lightbox_library'\");
-    while (\$row = mysqli_fetch_array(\$result)) {
-        \$newString = str_replace('\/', '/', base64_decode(\$row['post_content']));
-        \$newString = str_replace(\$old, \$new, \$newString);
-	\$newString = str_replace('/', '\/',\$newString);
-        \$cleaned = base64_encode(\$newString);
-        \$updQuery = \"UPDATE wp_posts SET post_content='\" . \$cleaned . \"',post_content_filtered='\" . \$cleaned . \"' WHERE ID=\" . \$row['ID'];
-        if (\$mysqli->query(\$updQuery)=== TRUE){
-            \$mysqli->close();
-            return true;
-        }else{
-            return false;
-        }
-    }
+    if ($result != false) {
+		while (\$row = mysqli_fetch_array(\$result)) {
+			\$newString = str_replace('\/', '/', base64_decode(\$row['post_content']));
+			\$newString = str_replace(\$old, \$new, \$newString);
+		\$newString = str_replace('/', '\/',\$newString);
+			\$cleaned = base64_encode(\$newString);
+			\$updQuery = \"UPDATE wp_posts SET post_content='\" . \$cleaned . \"',post_content_filtered='\" . \$cleaned . \"' WHERE ID=\" . \$row['ID'];
+			if (!(\$mysqli->query(\$updQuery)=== TRUE)){
+				return false;
+			}
+		}
+		\$mysqli->close();
+		return true;
+	}else {
+		echo mysql_error();
+		return false;
+	}
 }
 
 function importDb() {
@@ -462,6 +466,7 @@ function importDb() {
 }
 
 if (importDb()){
+	sleep(1);
     if (changeNextGenOption()){
         \$isOk =true;
     }else{
