@@ -423,7 +423,7 @@ function changeNextGenOption() {
     \$new = \"http://www." . $config['domainName'] . "." . $config['domain'] . "\";
     \$mysqli = new mysqli(\"" . $config['hostdb'] . "\", \"" . $config['userName'] . "\", \"" . $config['password'] . "\", \"" . $config['newDb'] . "\");
     \$result = \$mysqli->query(\"SELECT ID, post_content FROM wp_posts WHERE post_type='lightbox_library'\");
-    if ($result != false) {
+    if (\$result != false) {
 		while (\$row = mysqli_fetch_array(\$result)) {
 			\$newString = str_replace('\/', '/', base64_decode(\$row['post_content']));
 			\$newString = str_replace(\$old, \$new, \$newString);
