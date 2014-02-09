@@ -23,7 +23,6 @@ class WPMigrateFile {
     function recurseCopy($src, $dst) {
         if (file_exists($dst) && is_dir($dst)) {
             $this->removeDir($dst);
-            //TODO remove return if we want to delete and recreate new folder
             return false;
         }
         if (!is_dir($src)) {

@@ -1,4 +1,42 @@
 $(document).ready(function(){
+    var loader="<img src=\"img/loading.gif\">";
+    $.ajax({
+        type: 'POST',
+        url: 'showprocess.php',
+        success: function(good) {
+            var result = JSON.parse(good);
+            if (result.num_trasfering >0 ){
+                var refreshIntervalId =setInterval(function() {
+                    $.ajax({
+                        type: 'POST',
+                        url: 'showprocess.php',
+                        success: function(res2) {
+                            var work = JSON.parse(res2);
+                            var site ="";
+                            if (work.num_trasfering >0 ){
+                                for(var i in work.sites) {
+                                    site += data[i]+"</br>";
+                                }
+                                if (!site){
+                                    $("#procmsgid").append(site);
+                                }
+                                $("#procmsgid").empty();
+                                $("#procmsgid").append(work.msg+loader);
+                            }else {
+                                $("#procmsgid").empty();
+                                clearInterval(refreshIntervalId);
+                                location.reload(true);
+                            }                            
+                        },
+                        failure: function(bad) {}
+                    });
+                }, 10000);
+                $("#procmsgid").append(result.msg+loader);
+            }
+        },
+        failure: function(bad) {}
+    });
+    
     $(".infotable").hide();
 
     $(".info").click(function(){
