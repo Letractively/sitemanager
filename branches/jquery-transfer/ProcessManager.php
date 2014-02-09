@@ -1,4 +1,5 @@
 <?php
+include_once("config.php");
 
 /*
  * To change this template, choose Tools | Templates
@@ -50,13 +51,16 @@ class ProcessManager {
 
     function updateStateAndFile($pid) {
         $toBeUpdated = $this->matchFromTraferingInDb($pid);
+        $siteToInstall=null;
         foreach ($toBeUpdated as $entry) {
             if (file_exists($entry['file'])) {
                 unlink($entry['file']);
             }
+            $siteToInstall[] = getSiteById($entry['id_site']) ;
             updateStatusForDomainForId($entry['id_site'], STATUS_TO_INSTALL);
             $this->deleteEntry($entry['id']);
         }
+        return $siteToInstall;
     }
 
     function deleteEntry($id) {
