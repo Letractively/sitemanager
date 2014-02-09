@@ -10,28 +10,8 @@
     <body>
         <?php
         include_once("config.php");
-        include_once("ProcessManager.php");
-
         $siteLocal = createLinks();
         $masterWork = $siteLocal['form'];
-        $processes = "";
-        $processRunning = new ProcessManager();
-        $proces = $processRunning->getAllFtpProcessRunning("WinSCP.com");
-        $pids = array();
-        if (!empty($proces)) {
-            foreach ($proces as $task) {
-                $parts = preg_split('/\s+/', $task);
-                $pids[] = $parts[1];
-                $processes .=$task . "</br>";
-            }
-        }
-        $processRunning->updateStateAndFile($pids);
-        if ($processes != "") {
-            if (DEBUG) {
-                echo $processes;
-            }
-            echo "</br><b>Traferimento in corso...</br><a href=\"\">Ricarica</a> (magari ha finito)</b>";
-        }
         if (isset($_POST['nome']) && isset($_POST['tipo']) && validateInput($_POST['nome'])) {
             $result = migrate($_POST['tipo'], $_POST['nome'], $masterWork[$_POST['tipo']]);
             if (!$result) {
@@ -47,6 +27,7 @@
             }
         }
         ?>
+        <div class="procmsg" id="procmsgid"></div>
         <table>
             <tr>
                 <td style="vertical-align:top"><?php echo $siteLocal['all']; ?></td>
