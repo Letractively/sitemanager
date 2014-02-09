@@ -72,7 +72,6 @@ class FtpUploader {
                 $WshShell = new COM("WScript.Shell");
                 $oExec = $WshShell->exec($command);
                 $this->pid = ( $oExec->ProcessID );
-//                pclose(popen("start  /B cmd /S /C \"" . $command . "\"", "r"));
             } else {
                 exec($command . " > /dev/null &", $output, $return_var);
             }
@@ -85,7 +84,6 @@ class FtpUploader {
                 echo $line . "\n</br>";
             }
         }
-//        unlink($this->scriptFile);
         if ($this->insertProcessRunning()) {
             header('Location: index.php');
         }
