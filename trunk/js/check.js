@@ -42,7 +42,7 @@ function validateSubscription(){
     }else if (pwd==null || pwd=="" || hasWhiteSpace(pwd)){
         alert("Inserisci/correggi la password del db");
         result= false;
-    }else if (hostdb==null || hostdb=="" || hasWhiteSpace(hostdb)|| ValidateIPaddress(hostdb)){
+    }else if (hostdb==null || hostdb=="" || hasWhiteSpace(hostdb)|| !ValidateIPaddress(hostdb)){
         alert("Inserisci/correggi l\'host del db");
         result= false;
     }else if (domain==null || domain=="" || hasWhiteSpace(domain)){
@@ -59,11 +59,9 @@ function validateSubscription(){
 }
 
 function ValidateIPaddress(ipaddress){
-    var rE = new RegExp("/^(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/");
-    if (rE.test(ipaddress))  {  
+    if (/^(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/.test(ipaddress))  {  
         return (true)  
     }  
-    alert("L\'indirizzo del DB è sbagliato")  
     return (false)  
 }
 
