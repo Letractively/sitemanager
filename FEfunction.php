@@ -233,7 +233,7 @@ function insertNewCreatedSiteInDb($newSite, $clientId, $source) {
 function backToStatToTransfer($id) {
     $con = mysql_connect(MYSQL_HOST, MYSQL_USER_NAME, MYSQL_PASSWORD);
     $sql = "UPDATE " . DB_SITEMANAGER_NAME . ".sm_prodotti SET
-        status = " . STATUS_TO_TRANSFER . ",
+        status = " . STATUS_WORKING . ",
         upd = '" . date("Y-m-d H:i:s") . "'
     WHERE sm_prodotti.id ='" . $id . "';";
     if (!mysql_query($sql, $con)) {

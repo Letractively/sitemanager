@@ -15,8 +15,8 @@ function validateForm() {
         result= false;
     }
 
-   checkjquery(s);
-   return result;
+    checkjquery(s);
+    return result;
 }
 
 function validateSubscription(){
@@ -42,7 +42,7 @@ function validateSubscription(){
     }else if (pwd==null || pwd=="" || hasWhiteSpace(pwd)){
         alert("Inserisci/correggi la password del db");
         result= false;
-    }else if (hostdb==null || hostdb=="" || hasWhiteSpace(hostdb)){
+    }else if (hostdb==null || hostdb=="" || hasWhiteSpace(hostdb)|| ValidateIPaddress(hostdb)){
         alert("Inserisci/correggi l\'host del db");
         result= false;
     }else if (domain==null || domain=="" || hasWhiteSpace(domain)){
@@ -58,8 +58,17 @@ function validateSubscription(){
     return result;
 }
 
+function ValidateIPaddress(ipaddress){
+    var rE = new RegExp("/^(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/");
+    if (rE.test(ipaddress))  {  
+        return (true)  
+    }  
+    alert("L\'indirizzo del DB è sbagliato")  
+    return (false)  
+}
+
 function checkjquery(s) {
-    //TODO: jquery per vedere se esiste sito o db
+//TODO: jquery per vedere se esiste sito o db
 }
 
 function isAWord(s) {
