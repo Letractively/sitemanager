@@ -67,20 +67,20 @@ Dominio sito: http://www.<input type=\"text\" name=\"domainname\" value=\"" . $s
                 isset($_POST['sourceid'])) {
             $datenow = DateTime::createFromFormat('d/m/Y', $_POST['dataacqui']);
             $input['dataacqui'] = $datenow->format('Y-m-d');
-            $input['email'] = $_POST['email'];
-            $input['ftphost'] = $_POST['ftphost'];
-            $input['ftpusername'] = $_POST['ftpusername'];
-            $input['ftppwd'] = $_POST['ftppwd'];
-            $input['newDb'] = $_POST['db'];
-            $input['userName'] = $_POST['username'];
-            $input['password'] = $_POST['pwd'];
-            $input['hostdb'] = $_POST['hostdb'];
+            $input['email'] = trim ($_POST['email']);
+            $input['ftphost'] = trim ($_POST['ftphost']);
+            $input['ftpusername'] = trim ($_POST['ftpusername']);
+            $input['ftppwd'] = trim ($_POST['ftppwd']);
+            $input['newDb'] = trim ($_POST['db']);
+            $input['userName'] = trim ($_POST['username']);
+            $input['password'] = trim ($_POST['pwd']);
+            $input['hostdb'] = trim ($_POST['hostdb']);
             if (isset($_POST['secondsubdomain']) && $_POST['secondsubdomain'] != "") {
-                $input['domain'] = $_POST['domain'] . '/' . $_POST['secondsubdomain'];
+                $input['domain'] = trim ($_POST['domain'] . '/' . $_POST['secondsubdomain']);
             } else {
-                $input['domain'] = $_POST['domain'];
+                $input['domain'] = trim ($_POST['domain']);
             }
-            $input['domainName'] = $_POST['domainname'];
+            $input['domainName'] =trim ( $_POST['domainname']);
             if (moveToRelease($_POST['sourceid'], $_POST['source'], $input)) {
                 header("Location: index.php");
             }
