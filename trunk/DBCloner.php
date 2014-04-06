@@ -157,7 +157,7 @@ class DBCloner {
         if ($isLocal) {
             $content = str_replace($this->sourcename, $this->destName, $content);
         } else {
-            $content = str_replace("http://localhost/" . $this->sourcename, $this->destName, $content);
+            $content = str_replace("http://".DOMAIN_URL_BASE."/" . $this->sourcename, $this->destName, $content);
         }
         $pathTobeRemoved =  str_replace ( "\\" ,"/" ,dirname(BASE_PATH.$this->sourcename ."\\index.php")."\\");
         $content = str_replace($pathTobeRemoved, "", $content);
