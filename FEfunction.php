@@ -22,7 +22,7 @@ function createLinks() {
             $basename = basename($file);
             $dbConfigFile = BASE_PATH . $basename . DIRECTORY_SEPARATOR . "wp-config.php";
             $result.= "<tr>
-<td><a href=\"http://localhost/" . $basename . "\" target=\"_blank\">" . $basename . "</a></td>
+<td><a href=\"http://".DOMAIN_URL_BASE."/" . $basename . "\" target=\"_blank\">" . $basename . "</a></td>
 </tr>
 ";
             if (file_exists($dbConfigFile)) {
@@ -63,7 +63,7 @@ function siteWorkInProgress() {
 ";
         foreach ($files as $file) {
             $result.= "<tr>
-<td><input type=\"radio\" name=\"sites\" value=\"" . $file['id'] . "\"><a href=\"http://localhost/" . $file['nome'] . "\" target=\"_blank\">" . $file['nome'] . "</a></td>
+<td><input type=\"radio\" name=\"sites\" value=\"" . $file['id'] . "\"><a href=\"http://".DOMAIN_URL_BASE."/" . $file['nome'] . "\" target=\"_blank\">" . $file['nome'] . "</a></td>
 </tr>
 ";
         }
@@ -419,7 +419,7 @@ function writeInstaller($config, $source) {
 set_time_limit (PHP_INT_MAX);
 
 function changeNextGenOption() {
-    \$old = array(\"http://localhost/" . $source . "\", \"http://localhost/master_easy\", \"http://localhost/mybpa\");
+    \$old = array(\"http://".DOMAIN_URL_BASE."/" . $source . "\", \"http://".DOMAIN_URL_BASE."/master_easy\", \"http://".DOMAIN_URL_BASE."/mybpa\");
     \$new = \"http://www." . $config['domainName'] . "." . $config['domain'] . "\";
     \$mysqli = new mysqli(\"" . $config['hostdb'] . "\", \"" . $config['userName'] . "\", \"" . $config['password'] . "\", \"" . $config['newDb'] . "\");
     \$result = \$mysqli->query(\"SELECT ID, post_content FROM wp_posts WHERE post_type='lightbox_library'\");
