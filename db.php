@@ -1,4 +1,8 @@
 <?php
+
+//TODO: il file da prendere e il nome del db da prendere
+//oltre che i controlli di sicureza e verifica
+
 if (isset($_POST['f']) && $_POST['f'] = 'i') {
     include_once("config.php");
     $mysqlImportFilename = "";
