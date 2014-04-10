@@ -64,7 +64,7 @@ function siteWorkInProgress() {
         foreach ($files as $file) {
             $result.= "<tr>
 <td><input type=\"radio\" name=\"sites\" value=\"" . $file['id'] . "\"><a href=\"http://".DOMAIN_URL_BASE."/" . $file['nome'] . "\" target=\"_blank\">" . $file['nome'] . "</a></td>
-</tr>
+<td><a href=\"commit.php?id=".$file['id']."\">commit</a></td></tr>
 ";
         }
         $result.="</table>
