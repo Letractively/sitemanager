@@ -7,9 +7,9 @@ include_once("../DBCloner.php");
  * and open the template in the editor.
  */
 
-$nomeSitoLocale = "ideagiardinosrlroma2";
-$nomesitoRemoto = "http://www.meloshpub.it/testme";
-$nomeFile ="C:\Users\Miro\Documents\Desktop\db_ideagiardinosrlroma2.sql";
+$nomeSitoLocale = "cyberaudio";
+$nomesitoRemoto = "http://mirobarsa.dyndns.org/cyberaudio";
+$nomeFile ="C:\Users\Miro\Documents\Desktop\db_cyberaudio.sql";
 
 $db = new DBCloner("db_" . $nomeSitoLocale, MYSQL_USER_NAME, MYSQL_PASSWORD, MYSQL_HOST, null, $nomeSitoLocale, $nomesitoRemoto);
 $db->migrateDbFiles($nomeFile,false);
