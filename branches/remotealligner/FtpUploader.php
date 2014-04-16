@@ -1,5 +1,5 @@
 <?php
-
+include_once("Executer.php");
 /*
  * To change this template, choose Tools | Templates
  * and open the template in the editor.
@@ -64,6 +64,7 @@ class FtpUploader {
     function uploadUsingScript($background = false) {
         $winScpPath = __DIR__ . DIRECTORY_SEPARATOR . "bin" . DIRECTORY_SEPARATOR . "WinSCP.com";
         $command = $winScpPath . " /script=\"" . $this->scriptFile . "\"";
+        //$this->exec->execute($command);
         if (DEBUG) {
             echo $command . "</br>";
         }
@@ -83,7 +84,7 @@ class FtpUploader {
             foreach ($output as $line) {
                 echo $line . "\n</br>";
             }
-        }
+    }
         if ($this->insertProcessRunning()) {
             header('Location: index.php');
         }
