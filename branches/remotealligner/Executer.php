@@ -11,9 +11,10 @@
  * @author Miro
  */
 class Executer {
+    public $pid;
     
-    function execute($command){
-         if (DEBUG) {
+    function execute($command) {
+        if (DEBUG) {
             echo $command . "</br>";
         }
         if (substr(php_uname(), 0, 7) == "Windows") {
@@ -22,8 +23,9 @@ class Executer {
             $this->pid = ( $oExec->ProcessID );
         } else {
             exec($command . " > /dev/null &", $output, $return_var);
-        }        
+        }
     }
+
 }
 
 ?>

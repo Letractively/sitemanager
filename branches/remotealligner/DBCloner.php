@@ -45,26 +45,23 @@ class DBCloner {
     }
 
     public function cleanAndClose() {
-        if (!unlink($this->mysqlImportFilename)) {
-            $this->errormsg .= "<br/>Impossibile cancellare il file temporaneo " . $this->mysqlImportFilename;
-        }
         if ($this->con != null) {
             mysql_close($this->con);
         }
     }
 
-    private function fixLength($match) {
-        $temp = intval(strlen($match[2]));
-        $result = 's:' . $temp . ':"' . $match[2] . '";';
-        return $result;
-    }
-
     function recursive_unserialize_replace($data, $key = null) {
         if (is_string($data) && ( $unserialized = @unserialize($data) ) === false) {
-            $data = html_entity_decode($data, ENT_QUOTES, 'UTF-8');
-            $data = preg_replace_callback('/s:(\d+):"(.*?)";/', array(&$this, 'fixLength'), $data);
+            $data = str_replace("'","\'",html_entity_decode($data, ENT_QUOTES, 'UTF-8'));
+            $data = preg_replace_callback('/s:(\d+):"(.*?)";/', function ($match) {
+                    $temp = intval(strlen($match[2]));
+                    $result = 's:' . $temp . ':"' . $match[2] . '";';
+                    return $result;
+                }, $data);
         }
-        $obj = unserialize($data);
+        if (DEBUG &&( $unserialized = @unserialize($data) ) === false) {
+            echo $data."</br>";
+        }
         return $data;
     }
 
@@ -105,7 +102,7 @@ class DBCloner {
     }
 
     function migrate($isLocal = true) {
-        $this->mysqlImportFilename = $this->mysqldumpOfDb("tmp");
+        $this->mysqlImportFilename = $this->mysqldumpOfDb(BASE_PATH . $this->destName . DIRECTORY_SEPARATOR, $this->mysqlDatabaseNameNew . ".sql");
         $sql = "CREATE DATABASE " . $this->mysqlDatabaseNameNew;
         if (!mysql_query($sql, $this->con)) {
             $this->errormsg .= "Could not create db " . $this->mysqlDatabaseNameNew . " " . mysql_error();

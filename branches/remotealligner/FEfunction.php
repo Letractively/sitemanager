@@ -5,6 +5,7 @@ include_once("HtAccessMigrate.php");
 include_once("WPMigrateFile.php");
 include_once("DBCloner.php");
 include_once("FtpUploader.php");
+include_once("SubversionWrapper.php");
 
 ini_set("memory_limit", "256M");
 
@@ -22,7 +23,7 @@ function createLinks() {
             $basename = basename($file);
             $dbConfigFile = BASE_PATH . $basename . DIRECTORY_SEPARATOR . "wp-config.php";
             $result.= "<tr>
-<td><a href=\"http://".DOMAIN_URL_BASE."/" . $basename . "\" target=\"_blank\">" . $basename . "</a></td>
+<td><a href=\"http://" . DOMAIN_URL_BASE . "/" . $basename . "\" target=\"_blank\">" . $basename . "</a></td>
 </tr>
 ";
             if (file_exists($dbConfigFile)) {
@@ -63,8 +64,8 @@ function siteWorkInProgress() {
 ";
         foreach ($files as $file) {
             $result.= "<tr>
-<td><input type=\"radio\" name=\"sites\" value=\"" . $file['id'] . "\"><a href=\"http://".DOMAIN_URL_BASE."/" . $file['nome'] . "\" target=\"_blank\">" . $file['nome'] . "</a></td>
-<td><a href=\"commit.php?id=".$file['id']."\">commit</a></td></tr>
+<td><input type=\"radio\" name=\"sites\" value=\"" . $file['id'] . "\"><a href=\"http://" . DOMAIN_URL_BASE . "/" . $file['nome'] . "\" target=\"_blank\">" . $file['nome'] . "</a></td>
+<td><a href=\"commit.php?id=" . $file['id'] . "\">commit</a></td></tr>
 ";
         }
         $result.="</table>
@@ -348,10 +349,7 @@ function moveToRelease($id, $source, $newConfig) {
     $htaAcces = new HtAccessMigrate("http://www." . $newConfig['domainName'] . "." . $newConfig['domain'], $source);
     $htaAcces->changeHtAccess(false);
     $fileToMove[] = $htaAcces->getFileName();
-//  Comment: not create zip file, is useless due to permission aruba problem
-//  Zip(BASE_PATH . $source, $archiveFile);
     $fileToMove[] = writeInstaller($newConfig, $source);
-//  allFileToMove(BASE_PATH_RELEASE . DIRECTORY_SEPARATOR . $source, $fileToMove);
     return updateStatusSiteInDb($id, $newConfig);
 }
 
@@ -419,7 +417,7 @@ function writeInstaller($config, $source) {
 set_time_limit (PHP_INT_MAX);
 
 function changeNextGenOption() {
-    \$old = array(\"http://".DOMAIN_URL_BASE."/" . $source . "\", \"http://".DOMAIN_URL_BASE."/master_easy\", \"http://".DOMAIN_URL_BASE."/mybpa\");
+    \$old = array(\"http://" . DOMAIN_URL_BASE . "/" . $source . "\", \"http://" . DOMAIN_URL_BASE . "/master_easy\", \"http://" . DOMAIN_URL_BASE . "/mybpa\");
     \$new = \"http://www." . $config['domainName'] . "." . $config['domain'] . "\";
     \$mysqli = new mysqli(\"" . $config['hostdb'] . "\", \"" . $config['userName'] . "\", \"" . $config['password'] . "\", \"" . $config['newDb'] . "\");
     \$result = \$mysqli->query(\"SELECT ID, post_content FROM wp_posts WHERE post_type='lightbox_library'\");
@@ -505,6 +503,14 @@ if (\$isOk){
  */
 function migrate($source, $newSite, $mysqlDatabaseName) {
     set_time_limit(60000);
+    $fileCloner = new WPMigrateFile(BASE_PATH . $source, BASE_PATH . $newSite);
+    if (!$fileCloner->cloneSite()) {
+        echo $fileCloner->errorMsg . "</br>";
+        return false;
+    }
+    $fileCloner->changeWpconfig($mysqlDatabaseName, "db_" . $newSite);
+    $htaAcces = new HtAccessMigrate($newSite, $source);
+    $htaAcces->changeHtAccess(true);
     $dbCloner = new DBCloner($mysqlDatabaseName, MYSQL_USER_NAME, MYSQL_PASSWORD, MYSQL_HOST, "db_" . $newSite, $source, $newSite);
     if (!$dbCloner->migrate(true)) {
         echo $dbCloner->errormsg . "</br>";
@@ -513,16 +519,9 @@ function migrate($source, $newSite, $mysqlDatabaseName) {
     if (!DEBUG) {
         $dbCloner->cleanAndClose();
     }
-    $fileCloner = new WPMigrateFile(BASE_PATH . $source, BASE_PATH . $newSite);
-    if (!$fileCloner->cloneSite()) {
-        echo $fileCloner->errorMsg . "</br>";
-        return false;
-    }
-
-    $fileCloner->changeWpconfig($mysqlDatabaseName, "db_" . $newSite);
-    $htaAcces = new HtAccessMigrate($newSite, $source);
-    $htaAcces->changeHtAccess(true);
     insertNewCreatedSiteInDb($newSite, null, $source);
+    $svn = new SubversionWrapper($newSite, SVN_USER, SVN_PASSWORD);
+    $svn->createRepo();
     return true;
 }
 
