@@ -60,12 +60,16 @@ function siteWorkInProgress() {
 <table border =1>";
         $result.= "<tr>
 <td>Siti da pubblicare<br/>(selezionare una volta comprato il dominio)</td>
+<td>&nbsp;</td>
+<td>&nbsp;</td>
 </tr>
 ";
         foreach ($files as $file) {
             $result.= "<tr>
 <td><input type=\"radio\" name=\"sites\" value=\"" . $file['id'] . "\"><a href=\"http://" . DOMAIN_URL_BASE . "/" . $file['nome'] . "\" target=\"_blank\">" . $file['nome'] . "</a></td>
-<td><a href=\"commit.php?id=" . $file['id'] . "\">commit</a></td></tr>
+<td><a href=\"commit.php?id=" . $file['id'] . "\">commit</a></td>
+<td><a href=\"\">delete</a></td>
+</tr>
 ";
         }
         $result.="</table>
@@ -351,19 +355,6 @@ function moveToRelease($id, $source, $newConfig) {
     $fileToMove[] = $htaAcces->getFileName();
     $fileToMove[] = writeInstaller($newConfig, $source);
     return updateStatusSiteInDb($id, $newConfig);
-}
-
-function allFileToMove($destPath, $fileToMove) {
-    if (!file_exists(BASE_PATH_RELEASE) || (file_exists(BASE_PATH_RELEASE) && !is_dir(BASE_PATH_RELEASE))) {
-        mkdir(BASE_PATH_RELEASE);
-    }
-    if (!file_exists($destPath) || (file_exists($destPath) && !is_dir($destPath))) {
-        mkdir($destPath);
-    }
-    $tempBaseName = BASE_PATH_RELEASE . basename($destPath) . DIRECTORY_SEPARATOR;
-    foreach ($fileToMove as $thisfile) {
-        rename($thisfile, $tempBaseName . basename($thisfile));
-    }
 }
 
 function Zip($source, $destination) {

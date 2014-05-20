@@ -64,27 +64,14 @@ class FtpUploader {
     function uploadUsingScript($background = false) {
         $winScpPath = __DIR__ . DIRECTORY_SEPARATOR . "bin" . DIRECTORY_SEPARATOR . "WinSCP.com";
         $command = $winScpPath . " /script=\"" . $this->scriptFile . "\"";
-        //$this->exec->execute($command);
         if (DEBUG) {
             echo $command . "</br>";
         }
-        if ($background) {
-            if (substr(php_uname(), 0, 7) == "Windows") {
-                $WshShell = new COM("WScript.Shell");
-                $oExec = $WshShell->exec($command);
-                $this->pid = ( $oExec->ProcessID );
-            } else {
-                exec($command . " > /dev/null &", $output, $return_var);
-            }
-        } else {
-            set_time_limit(PHP_INT_MAX);
-            exec($command, $output, $return_var);
+        $ex = new Executer();
+        $ex->execute($command,$background);
+        if (count($ex->getOutput())>0) {
+            print_r($ex->getOutput());
         }
-        if (isset($output)) {
-            foreach ($output as $line) {
-                echo $line . "\n</br>";
-            }
-    }
         if ($this->insertProcessRunning()) {
             header('Location: index.php');
         }

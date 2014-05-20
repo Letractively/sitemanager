@@ -52,19 +52,19 @@ class SubversionWrapper {
 
     function committAll($message) {
         $command = "svn add --force " . BASE_PATH . $this->repos . "\* --auto-props --parents --depth infinity -q";
-        $this->exec->execute($command);
+        $this->exec->execute($command,false);
         $command = "svn commit " . BASE_PATH . $this->repos . " -m \"" . $message . "\"";
-        $this->exec->execute($command);
+        $this->exec->execute($command,false);
     }
 
     function updateAll() {
         $command = "svn update";
-        $this->exec->execute($command);
+        $this->exec->execute($command,false);
     }
 
     function checkout() {
-        $command = "svn co http://" . SVN_SERVER . "/svn/" . $this->repos . " " . BASE_PATH . $this->repos;
-        $this->exec->execute($command);
+        $command = "svn co http://" . SVN_SERVER . "/svn/" . $this->repos . " " . BASE_PATH . $this->repos." --username ".SVN_USER." --password ".SVN_PASSWORD;
+        $this->exec->execute($command,false);
     }
 
     function createRepo() {
@@ -77,10 +77,14 @@ class SubversionWrapper {
         curl_setopt($ch, CURLOPT_URL, $url);
         curl_setopt($ch, CURLOPT_USERAGENT, $useragent);
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-        curl_setopt($ch, CURLOPT_USERPWD, SVN_USER . ":" . SVN_PASSWORD);
+        curl_setopt($ch, CURLOPT_USERPWD, SVN_USER_ADMIN . ":" . SVN_PASSWORD_ADMIN);
         curl_setopt($ch, CURLOPT_HTTPAUTH, CURLAUTH_BASIC);
         $result = curl_exec($ch);
         $info = curl_getinfo($ch);
+        if (DEBUG){
+            echo $result."\n</br>";
+            print_r($info)."\n</br>";
+        }
         curl_close($ch);
         $this->checkout();
         $this->committAll("first import " . $this->repos);
@@ -96,7 +100,7 @@ class SubversionWrapper {
             curl_setopt($ch, CURLOPT_URL, $url);
             curl_setopt($ch, CURLOPT_USERAGENT, $useragent);
             curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-            curl_setopt($ch, CURLOPT_USERPWD, SVN_USER . ":" . SVN_PASSWORD);
+            curl_setopt($ch, CURLOPT_USERPWD, SVN_USER_ADMIN . ":" . SVN_PASSWORD_ADMIN);
             curl_setopt($ch, CURLOPT_HTTPAUTH, CURLAUTH_BASIC);
             $result = curl_exec($ch);
             $info = curl_getinfo($ch);
