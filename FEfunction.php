@@ -67,8 +67,8 @@ function siteWorkInProgress() {
         foreach ($files as $file) {
             $result.= "<tr>
 <td><input type=\"radio\" name=\"sites\" value=\"" . $file['id'] . "\"><a href=\"http://" . DOMAIN_URL_BASE . "/" . $file['nome'] . "\" target=\"_blank\">" . $file['nome'] . "</a></td>
-<td><a href=\"commit.php?id=" . $file['id'] . "\">commit</a></td>
-<td><a href=\"\">delete</a></td>
+<td><a href=\"svnwrp.php?id=" . $file['id'] . "&f=c\">commit</a></td>
+<td><a href=\"svnwrp.php?id=" . $file['id'] . "&f=u\">update</a></td>
 </tr>
 ";
         }
@@ -513,6 +513,7 @@ function migrate($source, $newSite, $mysqlDatabaseName) {
     insertNewCreatedSiteInDb($newSite, null, $source);
     $svn = new SubversionWrapper($newSite, SVN_USER, SVN_PASSWORD);
     $svn->createRepo();
+    $svn->committAll("First import");
     return true;
 }
 
