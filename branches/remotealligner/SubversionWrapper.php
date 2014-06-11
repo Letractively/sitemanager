@@ -54,11 +54,11 @@ class SubversionWrapper {
         $command = "svn add --force " . BASE_PATH . $this->repos . "\* --auto-props --parents --depth infinity -q";
         $this->exec->execute($command,false);
         $command = "svn commit " . BASE_PATH . $this->repos . " -m \"" . $message . "\"";
-        $this->exec->execute($command,false);
+        $this->exec->execute($command,true);
     }
 
     function updateAll() {
-        $command = "svn update";
+        $command = "svn update " . BASE_PATH . $this->repos;
         $this->exec->execute($command,false);
     }
 
@@ -87,7 +87,6 @@ class SubversionWrapper {
         }
         curl_close($ch);
         $this->checkout();
-        $this->committAll("first import " . $this->repos);
     }
 
     function deleteRepo() {
