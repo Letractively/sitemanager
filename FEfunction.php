@@ -54,7 +54,8 @@ function createFormForNewSite($arrayOfDbSite) {
 function siteWorkInProgress() {
     $files = getSitesByState(STATUS_WORKING);
     $result = "";
-
+    $svnCli = new SubversionWrapper(null, SVN_USER, SVN_PASSWORD);
+    $reposAtServer = $svnCli->listAllRepo();
     if ($files != null && count($files) > 0) {
         $result.="<form  method=\"post\" name=\"newsite\" action=\"publish.php\">
 <table border =1>";
@@ -66,11 +67,20 @@ function siteWorkInProgress() {
 ";
         foreach ($files as $file) {
             $result.= "<tr>
-<td><input type=\"radio\" name=\"sites\" value=\"" . $file['id'] . "\"><a href=\"http://" . DOMAIN_URL_BASE . "/" . $file['nome'] . "\" target=\"_blank\">" . $file['nome'] . "</a></td>
-<td><a href=\"svnwrp.php?id=" . $file['id'] . "&f=c\">commit</a></td>
-<td><a href=\"svnwrp.php?id=" . $file['id'] . "&f=u\">update</a></td>
-</tr>
+<td><input type=\"radio\" name=\"sites\" value=\"" . $file['id'] . "\"><a href=\"http://" . DOMAIN_URL_BASE . "/" . $file['nome'] . "\" target=\"_blank\">" . $file['nome'] . "</a></td>";
+            if (($key = array_search($file['nome'], $reposAtServer))!== false ) {
+                $result.="<td><a href=\"svnwrp.php?id=" . $file['id'] . "&f=c\">commit</a></td>
+<td><a href=\"svnwrp.php?id=" . $file['id'] . "&f=u\">update</a></td>";
+               unset($reposAtServer[$key]);
+            } else {
+                $result.="<td>&nbsp;</td>
+<td>&nbsp;</td>";
+            }
+            $result.="</tr>
 ";
+        }
+        foreach($reposAtServer as $repo){
+            $result.= "<tr><td colspan=\"3\">Il sito ".$repo." presente solo in remoto</td></tr>";
         }
         $result.="</table>
 <input type=\"submit\" value=\"Prepara per la publicazione\">
