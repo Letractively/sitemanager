@@ -107,7 +107,7 @@ class SubversionWrapper {
         }
         curl_close($ch);
         $resAsArray = json_decode($result,true);
-        if ($resAsArray["return_var"] == 0) {
+        if ($resAsArray["return_var"] == 0 && isset($resAsArray["output"])) {
             return $resAsArray["output"];
         }
     }
