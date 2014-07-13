@@ -30,9 +30,11 @@ class WPMigrateFile {
             return false;
         }
         $dir = opendir($src);
-        if (!mkdir($dst)) {
-            $this->errorMsg .= "Could not create dir " . $dst;
-            return false;
+        if (strpos($dst,'.svn') === false) {
+            if (!mkdir($dst)) {
+                $this->errorMsg .= "Could not create dir " . $dst;
+                return false;
+            }
         }
         while (false !== ( $file = readdir($dir))) {
             if (( $file != '.' ) && ( $file != '..' )) {
@@ -51,7 +53,7 @@ class WPMigrateFile {
     }
 
     function changeWpconfig($searchFor, $replaceWith) {
-        $wpConfigFile = $this->destPath . DIRECTORY_SEPARATOR."wp-config.php";
+        $wpConfigFile = $this->destPath . DIRECTORY_SEPARATOR . "wp-config.php";
         $file = file_get_contents($wpConfigFile);
         if ($file) {
             $file = str_replace($searchFor, $replaceWith, $file);
@@ -66,16 +68,16 @@ class WPMigrateFile {
     }
 
     function switchConfigFile($fileToSwitchup, $backName = null) {
-        if (file_exists($this->destPath . DIRECTORY_SEPARATOR. $fileToSwitchup) && is_file($this->destPath . DIRECTORY_SEPARATOR . $fileToSwitchup)) {
+        if (file_exists($this->destPath . DIRECTORY_SEPARATOR . $fileToSwitchup) && is_file($this->destPath . DIRECTORY_SEPARATOR . $fileToSwitchup)) {
             if ($backName != null && $backName != "") {
-                $file = file_get_contents($this->destPath . DIRECTORY_SEPARATOR."wp-config.php");
-                $fh = fopen($this->destPath . DIRECTORY_SEPARATOR. $backName, 'w');
+                $file = file_get_contents($this->destPath . DIRECTORY_SEPARATOR . "wp-config.php");
+                $fh = fopen($this->destPath . DIRECTORY_SEPARATOR . $backName, 'w');
                 if (fwrite($fh, $file) === false) {
                     echo "Cannot write to file ($backName)<br>";
                 }
                 fclose($fh);
             }
-            if (!rename($this->destPath . DIRECTORY_SEPARATOR. $fileToSwitchup, $this->destPath . DIRECTORY_SEPARATOR."wp-config.php")) {
+            if (!rename($this->destPath . DIRECTORY_SEPARATOR . $fileToSwitchup, $this->destPath . DIRECTORY_SEPARATOR . "wp-config.php")) {
                 echo "Cannot switch to file (" . $fileToSwitchup . ")<br>";
             }
         }
@@ -83,8 +85,8 @@ class WPMigrateFile {
 
     function createReleaseConfigAndBckpLocal($newConfig) {
         $sitenameOld = basename($this->sourcePath);
-        $wpConfigFile = $this->destPath . DIRECTORY_SEPARATOR."wp-config.php";
-        $wpConfigFileLocale = $this->destPath . DIRECTORY_SEPARATOR."wp-config-locale.php";
+        $wpConfigFile = $this->destPath . DIRECTORY_SEPARATOR . "wp-config.php";
+        $wpConfigFileLocale = $this->destPath . DIRECTORY_SEPARATOR . "wp-config-locale.php";
         $file = file_get_contents($wpConfigFile);
         $fh = fopen($wpConfigFileLocale, 'w');
         if (fwrite($fh, $file) === false) {

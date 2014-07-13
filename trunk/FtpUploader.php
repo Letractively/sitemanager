@@ -1,5 +1,5 @@
 <?php
-
+include_once("Executer.php");
 /*
  * To change this template, choose Tools | Templates
  * and open the template in the editor.
@@ -67,22 +67,10 @@ class FtpUploader {
         if (DEBUG) {
             echo $command . "</br>";
         }
-        if ($background) {
-            if (substr(php_uname(), 0, 7) == "Windows") {
-                $WshShell = new COM("WScript.Shell");
-                $oExec = $WshShell->exec($command);
-                $this->pid = ( $oExec->ProcessID );
-            } else {
-                exec($command . " > /dev/null &", $output, $return_var);
-            }
-        } else {
-            set_time_limit(PHP_INT_MAX);
-            exec($command, $output, $return_var);
-        }
-        if (isset($output)) {
-            foreach ($output as $line) {
-                echo $line . "\n</br>";
-            }
+        $ex = new Executer();
+        $ex->execute($command,$background);
+        if (count($ex->getOutput())>0) {
+            print_r($ex->getOutput());
         }
         if ($this->insertProcessRunning()) {
             header('Location: index.php');

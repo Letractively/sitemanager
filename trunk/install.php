@@ -6,9 +6,7 @@ if (!file_exists($configFileName)) {
     $fp = fopen($configFileName, 'w');
     $configString = "<?php
 define(\"BASE_PATH\",\"D:\\wamp\\www\\\");
-define(\"BASE_PATH_RELEASE\",\"D:\\wamp\\www\\release\\\");
 define(\"MYSQL_BIN_BASE_PATH\",\"D:\\wamp\\bin\\mysql\\mysql5.1.36\\bin\\\");
-define(\"RELASE_BASE_PATH\",\"D:\\wamp\\www\\release\\\");
 define(\"MYSQL_USER_NAME\",\"root\");
 define(\"MYSQL_PASSWORD\",\"\");
 define(\"MYSQL_HOST\",\"localhost\");
