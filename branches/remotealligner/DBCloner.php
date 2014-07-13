@@ -100,14 +100,19 @@ class DBCloner {
             return false;
         }
     }
-
-    function migrate($isLocal = true) {
-        $this->mysqlImportFilename = $this->mysqldumpOfDb(BASE_PATH . $this->destName . DIRECTORY_SEPARATOR, $this->mysqlDatabaseNameNew . ".sql");
+    
+    function createDb(){
         $sql = "CREATE DATABASE " . $this->mysqlDatabaseNameNew;
         if (!mysql_query($sql, $this->con)) {
             $this->errormsg .= "Could not create db " . $this->mysqlDatabaseNameNew . " " . mysql_error();
             return false;
         }
+    }
+    
+    
+    function migrate($isLocal = true) {
+        $this->mysqlImportFilename = $this->mysqldumpOfDb(BASE_PATH . $this->destName . DIRECTORY_SEPARATOR, $this->mysqlDatabaseNameNew . ".sql");
+        $this->createDb();
 
         $sql = "USE " . $this->mysqlDatabaseNameNew;
         if (!mysql_query($sql, $this->con)) {

@@ -13,6 +13,17 @@ if (isset($_GET['id']) && $_GET['id'] != "") {
         $db->setMysqlImportFilename("db_" . $siteData['nome'] . ".sql");
         $db->importFile();
     }
-    header('Location: index.php');
+} else if (isset($_GET['n']) && $_GET['n'] != "") {
+    include_once("config.php");
+    $name = $_GET['n'];
+    insertNewCreatedSiteInDb($name, 0, "");
+    mkdir(BASE_PATH.$name);
+    $svnCli = new SubversionWrapper($name, SVN_USER, SVN_PASSWORD);
+    $svnCli->checkout();
+    $db = new DBCloner("db_" . $name, MYSQL_USER_NAME, MYSQL_PASSWORD, MYSQL_HOST, "db_" . $name, $name, null);
+    $db->createDb();
+    $db->setMysqlImportFilename(BASE_PATH.$name.DIRECTORY_SEPARATOR."db_" . $name . ".sql");
+    $db->importFile();
 }
+header('Location: index.php');
 ?>
