@@ -68,7 +68,7 @@ function siteWorkInProgress() {
         foreach ($files as $file) {
             $result.= "<tr>
 <td><input type=\"radio\" name=\"sites\" value=\"" . $file['id'] . "\"><a href=\"http://" . DOMAIN_URL_BASE . "/" . $file['nome'] . "\" target=\"_blank\">" . $file['nome'] . "</a></td>";
-            if (($key = array_search($file['nome'], $reposAtServer))!== false ) {
+            if ($reposAtServer!= null && ($key = array_search($file['nome'], $reposAtServer))!== false ) {
                 $result.="<td><a href=\"svnwrp.php?id=" . $file['id'] . "&f=c\">commit</a></td>
 <td><a href=\"svnwrp.php?id=" . $file['id'] . "&f=u\">update</a></td>";
                unset($reposAtServer[$key]);
@@ -79,9 +79,11 @@ function siteWorkInProgress() {
             $result.="</tr>
 ";
         }
+		if ($reposAtServer!= null) {
         foreach($reposAtServer as $repo){
             $result.= "<tr><td colspan=\"3\">Il sito ".$repo." presente solo in remoto</td></tr>";
         }
+		}
         $result.="</table>
 <input type=\"submit\" value=\"Prepara per la publicazione\">
 </form>";
