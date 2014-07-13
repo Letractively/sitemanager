@@ -10,8 +10,9 @@ if (isset($_GET['id']) && $_GET['id'] != "") {
         $svnCli->committAll("update");
     } else if (isset($_GET['f']) && $_GET['f'] == "u") {
         $svnCli->updateAll();
-        $db->setMysqlImportFilename("db_" . $siteData['nome'] . ".sql");
+        $db->setMysqlImportFilename(BASE_PATH.$siteData['nome'].DIRECTORY_SEPARATOR."db_" . $siteData['nome'] . ".sql");
         $db->importFile();
+        die();
     }
 } else if (isset($_GET['n']) && $_GET['n'] != "") {
     include_once("config.php");
