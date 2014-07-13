@@ -9,6 +9,7 @@ class DBCloner {
     public $mysqlDatabaseName;
     public $mysqlDatabaseNameNew;
     public $sourcename;
+    public $mysqlImportFilename;
     public $destName;
     private $con = null;
 
@@ -35,27 +36,32 @@ class DBCloner {
         $this->con = $this->dbConfigSource->connect();
     }
 
+    public function getMysqlImportFilename() {
+        return $this->mysqlImportFilename;
+    }
+
+    public function setMysqlImportFilename($mysqlImportFilename) {
+        $this->mysqlImportFilename = $mysqlImportFilename;
+    }
+
     public function cleanAndClose() {
-        if (!unlink($this->mysqlImportFilename)) {
-            $this->errormsg .= "<br/>Impossibile cancellare il file temporaneo " . $this->mysqlImportFilename;
-        }
         if ($this->con != null) {
             mysql_close($this->con);
         }
     }
 
-    private function fixLength($match) {
-        $temp = intval(strlen($match[2]));
-        $result = 's:' . $temp . ':"' . $match[2] . '";';
-        return $result;
-    }
-
     function recursive_unserialize_replace($data, $key = null) {
         if (is_string($data) && ( $unserialized = @unserialize($data) ) === false) {
-            $data = html_entity_decode($data, ENT_QUOTES, 'UTF-8');
-            $data = preg_replace_callback('/s:(\d+):"(.*?)";/', array(&$this, 'fixLength'), $data);
+            $data = str_replace("'","\'",html_entity_decode($data, ENT_QUOTES, 'UTF-8'));
+            $data = preg_replace_callback('/s:(\d+):"(.*?)";/', function ($match) {
+                    $temp = intval(strlen($match[2]));
+                    $result = 's:' . $temp . ':"' . $match[2] . '";';
+                    return $result;
+                }, $data);
         }
-        $obj = unserialize($data);
+        if (DEBUG &&( $unserialized = @unserialize($data) ) === false) {
+            echo $data."</br>";
+        }
         return $data;
     }
 
@@ -77,13 +83,36 @@ class DBCloner {
         return $returnedFilename;
     }
 
-    function migrate($isLocal = true) {
-        $this->mysqlImportFilename = $this->mysqldumpOfDb("tmp");
+    function importFile() {
+        $command = "\"" . MYSQL_BIN_BASE_PATH . "mysql\" --host=" . $this->dbConfigSource->getHostDb() . " --user=" . $this->dbConfigSource->getUsernameDb() . " --password=" . $this->dbConfigSource->getPasswordDb() . " " . $this->mysqlDatabaseNameNew . " < \"" . $this->mysqlImportFilename . "\"";
+        if (DEBUG) {
+            echo $command . "</br>";
+            @exec($command, $output = array(), $worked);
+            if ($output != null) {
+                print_r($output);
+                echo "</br>";
+            }
+        } else {
+            exec($command, $output = array(), $worked);
+        }
+        if ($worked == 1) {
+            $this->errormsg .= "Impossibile importare il file " . $this->mysqlImportFilename . " sul DB";
+            return false;
+        }
+    }
+    
+    function createDb(){
         $sql = "CREATE DATABASE " . $this->mysqlDatabaseNameNew;
         if (!mysql_query($sql, $this->con)) {
             $this->errormsg .= "Could not create db " . $this->mysqlDatabaseNameNew . " " . mysql_error();
             return false;
         }
+    }
+    
+    
+    function migrate($isLocal = true) {
+        $this->mysqlImportFilename = $this->mysqldumpOfDb(BASE_PATH . $this->destName . DIRECTORY_SEPARATOR, $this->mysqlDatabaseNameNew . ".sql");
+        $this->createDb();
 
         $sql = "USE " . $this->mysqlDatabaseNameNew;
         if (!mysql_query($sql, $this->con)) {
@@ -157,9 +186,9 @@ class DBCloner {
         if ($isLocal) {
             $content = str_replace($this->sourcename, $this->destName, $content);
         } else {
-            $content = str_replace("http://".DOMAIN_URL_BASE."/" . $this->sourcename, $this->destName, $content);
+            $content = str_replace("http://" . DOMAIN_URL_BASE . "/" . $this->sourcename, $this->destName, $content);
         }
-        $pathTobeRemoved =  str_replace ( "\\" ,"/" ,dirname(BASE_PATH.$this->sourcename ."\\index.php")."\\");
+        $pathTobeRemoved = str_replace("\\", "/", dirname(BASE_PATH . $this->sourcename . "\\index.php") . "\\");
         $content = str_replace($pathTobeRemoved, "", $content);
         $content = str_replace($this->mysqlDatabaseName, $this->mysqlDatabaseNameNew, $content);
         $pattern = "/\((\d+),\s?'(.+?)',\s?'(.?|.+?)',\s?'(...?)'\)/";

@@ -5,6 +5,7 @@ include_once("HtAccessMigrate.php");
 include_once("WPMigrateFile.php");
 include_once("DBCloner.php");
 include_once("FtpUploader.php");
+include_once("SubversionWrapper.php");
 
 ini_set("memory_limit", "256M");
 
@@ -22,7 +23,7 @@ function createLinks() {
             $basename = basename($file);
             $dbConfigFile = BASE_PATH . $basename . DIRECTORY_SEPARATOR . "wp-config.php";
             $result.= "<tr>
-<td><a href=\"http://".DOMAIN_URL_BASE."/" . $basename . "\" target=\"_blank\">" . $basename . "</a></td>
+<td><a href=\"http://" . DOMAIN_URL_BASE . "/" . $basename . "\" target=\"_blank\">" . $basename . "</a></td>
 </tr>
 ";
             if (file_exists($dbConfigFile)) {
@@ -53,19 +54,35 @@ function createFormForNewSite($arrayOfDbSite) {
 function siteWorkInProgress() {
     $files = getSitesByState(STATUS_WORKING);
     $result = "";
-
+    $svnCli = new SubversionWrapper(null, SVN_USER, SVN_PASSWORD);
+    $reposAtServer = $svnCli->listAllRepo();
     if ($files != null && count($files) > 0) {
         $result.="<form  method=\"post\" name=\"newsite\" action=\"publish.php\">
 <table border =1>";
         $result.= "<tr>
 <td>Siti da pubblicare<br/>(selezionare una volta comprato il dominio)</td>
+<td>&nbsp;</td>
+<td>&nbsp;</td>
 </tr>
 ";
         foreach ($files as $file) {
             $result.= "<tr>
-<td><input type=\"radio\" name=\"sites\" value=\"" . $file['id'] . "\"><a href=\"http://".DOMAIN_URL_BASE."/" . $file['nome'] . "\" target=\"_blank\">" . $file['nome'] . "</a></td>
-</tr>
+<td><input type=\"radio\" name=\"sites\" value=\"" . $file['id'] . "\"><a href=\"http://" . DOMAIN_URL_BASE . "/" . $file['nome'] . "\" target=\"_blank\">" . $file['nome'] . "</a></td>";
+            if ($reposAtServer != null && ($key = array_search($file['nome'], $reposAtServer)) !== false) {
+                $result.="<td><a href=\"svnwrp.php?id=" . $file['id'] . "&f=c\">commit</a></td>
+<td><a href=\"svnwrp.php?id=" . $file['id'] . "&f=u\">update</a></td>";
+                unset($reposAtServer[$key]);
+            } else {
+                $result.="<td>&nbsp;</td>
+<td>&nbsp;</td>";
+            }
+            $result.="</tr>
 ";
+        }
+        if ($reposAtServer != null) {
+            foreach ($reposAtServer as $repo) {
+                $result.= "<tr><td colspan=\"3\">E' stato creato un nuovo sito (".$repo.") <a href=\"svnwrp.php?n=" . $repo . "\">Prendilo!</a></td></tr>";
+            }
         }
         $result.="</table>
 <input type=\"submit\" value=\"Prepara per la publicazione\">
@@ -348,24 +365,8 @@ function moveToRelease($id, $source, $newConfig) {
     $htaAcces = new HtAccessMigrate("http://www." . $newConfig['domainName'] . "." . $newConfig['domain'], $source);
     $htaAcces->changeHtAccess(false);
     $fileToMove[] = $htaAcces->getFileName();
-//  Comment: not create zip file, is useless due to permission aruba problem
-//  Zip(BASE_PATH . $source, $archiveFile);
     $fileToMove[] = writeInstaller($newConfig, $source);
-//  allFileToMove(BASE_PATH_RELEASE . DIRECTORY_SEPARATOR . $source, $fileToMove);
     return updateStatusSiteInDb($id, $newConfig);
-}
-
-function allFileToMove($destPath, $fileToMove) {
-    if (!file_exists(BASE_PATH_RELEASE) || (file_exists(BASE_PATH_RELEASE) && !is_dir(BASE_PATH_RELEASE))) {
-        mkdir(BASE_PATH_RELEASE);
-    }
-    if (!file_exists($destPath) || (file_exists($destPath) && !is_dir($destPath))) {
-        mkdir($destPath);
-    }
-    $tempBaseName = BASE_PATH_RELEASE . basename($destPath) . DIRECTORY_SEPARATOR;
-    foreach ($fileToMove as $thisfile) {
-        rename($thisfile, $tempBaseName . basename($thisfile));
-    }
 }
 
 function Zip($source, $destination) {
@@ -419,7 +420,7 @@ function writeInstaller($config, $source) {
 set_time_limit (PHP_INT_MAX);
 
 function changeNextGenOption() {
-    \$old = array(\"http://".DOMAIN_URL_BASE."/" . $source . "\", \"http://".DOMAIN_URL_BASE."/master_easy\", \"http://".DOMAIN_URL_BASE."/mybpa\");
+    \$old = array(\"http://" . DOMAIN_URL_BASE . "/" . $source . "\", \"http://" . DOMAIN_URL_BASE . "/master_easy\", \"http://" . DOMAIN_URL_BASE . "/mybpa\");
     \$new = \"http://www." . $config['domainName'] . "." . $config['domain'] . "\";
     \$mysqli = new mysqli(\"" . $config['hostdb'] . "\", \"" . $config['userName'] . "\", \"" . $config['password'] . "\", \"" . $config['newDb'] . "\");
     \$result = \$mysqli->query(\"SELECT ID, post_content FROM wp_posts WHERE post_type='lightbox_library'\");
@@ -505,6 +506,14 @@ if (\$isOk){
  */
 function migrate($source, $newSite, $mysqlDatabaseName) {
     set_time_limit(60000);
+    $fileCloner = new WPMigrateFile(BASE_PATH . $source, BASE_PATH . $newSite);
+    if (!$fileCloner->cloneSite()) {
+        echo $fileCloner->errorMsg . "</br>";
+        return false;
+    }
+    $fileCloner->changeWpconfig($mysqlDatabaseName, "db_" . $newSite);
+    $htaAcces = new HtAccessMigrate($newSite, $source);
+    $htaAcces->changeHtAccess(true);
     $dbCloner = new DBCloner($mysqlDatabaseName, MYSQL_USER_NAME, MYSQL_PASSWORD, MYSQL_HOST, "db_" . $newSite, $source, $newSite);
     if (!$dbCloner->migrate(true)) {
         echo $dbCloner->errormsg . "</br>";
@@ -513,16 +522,10 @@ function migrate($source, $newSite, $mysqlDatabaseName) {
     if (!DEBUG) {
         $dbCloner->cleanAndClose();
     }
-    $fileCloner = new WPMigrateFile(BASE_PATH . $source, BASE_PATH . $newSite);
-    if (!$fileCloner->cloneSite()) {
-        echo $fileCloner->errorMsg . "</br>";
-        return false;
-    }
-
-    $fileCloner->changeWpconfig($mysqlDatabaseName, "db_" . $newSite);
-    $htaAcces = new HtAccessMigrate($newSite, $source);
-    $htaAcces->changeHtAccess(true);
     insertNewCreatedSiteInDb($newSite, null, $source);
+    $svn = new SubversionWrapper($newSite, SVN_USER, SVN_PASSWORD);
+    $svn->createRepo();
+    $svn->committAll("First import");
     return true;
 }
 
