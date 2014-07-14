@@ -76,6 +76,17 @@ class SubversionWrapper {
     }
 
     function updateAll() {
+        $command = "svn cleanup " . BASE_PATH . $this->repos;
+        $this->exec->execute($command, false);
+        if (DEBUG) {
+            echo "RETURN FROM CLEANUP</br>";
+            echo "Stdout: </br>";
+            print_r($this->exec->getStdOut());
+            echo "</br>";
+            echo "StdErr: </br>";
+            print_r($this->exec->getStdErr());
+            echo "</br>Return code: " . $this->exec->getRetCode();
+        }
         $command = "svn update " . BASE_PATH . $this->repos;
         $this->exec->execute($command, false);
         if (DEBUG) {
