@@ -7,7 +7,7 @@ if (isset($_GET['id']) && $_GET['id'] != "") {
     $db = new DBCloner("db_" . $siteData['nome'], MYSQL_USER_NAME, MYSQL_PASSWORD, MYSQL_HOST, "db_" . $siteData['nome'], $siteData['nome'], null);
     if (isset($_GET['f']) && $_GET['f'] == "c") {
         $db->mysqldumpOfDb(BASE_PATH . $siteData['nome'] . DIRECTORY_SEPARATOR, "db_" . $siteData['nome'] . ".sql");
-        $svnCli->committAll("update");
+        $svnCli->committAll("[".date ("j-m-Y G:i")."] update");
     } else if (isset($_GET['f']) && $_GET['f'] == "u") {
         $svnCli->updateAll();
         $db->setMysqlImportFilename(BASE_PATH.$siteData['nome'].DIRECTORY_SEPARATOR."db_" . $siteData['nome'] . ".sql");
@@ -25,5 +25,7 @@ if (isset($_GET['id']) && $_GET['id'] != "") {
     $db->setMysqlImportFilename(BASE_PATH.$name.DIRECTORY_SEPARATOR."db_" . $name . ".sql");
     $db->importFile();
 }
-header('Location: index.php');
+if (!DEBUG){
+    header('Location: index.php');
+}
 ?>
