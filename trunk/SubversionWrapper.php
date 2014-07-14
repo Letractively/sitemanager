@@ -55,30 +55,22 @@ class SubversionWrapper {
         $this->exec->execute($command, false);
         if (DEBUG) {
             echo "RETURN FROM ADD</br>";
-            if (!empty($this->exec->getStdOut())) {
-                echo "Stdout: </br>";
-                print_r($this->exec->getStdOut());
-            }
+            echo "Stdout: </br>";
+            print_r($this->exec->getStdOut());
             echo "</br>";
-            if (!empty($this->exec->getStdOut())) {
-                echo "StdErr: </br>";
-                print_r($this->exec->getStdErr());
-            }
+            echo "StdErr: </br>";
+            print_r($this->exec->getStdErr());
             echo "</br>Return code: " . $this->exec->getRetCode();
         }
         $command = "svn commit " . BASE_PATH . $this->repos . " -m \"" . $message . "\"";
         $this->exec->execute($command, true);
         if (DEBUG) {
             echo "RETURN FROM COMMIT</br>";
-            if (!empty($this->exec->getStdOut())) {
-                echo "Stdout: </br>";
-                print_r($this->exec->getStdOut());
-            }
+            echo "Stdout: </br>";
+            print_r($this->exec->getStdOut());
             echo "</br>";
-            if (!empty($this->exec->getStdOut())) {
-                echo "StdErr: </br>";
-                print_r($this->exec->getStdErr());
-            }
+            echo "StdErr: </br>";
+            print_r($this->exec->getStdErr());
             echo "</br>Return code: " . $this->exec->getRetCode();
         }
     }
@@ -88,15 +80,11 @@ class SubversionWrapper {
         $this->exec->execute($command, false);
         if (DEBUG) {
             echo "RETURN FROM UPDATE</br>";
-            if (!empty($this->exec->getStdOut())) {
-                echo "Stdout: </br>";
-                print_r($this->exec->getStdOut());
-            }
+            echo "Stdout: </br>";
+            print_r($this->exec->getStdOut());
             echo "</br>";
-            if (!empty($this->exec->getStdOut())) {
-                echo "StdErr: </br>";
-                print_r($this->exec->getStdErr());
-            }
+            echo "StdErr: </br>";
+            print_r($this->exec->getStdErr());
             echo "</br>Return code: " . $this->exec->getRetCode();
         }
     }
@@ -106,15 +94,11 @@ class SubversionWrapper {
         $this->exec->execute($command, false);
         if (DEBUG) {
             echo "RETURN FROM CHECKOUT</br>";
-            if (!empty($this->exec->getStdOut())) {
-                echo "Stdout: </br>";
-                print_r($this->exec->getStdOut());
-            }
+            echo "Stdout: </br>";
+            print_r($this->exec->getStdOut());
             echo "</br>";
-            if (!empty($this->exec->getStdOut())) {
-                echo "StdErr: </br>";
-                print_r($this->exec->getStdErr());
-            }
+            echo "StdErr: </br>";
+            print_r($this->exec->getStdErr());
             echo "</br>Return code: " . $this->exec->getRetCode();
         }
     }
