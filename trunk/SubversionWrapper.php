@@ -53,18 +53,46 @@ class SubversionWrapper {
     function committAll($message) {
         $command = "svn add --force " . BASE_PATH . $this->repos . "\* --auto-props --parents --depth infinity -q";
         $this->exec->execute($command, false);
+        if (DEBUG){
+            echo "RETURN FROM ADD</br>";
+            print_r($this->exec->getStdOut());
+            echo "</br>";
+            print_r($this->exec->getStdErr());
+            echo "</br>Return code: ".$this->exec->getRetCode();
+        }
         $command = "svn commit " . BASE_PATH . $this->repos . " -m \"" . $message . "\"";
         $this->exec->execute($command, true);
+        if (DEBUG){
+            echo "RETURN FROM COMMIT</br>";
+            print_r($this->exec->getStdOut());
+            echo "</br>";
+            print_r($this->exec->getStdErr());
+            echo "</br>Return code: ".$this->exec->getRetCode();
+        }
     }
 
     function updateAll() {
         $command = "svn update " . BASE_PATH . $this->repos;
         $this->exec->execute($command, false);
+        if (DEBUG){
+            echo "RETURN FROM UPDATE</br>";
+            print_r($this->exec->getStdOut());
+            echo "</br>";
+            print_r($this->exec->getStdErr());
+            echo "</br>Return code: ".$this->exec->getRetCode();
+        }
     }
 
     function checkout() {
         $command = "svn co http://" . SVN_SERVER . "/svn/" . $this->repos . " " . BASE_PATH . $this->repos . " --username " . SVN_USER . " --password " . SVN_PASSWORD;
         $this->exec->execute($command, false);
+        if (DEBUG){
+            echo "RETURN FROM CHECKOUT</br>";
+            print_r($this->exec->getStdOut());
+            echo "</br>";
+            print_r($this->exec->getStdErr());
+            echo "</br>Return code: ".$this->exec->getRetCode();
+        }
     }
 
     function createRepo() {

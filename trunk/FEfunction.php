@@ -81,12 +81,21 @@ function siteWorkInProgress() {
         }
         if ($reposAtServer != null) {
             foreach ($reposAtServer as $repo) {
-                $result.= "<tr><td colspan=\"3\">E' stato creato un nuovo sito (".$repo.") <a href=\"svnwrp.php?n=" . $repo . "\">Prendilo!</a></td></tr>";
+                $result.= "<tr><td colspan=\"3\">E' stato creato un nuovo sito (" . $repo . ") <a href=\"svnwrp.php?n=" . $repo . "\">Prendilo!</a></td></tr>";
             }
         }
         $result.="</table>
 <input type=\"submit\" value=\"Prepara per la publicazione\">
 </form>";
+    } else {
+        if ($reposAtServer != null) {
+            $result.="<form  method=\"post\" name=\"newsite\" action=\"publish.php\">
+<table border =1>";
+            foreach ($reposAtServer as $repo) {
+                $result.= "<tr><td colspan=\"3\">E' stato creato un nuovo sito (" . $repo . ") <a href=\"svnwrp.php?n=" . $repo . "\">Prendilo!</a></td></tr>";
+            }
+            $result.="</table>";
+        }
     }
     return $result;
 }
