@@ -64,7 +64,7 @@ class SubversionWrapper {
             print_r($this->exec->getStdErr());
             echo "</br>Return code: " . $this->exec->getRetCode();
         }
-        $command = "svn commit " . BASE_PATH . $this->repos . " -m \"" . $message . "\"";
+        $command = "svn commit " . BASE_PATH . $this->repos . " -m \"" . $message . "\" --username ".SVN_USER." --password ".SVN_PASSWORD;
         $this->exec->execute($command, true);
         if (DEBUG) {
             echo "RETURN FROM COMMIT</br>";
@@ -83,10 +83,10 @@ class SubversionWrapper {
         if (DEBUG) {
             echo "RETURN FROM CLEANUP</br>";
             echo "Stdout: </br>";
-            print_r($this->exec->getStdOut());
+            var_dump($this->exec->getStdOut());
             echo "</br>";
             echo "StdErr: </br>";
-            print_r($this->exec->getStdErr());
+            var_dump($this->exec->getStdErr());
             echo "</br>Return code: " . $this->exec->getRetCode();
         }
         $command = "svn update " . BASE_PATH . $this->repos;
@@ -94,10 +94,10 @@ class SubversionWrapper {
         if (DEBUG) {
             echo "RETURN FROM UPDATE</br>";
             echo "Stdout: </br>";
-            print_r($this->exec->getStdOut());
+            var_dump($this->exec->getStdOut());
             echo "</br>";
             echo "StdErr: </br>";
-            print_r($this->exec->getStdErr());
+            var_dump($this->exec->getStdErr());
             echo "</br>Return code: " . $this->exec->getRetCode();
         }
     }

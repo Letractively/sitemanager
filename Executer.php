@@ -21,14 +21,14 @@ class Executer {
         if (DEBUG) {
             echo $command . "</br>";
         }
-
+        $output = array();
         if ($background) {
             if (substr(php_uname(), 0, 7) == "Windows") {
                 $WshShell = new COM("WScript.Shell");
                 $oExec = $WshShell->exec($command);
                 $this->pid = ( $oExec->ProcessID );
-//                $this->stdOut = $oExec->StdOut->ReadAll;
-//                $this->stdErr = $oExec->StdErr->ReadAll;
+                $this->stdOut = $oExec->StdOut->ReadAll;
+                $this->stdErr = $oExec->StdErr->ReadAll;
             } else {
                 $this->retCode = exec($command . " > /dev/null &", $output, $return_var);
 //                $this->stdOut = $output;
@@ -55,7 +55,7 @@ class Executer {
     }
 
     public function getOutput() {
-        $result ="";
+        $result = "";
         if ($this->stdOut != null && $this->stdOut != "") {
             $result .= $this->stdOut;
         }
