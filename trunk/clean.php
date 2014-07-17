@@ -17,13 +17,13 @@ $sql = "UPDATE " . DB_SITEMANAGER_NAME . ".sm_prodotti SET
         domainName = 'stefanomartellotti',
         status = '4',
         upd = '" . date("Y-m-d H:i:s") . "'
-    WHERE sm_prodotti.nome ='';";
+    WHERE sm_prodotti.nome ='drmartellotti';";
 $result = mysql_query($sql, $con);
 
 if (!$result) {
     echo "Database query failed: " . mysql_error(). '<br />';
 } else {
-    echo "update sitemanager entry of site: " . $site1. '<br />';
+    echo "update sitemanager entry of site: stefanomartellotti<br />";
 }
 
 $sql = "UPDATE " . DB_SITEMANAGER_NAME . ".sm_prodotti SET
@@ -40,13 +40,13 @@ $sql = "UPDATE " . DB_SITEMANAGER_NAME . ".sm_prodotti SET
         domainName = 'tgbcassociati',
         status = '4',
         upd = '" . date("Y-m-d H:i:s") . "'
-    WHERE sm_prodotti.id =" . $id . ";";
+    WHERE sm_prodotti.nome ='tgbc2';";
 $result = mysql_query($sql, $con);
 
 if (!$result) {
     echo "Database query failed: " . mysql_error(). '<br />';
 } else {
-    echo "update sitemanager entry of site: " . $site2;
+    echo "update sitemanager entry of site: tgbcassociati <br />" ;
 }
 
 mysql_close($con);
