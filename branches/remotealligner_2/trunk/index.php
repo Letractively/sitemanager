@@ -18,7 +18,7 @@
                 echo "un qualche errore di migrazione c'e' stato....<br>";
             }
         } else if (isset($_GET['nome']) && isset($_GET['domain'])) {
-            manageInstallation($_GET['nome'], $_GET['domain']);
+            manageInstallation($_GET['nome'], $_GET['domain'],$_GET['base']);
         } else if (isset($_GET['f']) && $_GET['f'] == "t" && isset($_GET['id']) && $_GET['id'] != "") {
             trasferFtpFile($_GET['id']);
         } else if (isset($_GET['f']) && $_GET['f'] == "r" && isset($_GET['id']) && $_GET['id'] != "") {
