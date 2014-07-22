@@ -11,29 +11,35 @@ ini_set("memory_limit", "256M");
 
 function createLinks() {
     $files = glob(BASE_PATH . "*");
-    $result = "";
-    $result.="<table border =1>";
+    $masterWork = array();
+    $result = "<form method=\"post\" name=\"newsite\"  onsubmit=\"return validateForm()\" >
+	<table border =1>";
     $result.= "<tr>
 <td>Siti in locale</td>
 </tr>
 ";
-    $masterWork = array();
+
     foreach ($files as $file) {
         if (is_dir($file)) {
             $basename = basename($file);
             $dbConfigFile = BASE_PATH . $basename . DIRECTORY_SEPARATOR . "wp-config.php";
-            $result.= "<tr>
-<td><a href=\"http://" . DOMAIN_URL_BASE . "/" . $basename . "\" target=\"_blank\">" . $basename . "</a></td>
-</tr>
-";
             if (file_exists($dbConfigFile)) {
                 $subject = file_get_contents($dbConfigFile);
                 preg_match("/define\('DB_NAME', '(.+?)'\);/", $subject, $matches);
                 $masterWork[$basename] = $matches[1];
+                $result.= "<tr>
+<td><input type=\"radio\" name=\"tipo\" value=\"" . $basename. "\">
+	<a href=\"http://" . DOMAIN_URL_BASE . "/" . $basename . "\" target=\"_blank\">" . $basename . "</a></td></tr>";
             }
         }
     }
-    $result.="</table>";
+    $result.="</table>
+        </br>
+        Inserisci il nome del nuovo sito da creare
+        </br></br>
+        <input type=\"text\" name=\"nome\" value=\"\"></br>
+	<input type=\"submit\" value=\"crea\">
+    </form>";
     $totalResult['form'] = $masterWork;
     $totalResult['all'] = $result;
     return $totalResult;
