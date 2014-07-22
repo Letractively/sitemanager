@@ -82,12 +82,20 @@ exit";
 
     $winScpPath = BASE_PATH . "sitemanager" . DIRECTORY_SEPARATOR . "bin" . DIRECTORY_SEPARATOR . "WinSCP.com";
     $command = $winScpPath . " /script=\"" . $scriptFile . "\"";
-    $ex = new Executer();
-    $ex->execute($command, true);
-    if ($ex->getStdErr() != "") {
+
+    if (substr(php_uname(), 0, 7) == "Windows") {
+        $WshShell = new COM("WScript.Shell");
+        $oExec = $WshShell->exec($command);
+        $stdOut = $oExec->StdOut->ReadAll;
+        $stdErr = $oExec->StdErr->ReadAll;
+    } else {
+        $result = false;
+        echo "system seems not windows, don't know how to check";
+    }
+    if ($stdErr != "") {
         echo "error transfering file</br>";
-        echo $ex->getStdErr() . "</br>";
-        echo $ex->getStdOut() . "</br>";
+        echo $stdErr . "</br>";
+        echo $stdOut . "</br>";
         $result = false;
     } else {
         $tsFileContent = file_get_contents('http://www.vubi.it/test/tsfile.html');
@@ -108,12 +116,12 @@ exit";
     return $result;
 }
 
-if(isSvnServerOnline()){
-   echo "Subversion server is ok</br>"; 
+if (isSvnServerOnline()) {
+    echo "Subversion server is ok</br>";
 }
-if (canConnectToDb()){
+if (canConnectToDb()) {
     echo "DB connection is ok</br>";
 }
-if (canTransferViaFtp()){
+if (canTransferViaFtp()) {
     echo "FTP transfer is ok</br>";
 }

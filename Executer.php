@@ -27,12 +27,8 @@ class Executer {
                 $WshShell = new COM("WScript.Shell");
                 $oExec = $WshShell->exec($command);
                 $this->pid = ( $oExec->ProcessID );
-                $this->stdOut = $oExec->StdOut->ReadAll;
-                $this->stdErr = $oExec->StdErr->ReadAll;
             } else {
                 $this->retCode = exec($command . " > /dev/null &", $output, $return_var);
-//                $this->stdOut = $output;
-//                $this->stdErr = $return_var;
             }
         } else {
             set_time_limit(PHP_INT_MAX);
