@@ -80,8 +80,20 @@ function siteWorkInProgress() {
 ";
         }
         if ($reposAtServer != null) {
+            $allTheOtherSite = getSitesByStates(array(STATUS_TO_TRANSFER, STATUS_TRASFERING, STATUS_TO_INSTALL, STATUS_INSTALLED));
+            if (!empty($allTheOtherSite)) {
+                foreach ($allTheOtherSite as $site => $name) {
+                    $allTheOtherSiteName[] = $name['nome'];
+                }
+            } else {
+                $allTheOtherSiteName = array();
+            }
             foreach ($reposAtServer as $repo) {
-                $result.= "<tr><td colspan=\"3\">E' stato creato un nuovo sito (" . $repo . ") <a href=\"svnwrp.php?n=" . $repo . "\">Prendilo!</a></td></tr>";
+                if (!(in_array($repo, $allTheOtherSiteName))) {
+                    $result.= "<tr><td colspan=\"2\">E' stato creato un nuovo sito (" . $repo . ")</td><td><a href=\"svnwrp.php?n=" . $repo . "\">Prendilo!</a></td></tr>";
+                } else {
+                    $result.= "<tr><td colspan=\"2\">" . $repo . "</td><td><a href=\"svnwrp.php?id=" . $file['id'] . "&f=u\">update</a></td></tr>";
+                }
             }
         }
         $result.="</table>
@@ -151,7 +163,7 @@ function siteToBePublished() {
 ";
         foreach ($files as $file) {
             $result.= "<tr>
-<td><a href=\"index.php?nome=" . $file['domainName'] . "&domain=" . $file['domain'] . "\">Installa " . $file['nome'] . "</a></td>
+<td><a href=\"index.php?nome=" . $file['domainName'] . "&domain=" . $file['domain'] . "&base=" . $file['nome'] . "\">Installa " . $file['nome'] . "</a></td>
 </tr>
 ";
         }
@@ -173,9 +185,12 @@ function trasferFtpFile($id) {
     }
     $ftpMy->uploadUsingScript($scriptFile, true);
     updateStatusForDomain($infoOnSite['domainName'], $infoOnSite['domain'], $infoOnSite['status'] + 1);
+    $svnCli = new SubversionWrapper($infoOnSite['nome'], SVN_USER, SVN_PASSWORD);
+    $svnCli->committAll("[" . date("j-m-Y G:i") . "] update before transfer");
 }
 
-function manageInstallation($domainName, $dom) {
+function manageInstallation($domainName, $dom, $localNameForSite) {
+    $svnCli = new SubversionWrapper($localNameForSite, SVN_USER, SVN_PASSWORD);
     $nameToBeCheked = "http://www." . $domainName . "." . $dom;
     $resultOfACall = @file_get_contents($nameToBeCheked . "/install.php");
     if (isset($http_response_header)) {
@@ -185,6 +200,7 @@ function manageInstallation($domainName, $dom) {
             $responseHeader = $http_response_header[0];
             if ($responseHeader != "HTTP/1.1 404 Not Found") {
                 updateStatusForDomain($domainName, $dom, STATUS_INSTALLED);
+                $svnCli->committAll("[" . date("j-m-Y G:i") . "] site installed");
                 header('Location: index.php');
             } else {
                 echo "carica i file sull'host";
@@ -195,6 +211,7 @@ function manageInstallation($domainName, $dom) {
             if ($responseHeader != "HTTP/1.1 404 Not Found") {
                 if ($resultOfACall == "0") {
                     updateStatusForDomain($domainName, $dom, STATUS_INSTALLED);
+                    $svnCli->committAll("[" . date("j-m-Y G:i") . "] site installed");
                     //header('Location: index.php');
                 } else {
                     echo $resultOfACall;
@@ -252,6 +269,9 @@ function insertNewCreatedSiteInDb($newSite, $clientId, $source) {
         mysql_close($con);
         return false;
     }
+    $f = fopen(BASE_PATH . $newSite . DIRECTORY_SEPARATOR . SITE_MANAGER_FILE_UPDATE_NAME, "a");
+    fwrite($f, $sql);
+    fclose($f);
     mysql_close($con);
     return true;
 }
@@ -267,6 +287,9 @@ function backToStatToTransfer($id) {
         mysql_close($con);
         return false;
     }
+//    $f = fopen(BASE_PATH . $siteData['nome'] . DIRECTORY_SEPARATOR . SITE_MANAGER_FILE_UPDATE_NAME, "a");
+//    fwrite($f, $sql);
+//    fclose($f);
     mysql_close($con);
     return true;
 }
@@ -282,7 +305,10 @@ function updateStatusForDomainForId($id, $status) {
         mysql_close($con);
         return false;
     }
-    mysql_close($con);
+//    $f = fopen(SITE_MANAGER_FILE_UPDATE_NAME, "a");
+//    fwrite($f, $sql);
+//    fclose($f);
+//    mysql_close($con);
     return true;
 }
 
@@ -298,7 +324,10 @@ function updateStatusForDomain($domainName, $domain, $status) {
         mysql_close($con);
         return false;
     }
-    mysql_close($con);
+//    $f = fopen(SITE_MANAGER_FILE_UPDATE_NAME, "a");
+//    fwrite($f, $sql);
+//    fclose($f);
+//    mysql_close($con);
     return true;
 }
 
@@ -324,7 +353,10 @@ function updateStatusSiteInDb($id, $data) {
         mysql_close($con);
         return false;
     }
-    mysql_close($con);
+//    $f = fopen(SITE_MANAGER_FILE_UPDATE_NAME, "a");
+//    fwrite($f, $sql);
+//    fclose($f);
+//    mysql_close($con);
     return true;
 }
 
@@ -339,6 +371,22 @@ function getSiteById($id) {
 function getSitesByState($state) {
     $con = mysql_connect(MYSQL_HOST, MYSQL_USER_NAME, MYSQL_PASSWORD);
     $sql = "SELECT * FROM `" . DB_SITEMANAGER_NAME . "`.`sm_prodotti` WHERE STATUS = " . $state . " ORDER BY upd DESC";
+    $castresult = mysql_query($sql) or die(mysql_error());
+    mysql_close($con);
+    $rows = null;
+    while ($row = mysql_fetch_array($castresult)) {
+        $rows[] = $row;
+    }
+    return $rows;
+}
+
+function getSitesByStates($states) {
+    $con = mysql_connect(MYSQL_HOST, MYSQL_USER_NAME, MYSQL_PASSWORD);
+    $statesList = implode(",", $states);
+    $sql = "SELECT * FROM `" . DB_SITEMANAGER_NAME . "`.`sm_prodotti` WHERE STATUS IN (" . $statesList . ") ORDER BY upd DESC";
+    if (DEBUG) {
+        echo $sql . "</br>";
+    }
     $castresult = mysql_query($sql) or die(mysql_error());
     mysql_close($con);
     $rows = null;

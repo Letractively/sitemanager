@@ -7,25 +7,27 @@ if (isset($_GET['id']) && $_GET['id'] != "") {
     $db = new DBCloner("db_" . $siteData['nome'], MYSQL_USER_NAME, MYSQL_PASSWORD, MYSQL_HOST, "db_" . $siteData['nome'], $siteData['nome'], null);
     if (isset($_GET['f']) && $_GET['f'] == "c") {
         $db->mysqldumpOfDb(BASE_PATH . $siteData['nome'] . DIRECTORY_SEPARATOR, "db_" . $siteData['nome'] . ".sql");
-        $svnCli->committAll("[".date ("j-m-Y G:i")."] update");
+        $svnCli->committAll("[" . date("j-m-Y G:i") . "] update");
     } else if (isset($_GET['f']) && $_GET['f'] == "u") {
         $svnCli->updateAll();
-        $db->setMysqlImportFilename(BASE_PATH.$siteData['nome'].DIRECTORY_SEPARATOR."db_" . $siteData['nome'] . ".sql");
+        $db->setMysqlImportFilename(BASE_PATH . $siteData['nome'] . DIRECTORY_SEPARATOR . "db_" . $siteData['nome'] . ".sql");
         $db->importFile();
+        $svnCli->executeQuery(BASE_PATH . $siteData['nome'] . DIRECTORY_SEPARATOR . SITE_MANAGER_FILE_UPDATE_NAME);
     }
 } else if (isset($_GET['n']) && $_GET['n'] != "") {
     include_once("config.php");
     $name = $_GET['n'];
     insertNewCreatedSiteInDb($name, 0, "");
-    mkdir(BASE_PATH.$name);
+    mkdir(BASE_PATH . $name);
     $svnCli = new SubversionWrapper($name, SVN_USER, SVN_PASSWORD);
     $svnCli->checkout();
     $db = new DBCloner("db_" . $name, MYSQL_USER_NAME, MYSQL_PASSWORD, MYSQL_HOST, "db_" . $name, $name, null);
     $db->createDb();
-    $db->setMysqlImportFilename(BASE_PATH.$name.DIRECTORY_SEPARATOR."db_" . $name . ".sql");
+    $db->setMysqlImportFilename(BASE_PATH . $name . DIRECTORY_SEPARATOR . "db_" . $name . ".sql");
     $db->importFile();
+    $svnCli->executeQuery(BASE_PATH . $name . DIRECTORY_SEPARATOR . SITE_MANAGER_FILE_UPDATE_NAME);
 }
-if (!DEBUG){
+if (!DEBUG) {
     header('Location: index.php');
 }
 ?>

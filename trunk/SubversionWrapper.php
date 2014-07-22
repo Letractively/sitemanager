@@ -64,7 +64,7 @@ class SubversionWrapper {
             print_r($this->exec->getStdErr());
             echo "</br>Return code: " . $this->exec->getRetCode();
         }
-        $command = "svn commit " . BASE_PATH . $this->repos . " -m \"" . $message . "\" --username ".SVN_USER." --password ".SVN_PASSWORD;
+        $command = "svn commit " . BASE_PATH . $this->repos . " -m \"" . $message . "\" --username " . SVN_USER . " --password " . SVN_PASSWORD;
         $this->exec->execute($command, true);
         if (DEBUG) {
             echo "RETURN FROM COMMIT</br>";
@@ -101,6 +101,28 @@ class SubversionWrapper {
             echo "</br>Return code: " . $this->exec->getRetCode();
         }
     }
+
+    function executeQuery($fileSql) {
+        if (file_exists($fileSql)) {
+            $command = "\"" . MYSQL_BIN_BASE_PATH . "mysql\" --host=" . MYSQL_HOST . " --user=" . MYSQL_USER_NAME . " --password=" . MYSQL_PASSWORD . " " . DB_SITEMANAGER_NAME . " < \"" . $fileSql . "\"";
+            if (DEBUG) {
+                echo $command . "</br>";
+                @exec($command, $output = array(), $worked);
+                if ($output != null) {
+                    print_r($output);
+                    echo "</br>";
+                }
+            } else {
+                exec($command, $output = array(), $worked);
+            }
+            if ($worked == 1) {
+                $this->errormsg .= "Impossibile importare il file " . $this->mysqlImportFilename . " sul DB";
+                return false;
+            }else {
+                unlink($fileSql);
+            }
+        }
+    } 
 
     function checkout() {
         $command = "svn co http://" . SVN_SERVER . "/svn/" . $this->repos . " " . BASE_PATH . $this->repos . " --username " . SVN_USER . " --password " . SVN_PASSWORD;
