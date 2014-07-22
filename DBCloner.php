@@ -192,7 +192,8 @@ class DBCloner {
         $content = str_replace($pathTobeRemoved, "", $content);
         $content = str_replace($this->mysqlDatabaseName, $this->mysqlDatabaseNameNew, $content);
         $pattern = "/\((\d+),\s?'(.+?)',\s?'(.?|.+?)',\s?'(...?)'\)/";
-        $content = preg_replace_callback($pattern, array($this, 'sqlFileCheckProperties'), $content);
+        $replacer = preg_replace_callback($pattern, array($this, 'sqlFileCheckProperties'), $content);
+        $content = $replacer==""?$content:$replacer;
         file_put_contents($fileName, $content);
     }
 
