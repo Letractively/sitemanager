@@ -8,6 +8,7 @@
         <script src="js/ajaxCall.js"></script>
     </head>
     <body>
+        <a href="test/testAll.php">Test system</a>
         <?php
         include_once("config.php");
         $siteLocal = createLinks();
@@ -41,11 +42,5 @@
                 </td>
             </tr>
         </table>
-        </br>
-
-        </br>
-        Inserisci il nome del nuovo sito da creare
-        </br></br>
-        <?php echo createFormForNewSite($siteLocal['form']); ?>
     </body>
 </html>
