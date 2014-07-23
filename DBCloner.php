@@ -9,7 +9,6 @@ class DBCloner {
     public $mysqlDatabaseName;
     public $mysqlDatabaseNameNew;
     public $sourcename;
-    public $mysqlImportFilename;
     public $destName;
     private $con = null;
 
@@ -36,46 +35,32 @@ class DBCloner {
         $this->con = $this->dbConfigSource->connect();
     }
 
-    public function getMysqlImportFilename() {
-        return $this->mysqlImportFilename;
-    }
-
     public function setMysqlImportFilename($mysqlImportFilename) {
         $this->mysqlImportFilename = $mysqlImportFilename;
     }
 
     public function cleanAndClose() {
+        if (!unlink($this->mysqlImportFilename)) {
+            $this->errormsg .= "<br/>Impossibile cancellare il file temporaneo " . $this->mysqlImportFilename;
+        }
         if ($this->con != null) {
             mysql_close($this->con);
         }
     }
 
-    function recursive_unserialize_replace($data, $key = null) {
-        $stringToFix = $data[3];
-        if (DEBUG) {
-            echo "Before [" . $stringToFix . "]</br>";
-        }
-        $stringToFix = str_replace('\"', '"', $stringToFix);
-        $stringToFix = str_replace(PHP_EOL, "", $stringToFix);
-        $stringToFix = str_replace("\\r\\n", "", $stringToFix);
-        $stringToFix = str_replace("\r\n", "", $stringToFix);
-        if (is_string($stringToFix) && ( $unserialized = @unserialize($stringToFix) ) === false) {
-            $stringToFix = str_replace("'", "\'", html_entity_decode($stringToFix, ENT_QUOTES, 'UTF-8'));
-            $stringToFix = preg_replace_callback('/s:(\d+):"(.*?)";/', function ($match) {
-                $temp = intval(strlen($match[2]));
-                $result = 's:' . $temp . ':"' . $match[2] . '";';
-                return $result;
-            }, $stringToFix);
-        }
-        if (DEBUG && ( $unserialized = @unserialize($stringToFix) ) === false) {
-            echo "Still error in [".$stringToFix. "]</br>";
-        }
-        $stringToFix = str_replace('"', '\"', $stringToFix);
-        if (DEBUG) {
-            echo "After [" . $stringToFix . "]</br>";
-        }
-        $result = "(" . $data[1] . ",'theme_mods_arras" . $data[2] . "','" . $stringToFix . "','" . $data[4] . "')";
+    private function fixLength($match) {
+        $temp = intval(strlen($match[2]));
+        $result = 's:' . $temp . ':"' . $match[2] . '";';
         return $result;
+    }
+
+    function recursive_unserialize_replace($data, $key = null) {
+        if (is_string($data) && ( $unserialized = @unserialize($data) ) === false) {
+            $data = html_entity_decode($data, ENT_QUOTES, 'UTF-8');
+            $data = preg_replace_callback('/s:(\d+):"(.*?)";/', array(&$this, 'fixLength'), $data);
+        }
+        $obj = unserialize($data);
+        return $data;
     }
 
     public function mysqldumpOfDb($directory, $destFileName = null) {
@@ -156,6 +141,20 @@ class DBCloner {
         return $dumpFileOfDb;
     }
 
+    public function sqlFileCheckProperties($match) {
+        if (strpos($match[3], ":") > 0 && strpos($match[3], "{") && strpos($match[3], $this->destName)) {
+            $cleaned = str_replace('\"', '"', $match[3]);
+            $cleaned = str_replace(PHP_EOL, "", $cleaned);
+            $cleaned = str_replace("\\r\\n", "", $cleaned);
+            $cleaned = str_replace("\r\n", "", $cleaned);
+            $cleaned = $this->recursive_unserialize_replace($cleaned, $match[3]);
+            $result = "(" . $match[1] . ",'" . $match[2] . "','" . mysql_real_escape_string($cleaned) . "','" . $match[4] . "')";
+        } else {
+            $result = $match[0];
+        }
+        return $result;
+    }
+
     public function changeNextGenOption() {
         $sql = "USE " . $this->mysqlDatabaseNameNew;
         mysql_query($sql, $this->con);
@@ -189,8 +188,8 @@ class DBCloner {
         $pathTobeRemoved = str_replace("\\", "/", dirname(BASE_PATH . $this->sourcename . "\\index.php") . "\\");
         $content = str_replace($pathTobeRemoved, "", $content);
         $content = str_replace($this->mysqlDatabaseName, $this->mysqlDatabaseNameNew, $content);
-        $pattern = "/\((\d+)\s?,\s?'theme_mods_arras(.+?)'\s?,\s?'(.+?)'\s?,\s?'(...?)'\s?\)/";
-        $content = preg_replace_callback($pattern, array($this, 'recursive_unserialize_replace'), $content);
+        $pattern = "/\((\d+),\s?'(.+?)',\s?'(.?|.+?)',\s?'(...?)'\)/";
+        $content = preg_replace_callback($pattern, array($this, 'sqlFileCheckProperties'), $content);
         file_put_contents($fileName, $content);
     }
 
