@@ -7,12 +7,12 @@ include_once("../DBCloner.php");
  * and open the template in the editor.
  */
 
-$nomeSitoLocale = "master";
-$nomesitoRemoto = "http://localhost/test";
-$nomeFile ="C:\Users\Miro\Documents\Desktop\db_test.sql";
+$nomeSitoLocale = "latuaformafisica";
+$nomesitoRemoto = "http://www.latuaformafisica.it";
+$nomeFile ="D:\wamp\www\latuaformafisica\db_latuaformafisica.sql";
 
 $db = new DBCloner("db_" . $nomeSitoLocale, MYSQL_USER_NAME, MYSQL_PASSWORD, MYSQL_HOST, null, $nomeSitoLocale, $nomesitoRemoto);
-$db->migrateDbFiles($nomeFile);
+$db->migrateDbFiles($nomeFile,false);
 
 
 ?>
