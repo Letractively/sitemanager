@@ -176,7 +176,7 @@ function changeState($allSite) {
     $result .= "<option value=\"" . STATUS_TRASFERING . "\"\>In Trasferimento</option>";
     $result .= "<option value=\"" . STATUS_TO_INSTALL . "\"\>Da installare</option>";
     $result .= "<option value=\"" . STATUS_INSTALLED . "\"\>Installato</option>";
-    $result .= "<option value=\"-1\"\>Cancella</option>";
+    $result .= "<option value=\"-1\"\>Elimina</option>";
     $result .= "</select>";
     $result .= "<input type =\"checkbox\" name=\"dr\">Cancella anche la repository"
             . "<input type=\"submit\" value=\"cambia stato\">
