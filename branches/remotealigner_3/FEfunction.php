@@ -6,16 +6,24 @@ include_once("WPMigrateFile.php");
 include_once("DBCloner.php");
 include_once("FtpUploader.php");
 include_once("SubversionWrapper.php");
+include_once("SiteManager.php");
+
 
 ini_set("memory_limit", "256M");
 
-function createLinks() {
+function createLinks($allSitesInDb) {
+    $svnCli = new SubversionWrapper(null, SVN_USER, SVN_PASSWORD);
+    $reposAtServer = $svnCli->listAllRepo();
+    foreach ((array) $allSitesInDb as $siteInDb) {
+        $mapOfSite[$siteInDb['nome']] = $siteInDb['id'];
+    }
+
     $files = glob(BASE_PATH . "*");
     $masterWork = array();
     $result = "<form method=\"post\" name=\"newsite\"  onsubmit=\"return validateForm()\" >
 	<table border =1>";
     $result.= "<tr>
-<td>Siti in locale</td>
+<td colspan=\"3\">Siti in locale</td>
 </tr>
 ";
 
@@ -27,18 +35,33 @@ function createLinks() {
                 $subject = file_get_contents($dbConfigFile);
                 preg_match("/define\('DB_NAME', '(.+?)'\);/", $subject, $matches);
                 $masterWork[$basename] = $matches[1];
-                $result.= "<tr>
-<td><input type=\"radio\" name=\"tipo\" value=\"" . $basename. "\">
+
+                if ($reposAtServer != null && ($key = array_search($basename, $reposAtServer)) !== false) {
+                    $result.="<tr>"
+                            . " <td><input type=\"radio\" name=\"tipo\" value=\"" . $basename . "\">
+	<a href=\"http://" . DOMAIN_URL_BASE . "/" . $basename . "\" target=\"_blank\">" . $basename . "</a></td>"
+                            . " <td><a href=\"svnwrp.php?id=" . $mapOfSite[$basename] . "&f=c\">commit</a></td>"
+                            . " <td><a href=\"svnwrp.php?id=" . $mapOfSite[$basename] . "&f=u\">update</a></td>"
+                            . " <tr>";
+                    unset($reposAtServer[$key]);
+                } else {
+                    $result.= "<tr>
+<td colspan=\"3\"><input type=\"radio\" name=\"tipo\" value=\"" . $basename . "\">
 	<a href=\"http://" . DOMAIN_URL_BASE . "/" . $basename . "\" target=\"_blank\">" . $basename . "</a></td></tr>";
+                }
             }
+        }
+    }
+    if ($reposAtServer != null) {
+        foreach ($reposAtServer as $repo) {
+            $result.= "<tr><td colspan=\"3\">E' stato creato un nuovo sito (" . $repo . ") <a href=\"svnwrp.php?n=" . $repo . "\">Prendilo!</a></td></tr>";
         }
     }
     $result.="</table>
         </br>
-        Inserisci il nome del nuovo sito da creare
-        </br></br>
-        <input type=\"text\" name=\"nome\" value=\"\"></br>
-	<input type=\"submit\" value=\"crea\">
+        Inserisci il nome del nuovo sito da creare 
+        <input type=\"text\" name=\"nome\" value=\"\">
+        <input type=\"submit\" value=\"crea\">
     </form>";
     $totalResult['form'] = $masterWork;
     $totalResult['all'] = $result;
@@ -60,48 +83,21 @@ function createFormForNewSite($arrayOfDbSite) {
 function siteWorkInProgress() {
     $files = getSitesByState(STATUS_WORKING);
     $result = "";
-    $svnCli = new SubversionWrapper(null, SVN_USER, SVN_PASSWORD);
-    $reposAtServer = $svnCli->listAllRepo();
     if ($files != null && count($files) > 0) {
         $result.="<form  method=\"post\" name=\"newsite\" action=\"publish.php\">
 <table border =1>";
         $result.= "<tr>
 <td>Siti da pubblicare<br/>(selezionare una volta comprato il dominio)</td>
-<td>&nbsp;</td>
-<td>&nbsp;</td>
 </tr>
 ";
         foreach ($files as $file) {
             $result.= "<tr>
-<td><input type=\"radio\" name=\"sites\" value=\"" . $file['id'] . "\"><a href=\"http://" . DOMAIN_URL_BASE . "/" . $file['nome'] . "\" target=\"_blank\">" . $file['nome'] . "</a></td>";
-            if ($reposAtServer != null && ($key = array_search($file['nome'], $reposAtServer)) !== false) {
-                $result.="<td><a href=\"svnwrp.php?id=" . $file['id'] . "&f=c\">commit</a></td>
-<td><a href=\"svnwrp.php?id=" . $file['id'] . "&f=u\">update</a></td>";
-                unset($reposAtServer[$key]);
-            } else {
-                $result.="<td>&nbsp;</td>
-<td>&nbsp;</td>";
-            }
-            $result.="</tr>
+<td><input type=\"radio\" name=\"sites\" value=\"" . $file['id'] . "\"><a href=\"http://" . DOMAIN_URL_BASE . "/" . $file['nome'] . "\" target=\"_blank\">" . $file['nome'] . "</a></td></tr>
 ";
-        }
-        if ($reposAtServer != null) {
-            foreach ($reposAtServer as $repo) {
-                $result.= "<tr><td colspan=\"3\">E' stato creato un nuovo sito (" . $repo . ") <a href=\"svnwrp.php?n=" . $repo . "\">Prendilo!</a></td></tr>";
-            }
         }
         $result.="</table>
 <input type=\"submit\" value=\"Prepara per la publicazione\">
 </form>";
-    } else {
-        if ($reposAtServer != null) {
-            $result.="<form  method=\"post\" name=\"newsite\" action=\"publish.php\">
-<table border =1>";
-            foreach ($reposAtServer as $repo) {
-                $result.= "<tr><td colspan=\"3\">E' stato creato un nuovo sito (" . $repo . ") <a href=\"svnwrp.php?n=" . $repo . "\">Prendilo!</a></td></tr>";
-            }
-            $result.="</table>";
-        }
     }
     return $result;
 }
@@ -167,8 +163,31 @@ function siteToBePublished() {
     return $result;
 }
 
+function changeState($allSite) {
+    $result = "<form method=\"post\" name=\"changestate\">"
+            . "<select name=\"id\" >";
+    foreach ($allSite as $site) {
+        $result .= "<option value=\"" . $site['id'] . "\"\>" . $site['nome'] . "</option>";
+    }
+    $result .= "</select>";
+    $result .= "<select name=\"status\" >";
+    $result .= "<option value=\"" . STATUS_WORKING . "\"\>In Lavorazione</option>";
+    $result .= "<option value=\"" . STATUS_TO_TRANSFER . "\"\>Da Trasferire</option>";
+    $result .= "<option value=\"" . STATUS_TRASFERING . "\"\>In Trasferimento</option>";
+    $result .= "<option value=\"" . STATUS_TO_INSTALL . "\"\>Da installare</option>";
+    $result .= "<option value=\"" . STATUS_INSTALLED . "\"\>Installato</option>";
+    $result .= "<option value=\"-1\"\>Cancella</option>";
+    $result .= "</select>";
+    $result .= "<input type =\"checkbox\" name=\"dr\">Cancella anche la repository"
+            . "<input type=\"submit\" value=\"cambia stato\">
+    </form>";
+    echo $result;
+}
+
 function trasferFtpFile($id) {
-    $infoOnSite = getSiteById($id);
+    $sm = new SiteManager();
+    $sm->setId($id);
+    $infoOnSite = $sm->getSiteById();
     $ftpMy = new FtpUploader($infoOnSite['ftp_username'], $infoOnSite['ftp_pwd'], $infoOnSite['ftp_host']);
     $remoteDir = "www." . $infoOnSite['domainName'] . "." . $infoOnSite['domain'];
     $sqlFile = str_replace("/", ".", $infoOnSite['domainName'] . "." . $infoOnSite['domain'] . ".sql");
@@ -334,17 +353,21 @@ function updateStatusSiteInDb($id, $data) {
     return true;
 }
 
-function getSiteById($id) {
-    $con = mysql_connect(MYSQL_HOST, MYSQL_USER_NAME, MYSQL_PASSWORD);
-    $sql = "SELECT * FROM `" . DB_SITEMANAGER_NAME . "`.`sm_prodotti` WHERE id = " . $id;
-    $castresult = mysql_query($sql) or die(mysql_error());
-    mysql_close($con);
-    return mysql_fetch_array($castresult, MYSQL_ASSOC);
-}
-
 function getSitesByState($state) {
     $con = mysql_connect(MYSQL_HOST, MYSQL_USER_NAME, MYSQL_PASSWORD);
     $sql = "SELECT * FROM `" . DB_SITEMANAGER_NAME . "`.`sm_prodotti` WHERE STATUS = " . $state . " ORDER BY upd DESC";
+    $castresult = mysql_query($sql) or die(mysql_error());
+    mysql_close($con);
+    $rows = null;
+    while ($row = mysql_fetch_array($castresult)) {
+        $rows[] = $row;
+    }
+    return $rows;
+}
+
+function getAllSite() {
+    $con = mysql_connect(MYSQL_HOST, MYSQL_USER_NAME, MYSQL_PASSWORD);
+    $sql = "SELECT * FROM `" . DB_SITEMANAGER_NAME . "`.`sm_prodotti` ORDER BY upd DESC";
     $castresult = mysql_query($sql) or die(mysql_error());
     mysql_close($con);
     $rows = null;

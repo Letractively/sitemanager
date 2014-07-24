@@ -13,7 +13,9 @@
         include_once("config.php");
         set_time_limit(120000);
         if (isset($_POST['sites'])) {
-            $siteData = getSiteById($_POST['sites']);
+            $sm = new SiteManager();
+            $sm->setId($_POST['sites']);
+            $siteData = $sm->getSiteById();
             $today = date('d/m/Y');
             echo "Inserisci i dati per la pubblicazione di: " . $siteData['nome'] . "<br><br>
       ";

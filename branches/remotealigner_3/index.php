@@ -11,7 +11,8 @@
         <a href="test/testAll.php">Test system</a>
         <?php
         include_once("config.php");
-        $siteLocal = createLinks();
+        $allSiteInDb= getAllSite();
+        $siteLocal = createLinks($allSiteInDb);
         $masterWork = $siteLocal['form'];
         if (isset($_POST['nome']) && isset($_POST['tipo']) && validateInput($_POST['nome'])) {
             $result = migrate($_POST['tipo'], $_POST['nome'], $masterWork[$_POST['tipo']]);
@@ -25,6 +26,17 @@
         } else if (isset($_GET['f']) && $_GET['f'] == "r" && isset($_GET['id']) && $_GET['id'] != "") {
             if (backToStatToTransfer($_GET['id'])) {
                 header("Location: index.php");
+            }
+        }else if (isset($_POST['status']) && $_POST['status']!= "" && isset($_POST['id']) && $_POST['id'] != "") {
+            $sm = new SiteManager();
+            $sm->setId($_POST['id']);
+            if ($_POST['status']==="-1"){
+                $sm->deleteSite();
+                if (isset($_POST['dr']) && $_POST['dr']!= ""){
+                    $sm->deleteRepo();
+                }
+            }else{
+                $sm->updateStatusForDomainForId($_POST['status']);
             }
         }
         ?>
@@ -42,5 +54,6 @@
                 </td>
             </tr>
         </table>
+        <?php echo changeState($allSiteInDb); ?>
     </body>
 </html>
