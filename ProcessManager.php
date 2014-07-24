@@ -1,4 +1,5 @@
 <?php
+
 include_once("config.php");
 
 /*
@@ -51,12 +52,14 @@ class ProcessManager {
 
     function updateStateAndFile($pid) {
         $toBeUpdated = $this->matchFromTraferingInDb($pid);
-        $siteToInstall=null;
+        $siteToInstall = null;
         foreach ($toBeUpdated as $entry) {
             if (file_exists($entry['file'])) {
                 unlink($entry['file']);
             }
-            $siteToInstall[] = getSiteById($entry['id_site']) ;
+            $sm = new SiteManager();
+            $sm->setId($entry['id_site']);
+            $siteToInstall[] = $sm->getSiteById();
             updateStatusForDomainForId($entry['id_site'], STATUS_TO_INSTALL);
             $this->deleteEntry($entry['id']);
         }

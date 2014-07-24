@@ -6,6 +6,7 @@ if (!file_exists($configFileName)) {
     $fp = fopen($configFileName, 'w');
     $configString = "<?php
 define(\"BASE_PATH\",\"D:\\wamp\\www\\\");
+define(\"DOMAIN_URL_BASE\",\"localhost\");
 define(\"MYSQL_BIN_BASE_PATH\",\"D:\\wamp\\bin\\mysql\\mysql5.1.36\\bin\\\");
 define(\"MYSQL_USER_NAME\",\"root\");
 define(\"MYSQL_PASSWORD\",\"\");
@@ -18,7 +19,15 @@ define(\"STATUS_TRASFERING\",2);
 define(\"STATUS_TO_INSTALL\",3);
 define(\"STATUS_INSTALLED\",4);
 
+define(\"SVN_SERVER\",\"mirobarsa.duckdns.org\");
+define(\"SVN_USER\",\"pi\");
+define(\"SVN_PASSWORD\",\"olidata35!\");
+define(\"SVN_USER_ADMIN\",\"vivi\");
+define(\"SVN_PASSWORD_ADMIN\",\"p0p1\");
+
+
 include_once(\"FEfunction.php\");
+?>
 
 ?>";
     fwrite($fp, $configString);

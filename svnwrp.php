@@ -2,7 +2,9 @@
 
 if (isset($_GET['id']) && $_GET['id'] != "") {
     include_once("config.php");
-    $siteData = getSiteById($_GET['id']);
+    $sm = new SiteManager();
+    $sm->setId($_GET['id']);
+    $siteData = $sm->getSiteById();
     $svnCli = new SubversionWrapper($siteData['nome'], SVN_USER, SVN_PASSWORD);
     $db = new DBCloner("db_" . $siteData['nome'], MYSQL_USER_NAME, MYSQL_PASSWORD, MYSQL_HOST, "db_" . $siteData['nome'], $siteData['nome'], null);
     if (isset($_GET['f']) && $_GET['f'] == "c") {
