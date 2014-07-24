@@ -27,16 +27,9 @@ class SiteManager {
     private function deleteFolder($dir) {
         $files = array_diff(scandir($dir), array('.', '..'));
         foreach ($files as $file) {
-//            (is_dir($dir.DIRECTORY_SEPARATOR.$file) && !is_link($dir)) ? $this->deleteFolder($dir.DIRECTORY_SEPARATOR.$file) : unlink($dir.DIRECTORY_SEPARATOR.$file);
-            if (is_dir($dir . DIRECTORY_SEPARATOR . $file) && !is_link($dir)) {
-                $this->deleteFolder($dir . DIRECTORY_SEPARATOR . $file);
-            } else {
-                echo "delete: " . $dir . DIRECTORY_SEPARATOR . $file . "</br>";
-//                unlink($dir.DIRECTORY_SEPARATOR.$file);
-            }
+            (is_dir($dir . DIRECTORY_SEPARATOR . $file) && !is_link($dir)) ? $this->deleteFolder($dir . DIRECTORY_SEPARATOR . $file) : unlink($dir . DIRECTORY_SEPARATOR . $file);
+            rmdir($dir);
         }
-        echo "delete: " . $dir . "</br>";
-//        rmdir($dir);
     }
 
     public function deleteSite() {
@@ -96,24 +89,15 @@ class SiteManager {
             $this->nome = $site['nome'];
         }
         $conn = mysql_connect(MYSQL_HOST, MYSQL_USER_NAME, MYSQL_PASSWORD);
-        $sql = 'DROP DATABASE db_'. $this->nome;
+        $sql = 'DROP DATABASE db_' . $this->nome;
         $retval = mysql_query($sql, $conn);
         if (!$retval) {
             die('Could not delete database: ' . mysql_error());
         }
-        if (DEBUG){
-            echo "Database db_". $this->nome." deleted successfully\n";
+        if (DEBUG) {
+            echo "Database db_" . $this->nome . " deleted successfully\n";
         }
         mysql_close($conn);
-//        $command = "\"" . MYSQL_BIN_BASE_PATH . "mysqladmin\" --host=" . MYSQL_HOST . " --user=" . MYSQL_USER_NAME . " --password= " . MYSQL_PASSWORD . "DROP db_" . $this->nome;
-//        if (DEBUG) {
-//            echo "<br/>" . $command . "<br/>";
-//        }
-//        exec($command, $output, $worked);
-//        if ($worked == 1) {
-//            $this->errormsg .= "<br/>Impossibile eliminare il DB db_" . $this->nome . " " . mysql_error();
-//            return false;
-//        }
     }
 
 }
