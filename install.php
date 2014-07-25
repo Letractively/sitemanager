@@ -28,8 +28,7 @@ define(\"SVN_PASSWORD_ADMIN\",\"p0p1\");
 
 include_once(\"FEfunction.php\");
 ?>
-
-?>";
+";
     fwrite($fp, $configString);
     fclose($fp);
 } else {
