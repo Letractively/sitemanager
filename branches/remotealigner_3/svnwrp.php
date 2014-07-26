@@ -5,29 +5,32 @@ if (isset($_GET['id']) && $_GET['id'] != "") {
     $sm = new SiteManager();
     $sm->setId($_GET['id']);
     $siteData = $sm->getSiteById();
-    $svnCli = new SubversionWrapper($siteData['nome'], SVN_USER, SVN_PASSWORD);
-    $db = new DBCloner("db_" . $siteData['nome'], MYSQL_USER_NAME, MYSQL_PASSWORD, MYSQL_HOST, "db_" . $siteData['nome'], $siteData['nome'], null);
+    $site = new Site($siteData);
+    $svnCli = new SubversionWrapper($site->getNome(), SVN_USER, SVN_PASSWORD);
+    $db = new DBCloner("db_" .$site->getNome(), MYSQL_USER_NAME, MYSQL_PASSWORD, MYSQL_HOST, "db_" . $site->getNome(), $siteData['nome'], null);
     if (isset($_GET['f']) && $_GET['f'] == "c") {
-        $db->mysqldumpOfDb(BASE_PATH . $siteData['nome'] . DIRECTORY_SEPARATOR, "db_" . $siteData['nome'] . ".sql");
-        $svnCli->committAll("[".date ("j-m-Y G:i")."] update");
+        $site->save(BASE_PATH . $site->getNome() . DIRECTORY_SEPARATOR .$site->getNome()."st.obj");
+        $db->mysqldumpOfDb(BASE_PATH . $site->getNome() . DIRECTORY_SEPARATOR, "db_" . $site->getNome(). ".sql");
+        $svnCli->committAll("[" . date("j-m-Y G:i") . "] update");
     } else if (isset($_GET['f']) && $_GET['f'] == "u") {
         $svnCli->updateAll();
-        $db->setMysqlImportFilename(BASE_PATH.$siteData['nome'].DIRECTORY_SEPARATOR."db_" . $siteData['nome'] . ".sql");
-        $db->importFile();
+        $db->setMysqlImportFilename(BASE_PATH . $site->getNome() . DIRECTORY_SEPARATOR . "db_" . $siteData['nome'] . ".sql");
+        $db->importFile(BASE_PATH . $site->getNome() . DIRECTORY_SEPARATOR .$site->getNome()."st.obj");
+        $site->load(BASE_PATH . $site->getNome() . DIRECTORY_SEPARATOR .$site->getNome()."st.obj");
     }
 } else if (isset($_GET['n']) && $_GET['n'] != "") {
     include_once("config.php");
     $name = $_GET['n'];
     insertNewCreatedSiteInDb($name, 0, "");
-    mkdir(BASE_PATH.$name);
+    mkdir(BASE_PATH . $name);
     $svnCli = new SubversionWrapper($name, SVN_USER, SVN_PASSWORD);
     $svnCli->checkout();
     $db = new DBCloner("db_" . $name, MYSQL_USER_NAME, MYSQL_PASSWORD, MYSQL_HOST, "db_" . $name, $name, null);
     $db->createDb();
-    $db->setMysqlImportFilename(BASE_PATH.$name.DIRECTORY_SEPARATOR."db_" . $name . ".sql");
+    $db->setMysqlImportFilename(BASE_PATH . $name . DIRECTORY_SEPARATOR . "db_" . $name . ".sql");
     $db->importFile();
 }
-if (!DEBUG){
+if (!DEBUG) {
     header('Location: index.php');
 }
 ?>

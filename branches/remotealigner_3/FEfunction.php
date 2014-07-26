@@ -164,24 +164,26 @@ function siteToBePublished() {
 }
 
 function changeState($allSite) {
-    $result = "<form method=\"post\" name=\"changestate\">"
-            . "<select name=\"id\" >";
-    foreach ($allSite as $site) {
-        $result .= "<option value=\"" . $site['id'] . "\"\>" . $site['nome'] . "</option>";
-    }
-    $result .= "</select>";
-    $result .= "<select name=\"status\" >";
-    $result .= "<option value=\"" . STATUS_WORKING . "\"\>In Lavorazione</option>";
-    $result .= "<option value=\"" . STATUS_TO_TRANSFER . "\"\>Da Trasferire</option>";
-    $result .= "<option value=\"" . STATUS_TRASFERING . "\"\>In Trasferimento</option>";
-    $result .= "<option value=\"" . STATUS_TO_INSTALL . "\"\>Da installare</option>";
-    $result .= "<option value=\"" . STATUS_INSTALLED . "\"\>Installato</option>";
-    $result .= "<option value=\"-1\"\>Elimina</option>";
-    $result .= "</select>";
-    $result .= "<input type =\"checkbox\" name=\"dr\">Cancella anche la repository"
-            . "<input type=\"submit\" value=\"cambia stato\">
+    if (count($allSite)) {
+        $result = "<form method=\"post\" name=\"changestate\">"
+                . "<select name=\"id\" >";
+        foreach ($allSite as $site) {
+            $result .= "<option value=\"" . $site['id'] . "\"\>" . $site['nome'] . "</option>";
+        }
+        $result .= "</select>";
+        $result .= "<select name=\"status\" >";
+        $result .= "<option value=\"" . STATUS_WORKING . "\"\>In Lavorazione</option>";
+        $result .= "<option value=\"" . STATUS_TO_TRANSFER . "\"\>Da Trasferire</option>";
+        $result .= "<option value=\"" . STATUS_TRASFERING . "\"\>In Trasferimento</option>";
+        $result .= "<option value=\"" . STATUS_TO_INSTALL . "\"\>Da installare</option>";
+        $result .= "<option value=\"" . STATUS_INSTALLED . "\"\>Installato</option>";
+        $result .= "<option value=\"-1\"\>Elimina</option>";
+        $result .= "</select>";
+        $result .= "<input type =\"checkbox\" name=\"dr\">Cancella anche la repository"
+                . "<input type=\"submit\" value=\"cambia stato\">
     </form>";
-    echo $result;
+        echo $result;
+    }
 }
 
 function trasferFtpFile($id) {
@@ -522,6 +524,7 @@ if (\$isOk){
     unlink(\".htaccess\");
     rename(\".htaccess-remote\", \".htaccess\");
     unlink(\"" . $sqlDumpFileName . ".sql\");
+    unlink(\"db_" . $source . ".sql\");
     unlink(__FILE__);
     echo \"0\";
 }else {
