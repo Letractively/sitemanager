@@ -1,4 +1,5 @@
 <?php
+include("Site.php");
 
 /*
  * To change this license header, choose License Headers in Project Properties.
@@ -74,13 +75,48 @@ class SiteManager {
         status = " . $status . ",
         upd = '" . date("Y-m-d H:i:s") . "'
     WHERE sm_prodotti.id ='" . $this->id . "';";
+        if (DEBUG){
+          echo $sql."</br>";  
+        }
         if (!mysql_query($sql, $con)) {
-            echo "Could not update in db ";
+            echo "Could not update in db ". mysql_error();
             mysql_close($con);
             return false;
         }
         mysql_close($con);
         return true;
+    }
+
+    public function udpateForSite($site) {
+        if ($site!=null && is_a($site, "Site")) {
+            $con = mysql_connect(MYSQL_HOST, MYSQL_USER_NAME, MYSQL_PASSWORD);
+            $sql = "UPDATE " . DB_SITEMANAGER_NAME . ".sm_prodotti SET
+        nome = " . $site->getNome() . ",
+        cliente_id = " . $site->getCliente_id() . ",
+        modello_id = " . $site->getModello_id() . ",
+        data_acquisto = " . $site->getData_acquisto() . ",
+        ref_mail = " . $site->getRef_mail() . ",
+        ftp_host = " . $site->getFtp_host() . ",
+        ftp_pwd = " . $site->getFtp_pwd() . ",
+        ftp_username = " . $site->getFtp_usrname() . ",
+        db = " . $site->getDb() . ",
+        dbusername = " . $site->getDbusername() . ",
+        dbpwd = " . $site->getDbpwd() . ",
+        db = " . $site->getDb() . ",
+        hostdb = " . $site->getHostb() . ",
+        domainName = " . $site->getDomainName() . ",
+        domain = " . $site->getDomain() . ",
+        status = " . $site->getStatus() . ",
+        upd = '" . date("Y-m-d H:i:s") . "'
+    WHERE sm_prodotti.nome ='" . $site->getNome() . "';";
+            if (!mysql_query($sql, $con)) {
+                echo "Could not update in db ";
+                mysql_close($con);
+                return false;
+            }
+            mysql_close($con);
+            return true;
+        }
     }
 
     public function deleteDbOfSite() {
