@@ -239,14 +239,13 @@ function siteCompleted() {
     if ($files != null && count($files) > 0) {
         $result.="<table border =1>";
         $result.= "<tr>
-<td colspan=\"3\">Siti completati</td>
+<td colspan=\"2\">Siti completati</td>
 </tr>
 ";
         foreach ($files as $file) {
             $result.= "<tr>
 <td><a href=\"http://www." . $file['domainName'] . "." . $file['domain'] . "\" target=\"_blank\">" . $file['nome'] . "</a></td>
 <td><img src=\"img/info.png\" id=\"" . $file['id'] . "\" class=\"info\"></td>
-<td><a href=\"index.php?f=r&id=" . $file['id'] . "\">ritrasferisci</a></td>
 </tr>
 ";
         }
@@ -276,21 +275,6 @@ function insertNewCreatedSiteInDb($newSite, $clientId, $source) {
     $sql = "INSERT INTO `" . DB_SITEMANAGER_NAME . "`.`sm_prodotti` (`id`, `nome`, `cliente_id`, `modello_id`, `ins`, `upd`) VALUES ('', '" . $newSite . "', ' " . $clientId . "', '" . $source . "', '" . date("Y-m-d H:i:s") . "', '" . date("Y-m-d H:i:s") . "');";
     if (!mysql_query($sql, $con)) {
         $this->errormsg = "Could not insert in db " . $this->mysqlDatabaseNameNew;
-        mysql_close($con);
-        return false;
-    }
-    mysql_close($con);
-    return true;
-}
-
-function backToStatToTransfer($id) {
-    $con = mysql_connect(MYSQL_HOST, MYSQL_USER_NAME, MYSQL_PASSWORD);
-    $sql = "UPDATE " . DB_SITEMANAGER_NAME . ".sm_prodotti SET
-        status = " . STATUS_WORKING . ",
-        upd = '" . date("Y-m-d H:i:s") . "'
-    WHERE sm_prodotti.id ='" . $id . "';";
-    if (!mysql_query($sql, $con)) {
-        echo "Could not update in db ";
         mysql_close($con);
         return false;
     }
@@ -367,17 +351,6 @@ function getSitesByState($state) {
     return $rows;
 }
 
-function getAllSite() {
-    $con = mysql_connect(MYSQL_HOST, MYSQL_USER_NAME, MYSQL_PASSWORD);
-    $sql = "SELECT * FROM `" . DB_SITEMANAGER_NAME . "`.`sm_prodotti` ORDER BY upd DESC";
-    $castresult = mysql_query($sql) or die(mysql_error());
-    mysql_close($con);
-    $rows = null;
-    while ($row = mysql_fetch_array($castresult)) {
-        $rows[] = $row;
-    }
-    return $rows;
-}
 
 /**
  * Create a new wp-config file

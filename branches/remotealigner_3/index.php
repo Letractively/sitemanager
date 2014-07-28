@@ -11,7 +11,8 @@
         <a href="test/testAll.php">Test system</a>
         <?php
         include_once("config.php");
-        $allSiteInDb= getAllSite();
+        $sm = new SiteManager();
+        $allSiteInDb= $sm->getAllSite();
         $siteLocal = createLinks($allSiteInDb);
         $masterWork = $siteLocal['form'];
         if (isset($_POST['nome']) && isset($_POST['tipo']) && validateInput($_POST['nome'])) {
@@ -23,11 +24,7 @@
             manageInstallation($_GET['nome'], $_GET['domain']);
         } else if (isset($_GET['f']) && $_GET['f'] == "t" && isset($_GET['id']) && $_GET['id'] != "") {
             trasferFtpFile($_GET['id']);
-        } else if (isset($_GET['f']) && $_GET['f'] == "r" && isset($_GET['id']) && $_GET['id'] != "") {
-            if (backToStatToTransfer($_GET['id'])) {
-                header("Location: index.php");
-            }
-        }else if (isset($_POST['status']) && $_POST['status']!= "" && isset($_POST['id']) && $_POST['id'] != "") {
+        } else if (isset($_POST['status']) && $_POST['status']!= "" && isset($_POST['id']) && $_POST['id'] != "") {
             $sm = new SiteManager();
             $sm->setId($_POST['id']);
             if ($_POST['status']==="-1"){
