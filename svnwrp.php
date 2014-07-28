@@ -17,6 +17,7 @@ if (isset($_GET['id']) && $_GET['id'] != "") {
         $db->setMysqlImportFilename(BASE_PATH . $site->getNome() . DIRECTORY_SEPARATOR . "db_" . $siteData['nome'] . ".sql");
         $db->importFile(BASE_PATH . $site->getNome() . DIRECTORY_SEPARATOR .$site->getNome()."st.obj");
         $site->load(BASE_PATH . $site->getNome() . DIRECTORY_SEPARATOR .$site->getNome()."st.obj");
+        $site->updateSite();
     }
 } else if (isset($_GET['n']) && $_GET['n'] != "") {
     include_once("config.php");

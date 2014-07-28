@@ -1,4 +1,5 @@
 <?php
+
 include("Site.php");
 
 /*
@@ -75,11 +76,11 @@ class SiteManager {
         status = " . $status . ",
         upd = '" . date("Y-m-d H:i:s") . "'
     WHERE sm_prodotti.id ='" . $this->id . "';";
-        if (DEBUG){
-          echo $sql."</br>";  
+        if (DEBUG) {
+            echo $sql . "</br>";
         }
         if (!mysql_query($sql, $con)) {
-            echo "Could not update in db ". mysql_error();
+            echo "Could not update in db " . mysql_error();
             mysql_close($con);
             return false;
         }
@@ -88,7 +89,7 @@ class SiteManager {
     }
 
     public function udpateForSite($site) {
-        if ($site!=null && is_a($site, "Site")) {
+        if ($site != null && is_a($site, "Site")) {
             $con = mysql_connect(MYSQL_HOST, MYSQL_USER_NAME, MYSQL_PASSWORD);
             $sql = "UPDATE " . DB_SITEMANAGER_NAME . ".sm_prodotti SET
         nome = " . $site->getNome() . ",
@@ -117,6 +118,18 @@ class SiteManager {
             mysql_close($con);
             return true;
         }
+    }
+
+    public function getAllSite() {
+        $con = mysql_connect(MYSQL_HOST, MYSQL_USER_NAME, MYSQL_PASSWORD);
+        $sql = "SELECT * FROM `" . DB_SITEMANAGER_NAME . "`.`sm_prodotti` ORDER BY upd DESC";
+        $castresult = mysql_query($sql) or die(mysql_error());
+        mysql_close($con);
+        $rows = null;
+        while ($row = mysql_fetch_array($castresult)) {
+            $rows[] = $row;
+        }
+        return $rows;
     }
 
     public function deleteDbOfSite() {
