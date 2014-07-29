@@ -26,12 +26,18 @@ class SiteManager {
         $this->id = $id;
     }
 
-    private function deleteFolder($dir) {
-        $files = array_diff(scandir($dir), array('.', '..'));
-        foreach ($files as $file) {
-            (is_dir($dir . DIRECTORY_SEPARATOR . $file) && !is_link($dir)) ? $this->deleteFolder($dir . DIRECTORY_SEPARATOR . $file) : unlink($dir . DIRECTORY_SEPARATOR . $file);
-            rmdir($dir);
+    private function deleteFolder($path) {
+        if (file_exists($path) && is_dir($path) === true) {
+            $files = array_diff(scandir($path), array('.', '..'));
+            foreach ($files as $file) {
+                $this->deleteFolder(realpath($path) . '/' . $file);
+            }
+            return rmdir($path);
+        } else if (file_exists($path) && is_file($path) === true) {
+            return unlink($path);
         }
+
+        return false;
     }
 
     public function deleteSite() {
@@ -130,6 +136,16 @@ class SiteManager {
             $rows[] = $row;
         }
         return $rows;
+    }
+
+    public function filterByState($sites, $status) {
+        $result =null;
+        foreach($sites as $site) {
+            if ($site['status'] == $status) {
+                $result[] = $site;
+            }
+        }
+        return $result;
     }
 
     public function deleteDbOfSite() {
