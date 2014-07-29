@@ -12,7 +12,13 @@
         <?php
         include_once("config.php");
         $sm = new SiteManager();
-        $allSiteInDb= $sm->getAllSite();
+        $allSiteInDb = $sm->getAllSite();
+        $workInProgress = $sm->filterByState($allSiteInDb, STATUS_WORKING);
+        $toTransfer = $sm->filterByState($allSiteInDb, STATUS_TO_TRANSFER);
+        $trasfering = $sm->filterByState($allSiteInDb, STATUS_TRASFERING);
+        $toInstall = $sm->filterByState($allSiteInDb, STATUS_TO_INSTALL);
+        $installed = $sm->filterByState($allSiteInDb, STATUS_INSTALLED);
+
         $siteLocal = createLinks($allSiteInDb);
         $masterWork = $siteLocal['form'];
         if (isset($_POST['nome']) && isset($_POST['tipo']) && validateInput($_POST['nome'])) {
@@ -24,15 +30,15 @@
             manageInstallation($_GET['nome'], $_GET['domain']);
         } else if (isset($_GET['f']) && $_GET['f'] == "t" && isset($_GET['id']) && $_GET['id'] != "") {
             trasferFtpFile($_GET['id']);
-        } else if (isset($_POST['status']) && $_POST['status']!= "" && isset($_POST['id']) && $_POST['id'] != "") {
+        } else if (isset($_POST['status']) && $_POST['status'] != "" && isset($_POST['id']) && $_POST['id'] != "") {
             $sm = new SiteManager();
             $sm->setId($_POST['id']);
-            if ($_POST['status']==="-1"){
+            if ($_POST['status'] === "-1") {
                 $sm->deleteSite();
-                if (isset($_POST['dr']) && $_POST['dr']!= ""){
+                if (isset($_POST['dr']) && $_POST['dr'] != "") {
                     $sm->deleteRepo();
                 }
-            }else{
+            } else {
                 $sm->updateStatusForDomainForId($_POST['status']);
             }
         }
@@ -41,11 +47,11 @@
         <table>
             <tr>
                 <td style="vertical-align:top"><?php echo $siteLocal['all']; ?></td>
-                <td style="vertical-align:top"><?php echo siteWorkInProgress(); ?></td>
-                <td style="vertical-align:top"><?php echo siteToBeTransfered(); ?></td>
-                <td style="vertical-align:top"><?php echo siteInTrasfering(); ?></td>
-                <td style="vertical-align:top"><?php echo siteToBePublished(); ?></td>
-                <td style="vertical-align:top"><?php echo siteCompleted(); ?></td>
+                <td style="vertical-align:top"><?php echo siteWorkInProgress($workInProgress); ?></td>
+                <td style="vertical-align:top"><?php echo siteToBeTransfered($toTransfer); ?></td>
+                <td style="vertical-align:top"><?php echo siteInTrasfering($trasfering); ?></td>
+                <td style="vertical-align:top"><?php echo siteToBePublished($toInstall); ?></td>
+                <td style="vertical-align:top"><?php echo siteCompleted($installed); ?></td>
                 <td style="vertical-align:top">
                     <div class="infotable" id="infotableid"></div>
                 </td>

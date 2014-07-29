@@ -80,8 +80,7 @@ function createFormForNewSite($arrayOfDbSite) {
     return $result;
 }
 
-function siteWorkInProgress() {
-    $files = getSitesByState(STATUS_WORKING);
+function siteWorkInProgress($files) {
     $result = "";
     if ($files != null && count($files) > 0) {
         $result.="<form  method=\"post\" name=\"newsite\" action=\"publish.php\">
@@ -102,8 +101,7 @@ function siteWorkInProgress() {
     return $result;
 }
 
-function siteInTrasfering() {
-    $files = getSitesByState(STATUS_TRASFERING);
+function siteInTrasfering($files) {
     $result = "";
     if ($files != null && count($files) > 0) {
         $result.="<table border =1>";
@@ -122,8 +120,7 @@ function siteInTrasfering() {
     return $result;
 }
 
-function siteToBeTransfered() {
-    $files = getSitesByState(STATUS_TO_TRANSFER);
+function siteToBeTransfered($files) {
     $result = "";
     if ($files != null && count($files) > 0) {
         $result.="<table border =1>";
@@ -142,8 +139,7 @@ function siteToBeTransfered() {
     return $result;
 }
 
-function siteToBePublished() {
-    $files = getSitesByState(STATUS_TO_INSTALL);
+function siteToBePublished($files) {
     $result = "";
     if ($files != null && count($files) > 0) {
         $result.="<table border =1>";
@@ -233,8 +229,7 @@ function manageInstallation($domainName, $dom) {
     }
 }
 
-function siteCompleted() {
-    $files = getSitesByState(STATUS_INSTALLED);
+function siteCompleted($files) {
     $result = "";
     if ($files != null && count($files) > 0) {
         $result.="<table border =1>";
@@ -339,17 +334,6 @@ function updateStatusSiteInDb($id, $data) {
     return true;
 }
 
-function getSitesByState($state) {
-    $con = mysql_connect(MYSQL_HOST, MYSQL_USER_NAME, MYSQL_PASSWORD);
-    $sql = "SELECT * FROM `" . DB_SITEMANAGER_NAME . "`.`sm_prodotti` WHERE STATUS = " . $state . " ORDER BY upd DESC";
-    $castresult = mysql_query($sql) or die(mysql_error());
-    mysql_close($con);
-    $rows = null;
-    while ($row = mysql_fetch_array($castresult)) {
-        $rows[] = $row;
-    }
-    return $rows;
-}
 
 
 /**
