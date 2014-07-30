@@ -109,6 +109,7 @@ VALUES
         $this->scriptFile = tempnam("tmp", "");
         $scriptFileHandle = fopen($this->scriptFile, "w");
         $script = "open \"ftp://" . $this->ftpUsername . ":" . $this->ftpPassword . "@" . $this->ftpHost . "/" . $remoteDir . "/\"
+option exclude \"*.svn/\" 
 option batch on 
 option confirm off
 synchronize remote \"" . BASE_PATH . $localdir . "\\\"
