@@ -22,7 +22,7 @@
         $siteLocal = createLinks($allSiteInDb);
         $masterWork = $siteLocal['form'];
         if (isset($_POST['nome']) && isset($_POST['tipo']) && validateInput($_POST['nome'])) {
-            $result = migrate($_POST['tipo'], $_POST['nome'], $masterWork[$_POST['tipo']]);
+            $result = $sm->migrate($_POST['tipo'], $_POST['nome'], $masterWork[$_POST['tipo']]);
             if (!$result) {
                 echo "un qualche errore di migrazione c'e' stato....<br>";
             }
@@ -41,6 +41,7 @@
             } else {
                 $sm->updateStatusForDomainForId($_POST['status']);
             }
+            header('Location: index.php');
         }
         ?>
         <div class="procmsg" id="procmsgid"></div>
