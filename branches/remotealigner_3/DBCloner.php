@@ -31,8 +31,38 @@ class DBCloner {
         $this->mysqlDatabaseNameNew = $mysqlDatabaseNameNew;
         $this->sourcename = $source;
         $this->destName = $dest;
+    }
 
-        $this->con = $this->dbConfigSource->connect();
+    public function getMysqlDatabaseName() {
+        return $this->mysqlDatabaseName;
+    }
+
+    public function getMysqlDatabaseNameNew() {
+        return $this->mysqlDatabaseNameNew;
+    }
+
+    public function getSourcename() {
+        return $this->sourcename;
+    }
+
+    public function getDestName() {
+        return $this->destName;
+    }
+
+    public function setMysqlDatabaseName($mysqlDatabaseName) {
+        $this->mysqlDatabaseName = $mysqlDatabaseName;
+    }
+
+    public function setMysqlDatabaseNameNew($mysqlDatabaseNameNew) {
+        $this->mysqlDatabaseNameNew = $mysqlDatabaseNameNew;
+    }
+
+    public function setSourcename($sourcename) {
+        $this->sourcename = $sourcename;
+    }
+
+    public function setDestName($destName) {
+        $this->destName = $destName;
     }
 
     public function setMysqlImportFilename($mysqlImportFilename) {
@@ -48,18 +78,18 @@ class DBCloner {
         }
     }
 
-    private function fixLength($match) {
-        $temp = intval(strlen($match[2]));
-        $result = 's:' . $temp . ':"' . $match[2] . '";';
-        return $result;
-    }
-
     function recursive_unserialize_replace($data, $key = null) {
         if (is_string($data) && ( $unserialized = @unserialize($data) ) === false) {
-            $data = html_entity_decode($data, ENT_QUOTES, 'UTF-8');
-            $data = preg_replace_callback('/s:(\d+):"(.*?)";/', array(&$this, 'fixLength'), $data);
+            $data = str_replace("'", "\'", html_entity_decode($data, ENT_QUOTES, 'UTF-8'));
+            $data = preg_replace_callback('/s:(\d+):"(.*?)";/', function ($match) {
+                $temp = intval(strlen($match[2]));
+                $result = 's:' . $temp . ':"' . $match[2] . '";';
+                return $result;
+            }, $data);
         }
-        $obj = unserialize($data);
+        if (DEBUG && ( $unserialized = @unserialize($data) ) === false) {
+            echo "ERROR UNSERIALAZING<br><br>".$data . "</br>";
+        }
         return $data;
     }
 
@@ -100,6 +130,9 @@ class DBCloner {
     }
 
     function createDb() {
+        if ($this->con === null) {
+            $this->con = $this->dbConfigSource->connect();
+        }
         $sql = "CREATE DATABASE " . $this->mysqlDatabaseNameNew;
         if (!mysql_query($sql, $this->con)) {
             $this->errormsg .= "Could not create db " . $this->mysqlDatabaseNameNew . " " . mysql_error();
@@ -108,6 +141,9 @@ class DBCloner {
     }
 
     function migrate($isLocal = true) {
+        if ($this->con === null) {
+            $this->con = $this->dbConfigSource->connect();
+        }
         $this->mysqlImportFilename = $this->mysqldumpOfDb(BASE_PATH . $this->destName . DIRECTORY_SEPARATOR, $this->mysqlDatabaseNameNew . ".sql");
         $this->createDb();
 
@@ -142,11 +178,12 @@ class DBCloner {
     }
 
     public function sqlFileCheckProperties($match) {
+        if ($this->con === null) {
+            $this->con = $this->dbConfigSource->connect();
+        }
         if (strpos($match[3], ":") > 0 && strpos($match[3], "{") && strpos($match[3], $this->destName)) {
             $cleaned = str_replace('\"', '"', $match[3]);
-            $cleaned = str_replace(PHP_EOL, "", $cleaned);
-            $cleaned = str_replace("\\r\\n", "", $cleaned);
-            $cleaned = str_replace("\r\n", "", $cleaned);
+            $cleaned = str_replace(array("\\r\\n","\r\n",PHP_EOL,), "", $cleaned);
             $cleaned = $this->recursive_unserialize_replace($cleaned, $match[3]);
             $result = "(" . $match[1] . ",'" . $match[2] . "','" . mysql_real_escape_string($cleaned) . "','" . $match[4] . "')";
         } else {
@@ -156,6 +193,9 @@ class DBCloner {
     }
 
     public function changeNextGenOption() {
+        if ($this->con === null) {
+            $this->con = $this->dbConfigSource->connect();
+        }
         $sql = "USE " . $this->mysqlDatabaseNameNew;
         mysql_query($sql, $this->con);
         $sql = "SELECT ID, post_content FROM wp_posts WHERE post_type='lightbox_library'";
@@ -187,6 +227,7 @@ class DBCloner {
         }
         $pathTobeRemoved = str_replace("\\", "/", dirname(BASE_PATH . $this->sourcename . "\\index.php") . "\\");
         $content = str_replace($pathTobeRemoved, "", $content);
+        $content = str_replace("),(","),\r\n(", $content);
         $content = str_replace($this->mysqlDatabaseName, $this->mysqlDatabaseNameNew, $content);
         $pattern = "/\((\d+),\s?'(.+?)',\s?'(.?|.+?)',\s?'(...?)'\)/";
         $content = preg_replace_callback($pattern, array($this, 'sqlFileCheckProperties'), $content);
@@ -194,6 +235,9 @@ class DBCloner {
     }
 
     private function cancellDB() {
+        if ($this->con === null) {
+            $this->con = $this->dbConfigSource->connect();
+        }
         $sql = "DROP DATABASE IF EXISTS " . $this->mysqlDatabaseNameNew;
         if (!mysql_query($sql, $this->con)) {
             $this->errormsg .= "Could not delete existent db " . $this->mysqlDatabaseNameNew . " " . mysql_error();

@@ -13,7 +13,7 @@ function recursive_unserialize_replace($data, $key = null) {
         }, $stringToFix);
     }
     if (DEBUG && ( $unserialized = @unserialize($stringToFix) ) === false) {
-        echo $data . "</br>";
+        echo $stringToFix . "</br>";
     }
     $result = "(".$data[1].",'theme_mods_arras".$data[2]."','".$stringToFix."','".$data[4]."')";
     return $result;

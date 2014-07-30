@@ -26,6 +26,14 @@ class SiteManager {
         $this->id = $id;
     }
 
+    public function getNome() {
+        return $this->nome;
+    }
+
+    public function setNome($nome) {
+        $this->nome = $nome;
+    }
+
     private function deleteFolder($path) {
         if (file_exists($path) && is_dir($path) === true) {
             $files = array_diff(scandir($path), array('.', '..'));
@@ -57,8 +65,7 @@ class SiteManager {
             $this->nome = $site['nome'];
         }
         $svnCli = new SubversionWrapper($this->nome, SVN_USER, SVN_PASSWORD);
-        echo "commentato il codice, sei sicuro?! cambia e vai!";
-//         $svnCli->deleteRepo();
+        $svnCli->deleteRepo();
     }
 
     public function getSiteById() {
@@ -139,8 +146,8 @@ class SiteManager {
     }
 
     public function filterByState($sites, $status) {
-        $result =null;
-        foreach($sites as $site) {
+        $result = null;
+        foreach ($sites as $site) {
             if ($site['status'] == $status) {
                 $result[] = $site;
             }
@@ -163,6 +170,64 @@ class SiteManager {
             echo "Database db_" . $this->nome . " deleted successfully\n";
         }
         mysql_close($conn);
+    }
+
+    /**
+     * insert in DB the entry for the new created site
+     *
+     * @param type $newSite: the name of the new site
+     * @param type $clientId: this is the id of a client
+     * @param type $source : this is the name of the master that are used for this entry
+     * @return boolean
+     */
+    public function insertNewCreatedSiteInDb($clientId, $source) {
+        if ($this->nome === null) {
+            $site = $this->getSiteById();
+            $this->nome = $site['nome'];
+        }
+        $con = mysql_connect(MYSQL_HOST, MYSQL_USER_NAME, MYSQL_PASSWORD);
+        $sql = "INSERT INTO `" . DB_SITEMANAGER_NAME . "`.`sm_prodotti` (`id`, `nome`, `cliente_id`, `modello_id`, `ins`, `upd`) VALUES ('', '" . $this->nome . "', ' " . $clientId . "', '" . $source . "', '" . date("Y-m-d H:i:s") . "', '" . date("Y-m-d H:i:s") . "');";
+        if (!mysql_query($sql, $con)) {
+            $this->errormsg = "Could not insert in db " . $this->mysqlDatabaseNameNew;
+            mysql_close($con);
+            return false;
+        }
+        mysql_close($con);
+        return true;
+    }
+
+    /**
+     * Do all the migration of files and DB entry for a Word press site
+     *
+     * @param type $source
+     * @param type $newSite
+     * @param type $mysqlDatabaseName
+     * @return boolean
+     */
+    public function migrate($source, $newSite, $mysqlDatabaseName) {
+        $this->nome = $newSite;
+        set_time_limit(60000);
+        $fileCloner = new WPMigrateFile(BASE_PATH . $source, BASE_PATH . $this->nome);
+        if (!$fileCloner->cloneSite()) {
+            echo $fileCloner->errorMsg . "</br>";
+            return false;
+        }
+        $fileCloner->changeWpconfig($mysqlDatabaseName, "db_" . $this->nome);
+        $htaAcces = new HtAccessMigrate($this->nome, $source);
+        $htaAcces->changeHtAccess(true);
+        $dbCloner = new DBCloner($mysqlDatabaseName, MYSQL_USER_NAME, MYSQL_PASSWORD, MYSQL_HOST, "db_" . $newSite, $source, $newSite);
+        if (!$dbCloner->migrate(true)) {
+            echo $dbCloner->errormsg . "</br>";
+            return false;
+        }
+        if (!DEBUG) {
+            $dbCloner->cleanAndClose();
+        }
+        $this->insertNewCreatedSiteInDb(null, $source);
+        $svn = new SubversionWrapper($this->nome, SVN_USER, SVN_PASSWORD);
+        $svn->createRepo();
+        $svn->committAll("First import");
+        return true;
     }
 
 }

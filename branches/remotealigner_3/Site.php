@@ -30,22 +30,24 @@ class Site {
     public $status;
 
     function __construct($siteData) {
-        $this->nome = $siteData['nome'];
-        $this->cliente_id = $siteData['cliente_id'];
-        $this->modello_id = $siteData['modello_id'];
-        $this->data_acquisto = $siteData['data_acquisto'];
-        $this->ref_mail = $siteData['ref_mail'];
-        $this->ftp_host = $siteData['ftp_host'];
-        $this->ftp_pwd = $siteData['ftp_pwd'];
-        $this->ftp_username = $siteData['ftp_username'];
-        $this->db = $siteData['db'];
-        $this->dbusername = $siteData['dbusername'];
-        $this->dbpwd = $siteData['dbpwd'];
-        $this->db = $siteData['db'];
-        $this->hostdb = $siteData['hostdb'];
-        $this->domainName = $siteData['domainName'];
-        $this->domain = $siteData['domain'];
-        $this->status = $siteData['status'];
+        if ($siteData != null) {
+            $this->nome = $siteData['nome'];
+            $this->cliente_id = $siteData['cliente_id'];
+            $this->modello_id = $siteData['modello_id'];
+            $this->data_acquisto = $siteData['data_acquisto'];
+            $this->ref_mail = $siteData['ref_mail'];
+            $this->ftp_host = $siteData['ftp_host'];
+            $this->ftp_pwd = $siteData['ftp_pwd'];
+            $this->ftp_username = $siteData['ftp_username'];
+            $this->db = $siteData['db'];
+            $this->dbusername = $siteData['dbusername'];
+            $this->dbpwd = $siteData['dbpwd'];
+            $this->db = $siteData['db'];
+            $this->hostdb = $siteData['hostdb'];
+            $this->domainName = $siteData['domainName'];
+            $this->domain = $siteData['domain'];
+            $this->status = $siteData['status'];
+        }
     }
 
     public function getId() {
@@ -187,15 +189,15 @@ class Site {
         data_acquisto = '" . $this->data_acquisto . "',
         ref_mail = '" . $this->ref_mail . "',
         ftp_host = '" . $this->ftp_host . "',
-        ftp_username = '" .$this->ftp_username . "',
+        ftp_username = '" . $this->ftp_username . "',
         ftp_pwd = '" . $this->ftp_pwd . "',
         db = '" . $this->db . "',
         dbusername = '" . $this->dbusername . "',
         dbpwd = '" . $this->dbpwd . "',
         hostdb = '" . $this->hostdb . "',
         domain = '" . $this->domain . "',
-        domainName = '" .  $this->domainName . "',
-        status = '".$this->status."',
+        domainName = '" . $this->domainName . "',
+        status = '" . $this->status . "',
         upd = '" . date("Y-m-d H:i:s") . "'
     WHERE sm_prodotti.nome='" . $this->nome . "';";
         if (!mysql_query($sql, $con)) {

@@ -21,6 +21,9 @@ function createLinks($allSitesInDb) {
     $files = glob(BASE_PATH . "*");
     $masterWork = array();
     $result = "<form method=\"post\" name=\"newsite\"  onsubmit=\"return validateForm()\" >
+        Inserisci il nome del nuovo sito da creare 
+        <input type=\"text\" name=\"nome\" value=\"\"></br>
+        <input type=\"submit\" value=\"crea\"></br>
 	<table border =1>";
     $result.= "<tr>
 <td colspan=\"3\">Siti in locale</td>
@@ -57,11 +60,7 @@ function createLinks($allSitesInDb) {
             $result.= "<tr><td colspan=\"3\">E' stato creato un nuovo sito (" . $repo . ") <a href=\"svnwrp.php?n=" . $repo . "\">Prendilo!</a></td></tr>";
         }
     }
-    $result.="</table>
-        </br>
-        Inserisci il nome del nuovo sito da creare 
-        <input type=\"text\" name=\"nome\" value=\"\">
-        <input type=\"submit\" value=\"crea\">
+    $result.="</table>        
     </form>";
     $totalResult['form'] = $masterWork;
     $totalResult['all'] = $result;
@@ -175,8 +174,10 @@ function changeState($allSite) {
         $result .= "<option value=\"" . STATUS_INSTALLED . "\"\>Installato</option>";
         $result .= "<option value=\"-1\"\>Elimina</option>";
         $result .= "</select>";
-        $result .= "<input type =\"checkbox\" name=\"dr\">Cancella anche la repository"
-                . "<input type=\"submit\" value=\"cambia stato\">
+        if (DEBUG) {
+            $result .= "<input type =\"checkbox\" name=\"dr\">Cancella anche la repository";
+        }
+        $result .= "<input type=\"submit\" value=\"cambia stato\">
     </form>";
         echo $result;
     }
@@ -257,26 +258,6 @@ function validateInput($input) {
     return true;
 }
 
-/**
- * insert in DB the entry for the new created site
- *
- * @param type $newSite: the name of the new site
- * @param type $clientId: this is the id of a client
- * @param type $source : this is the name of the master that are used for this entry
- * @return boolean
- */
-function insertNewCreatedSiteInDb($newSite, $clientId, $source) {
-    $con = mysql_connect(MYSQL_HOST, MYSQL_USER_NAME, MYSQL_PASSWORD);
-    $sql = "INSERT INTO `" . DB_SITEMANAGER_NAME . "`.`sm_prodotti` (`id`, `nome`, `cliente_id`, `modello_id`, `ins`, `upd`) VALUES ('', '" . $newSite . "', ' " . $clientId . "', '" . $source . "', '" . date("Y-m-d H:i:s") . "', '" . date("Y-m-d H:i:s") . "');";
-    if (!mysql_query($sql, $con)) {
-        $this->errormsg = "Could not insert in db " . $this->mysqlDatabaseNameNew;
-        mysql_close($con);
-        return false;
-    }
-    mysql_close($con);
-    return true;
-}
-
 function updateStatusForDomainForId($id, $status) {
     $con = mysql_connect(MYSQL_HOST, MYSQL_USER_NAME, MYSQL_PASSWORD);
     $sql = "UPDATE " . DB_SITEMANAGER_NAME . ".sm_prodotti SET
@@ -333,8 +314,6 @@ function updateStatusSiteInDb($id, $data) {
     mysql_close($con);
     return true;
 }
-
-
 
 /**
  * Create a new wp-config file
@@ -492,39 +471,6 @@ if (\$isOk){
     fwrite($fh, $stringData);
     fclose($fh);
     return $installerName;
-}
-
-/**
- * Do all the migration of files and DB entry for a Word press site
- *
- * @param type $source
- * @param type $newSite
- * @param type $mysqlDatabaseName
- * @return boolean
- */
-function migrate($source, $newSite, $mysqlDatabaseName) {
-    set_time_limit(60000);
-    $fileCloner = new WPMigrateFile(BASE_PATH . $source, BASE_PATH . $newSite);
-    if (!$fileCloner->cloneSite()) {
-        echo $fileCloner->errorMsg . "</br>";
-        return false;
-    }
-    $fileCloner->changeWpconfig($mysqlDatabaseName, "db_" . $newSite);
-    $htaAcces = new HtAccessMigrate($newSite, $source);
-    $htaAcces->changeHtAccess(true);
-    $dbCloner = new DBCloner($mysqlDatabaseName, MYSQL_USER_NAME, MYSQL_PASSWORD, MYSQL_HOST, "db_" . $newSite, $source, $newSite);
-    if (!$dbCloner->migrate(true)) {
-        echo $dbCloner->errormsg . "</br>";
-        return false;
-    }
-    if (!DEBUG) {
-        $dbCloner->cleanAndClose();
-    }
-    insertNewCreatedSiteInDb($newSite, null, $source);
-    $svn = new SubversionWrapper($newSite, SVN_USER, SVN_PASSWORD);
-    $svn->createRepo();
-    $svn->committAll("First import");
-    return true;
 }
 
 ?>

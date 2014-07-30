@@ -9,10 +9,18 @@ include_once("../DBCloner.php");
 
 $nomeSitoLocale = "lucianamaglio";
 $nomesitoRemoto = "http://www.lucianamaglio.it";
+$mysqlDatabaseName = "db_".$nomeSitoLocale;
+$mysqlDatabaseNameNew ="168.32.42.32";
 $nomeFile ="buttami".$nomeSitoLocale.".sql";
 
 $db = new DBCloner("db_" . $nomeSitoLocale, MYSQL_USER_NAME, MYSQL_PASSWORD, MYSQL_HOST, null, $nomeSitoLocale, $nomesitoRemoto);
-$db->exportDbToPath($nomeFile, $isLocal = false);
+
+$db->setDestName($nomesitoRemoto);
+$db->setSourcename($nomeSitoLocale);
+$db->setMysqlDatabaseName($mysqlDatabaseName);
+$db->setMysqlDatabaseNameNew($mysqlDatabaseNameNew);
+
+$db->migrateDbFiles($nomeFile, false);
 if (filesize(BASE_PATH.$nomeSitoLocale.DIRECTORY_SEPARATOR.$nomeFile)>100){
     echo "TEST ok";
 }else {
