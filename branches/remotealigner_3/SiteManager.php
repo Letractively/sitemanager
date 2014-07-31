@@ -147,9 +147,11 @@ class SiteManager {
 
     public function filterByState($sites, $status) {
         $result = null;
-        foreach ($sites as $site) {
-            if ($site['status'] == $status) {
-                $result[] = $site;
+        if ($sites != null) {
+            foreach ($sites as $site) {
+                if ($site['status'] == $status) {
+                    $result[] = $site;
+                }
             }
         }
         return $result;

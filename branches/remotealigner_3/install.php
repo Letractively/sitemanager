@@ -12,7 +12,7 @@ define(\"MYSQL_USER_NAME\",\"root\");
 define(\"MYSQL_PASSWORD\",\"\");
 define(\"MYSQL_HOST\",\"localhost\");
 define(\"DEBUG\",true);
-define(\"DB_SITEMANAGER_NAME\",\"site_manager\");
+define(\"DB_SITEMANAGER_NAME\",\"sitemanager\");
 define(\"STATUS_WORKING\",0);
 define(\"STATUS_TO_TRANSFER\",1);
 define(\"STATUS_TRASFERING\",2);
