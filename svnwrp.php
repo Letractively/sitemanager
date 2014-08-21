@@ -19,7 +19,7 @@ if (isset($_GET['id']) && $_GET['id'] != "") {
     } else if (isset($_GET['f']) && $_GET['f'] == "u") {
         $svnCli->updateAll();
         $db->setMysqlImportFilename(BASE_PATH . $site->getNome() . DIRECTORY_SEPARATOR . "db_" . $siteData['nome'] . ".sql");
-        $db->importFile(BASE_PATH . $site->getNome() . DIRECTORY_SEPARATOR . $site->getNome() . "st.obj");
+        $db->importFile();
         $site->load(BASE_PATH . $site->getNome() . DIRECTORY_SEPARATOR . $site->getNome() . "st.obj");
         $site->updateSite();
     }
