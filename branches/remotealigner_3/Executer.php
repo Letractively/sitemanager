@@ -52,11 +52,23 @@ class Executer {
 
     public function getOutput() {
         $result = "";
-        if ($this->stdOut != null && $this->stdOut != "") {
-            $result .= $this->stdOut;
+        if ($this->stdOut != null) {
+            if (is_array($this->stdOut)) {
+                foreach ($this->stdOut as $line) {
+                    $result .= $line . "</br>";
+                }
+            } else {
+                $result .= $this->stdOut . "</br>";
+            }
         }
-        if ($this->stdErr != null && $this->stdErr != "") {
-            $result .= $this->stdErr;
+        if ($this->stdErr != null) {
+            if (is_array($this->stdErr)) {
+                foreach ($this->stdErr as $lineErr) {
+                    $result .= $lineErr . "</br>";
+                }
+            } else {
+                $result .= $this->stdErr . "</br>";
+            }
         }
         return $result;
     }

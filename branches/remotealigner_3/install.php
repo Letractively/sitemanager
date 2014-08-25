@@ -51,7 +51,7 @@ CREATE TABLE IF NOT EXISTS `sm_processrunning` (
 
 CREATE TABLE IF NOT EXISTS `sm_prodotti` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
-  `nome` text NOT NULL,
+  `nome` varchar(512) NOT NULL,
   `cliente_id` int(11) NOT NULL,
   `modello_id` text NOT NULL,
   `data_acquisto` date DEFAULT NULL,
@@ -68,7 +68,8 @@ CREATE TABLE IF NOT EXISTS `sm_prodotti` (
   `status` int(11) NOT NULL,
   `ins` timestamp NULL DEFAULT NULL,
   `upd` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  PRIMARY KEY (`id`)
+  PRIMARY KEY (`id`),
+  KEY `nome` (`nome`)
 ) ENGINE=MyISAM  DEFAULT CHARSET=latin1 AUTO_INCREMENT=1 ;";
     
     $con = mysql_connect(MYSQL_HOST, MYSQL_USER_NAME, MYSQL_PASSWORD, DB_SITEMANAGER_NAME);

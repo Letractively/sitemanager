@@ -1,9 +1,6 @@
 <?php
 
 include_once("config.php");
-include_once("HtAccessMigrate.php");
-include_once("WPMigrateFile.php");
-include_once("DBCloner.php");
 include_once("FtpUploader.php");
 include_once("SubversionWrapper.php");
 include_once("SiteManager.php");
@@ -315,35 +312,7 @@ function updateStatusSiteInDb($id, $data) {
     return true;
 }
 
-/**
- * Create a new wp-config file
- * @param type name of the site to move
- * @param type array of config valuewhos keys are:,  newDb,userName,password,hostdb,domain,domainName
- *
- * Example:
- * $input['newDb'] = "arubadb1";
- * $input['userName'] = "sdfdfgjewroigt";
- * $input['password'] = "aruba password";
- * $input['hostdb'] = "192.34.35.354";
- * $input['domain'] = "com";
- * $input['domainName'] = "centro-estetocpbuetyansdusun";
- *
- */
-function moveToRelease($id, $source, $newConfig) {
-    $fileCloner = new WPMigrateFile(BASE_PATH . $source, BASE_PATH . $source);
-    $fileCloner->createReleaseConfigAndBckpLocal($newConfig);
-    $fileCloner->switchConfigFile("wp-config-locale.php", "wp-config-remote.php");
-    $dbCloner = new DBCloner("db_" . $source, MYSQL_USER_NAME, MYSQL_PASSWORD, MYSQL_HOST, null, $source, "http://www." . $newConfig['domainName'] . "." . $newConfig['domain']);
-    $exportFileName = str_replace("/", ".", $newConfig['domainName'] . "." . $newConfig['domain'] . ".sql");
-    $fileToMove[] = $dbCloner->exportDbToPath($exportFileName, false);
-    $archiveFile = BASE_PATH . $source . DIRECTORY_SEPARATOR . $source . ".zip";
-    $fileToMove[] = $archiveFile;
-    $htaAcces = new HtAccessMigrate("http://www." . $newConfig['domainName'] . "." . $newConfig['domain'], $source);
-    $htaAcces->changeHtAccess(false);
-    $fileToMove[] = $htaAcces->getFileName();
-    $fileToMove[] = writeInstaller($newConfig, $source);
-    return updateStatusSiteInDb($id, $newConfig);
-}
+
 
 function Zip($source, $destination) {
     if (!extension_loaded('zip') || !file_exists($source)) {

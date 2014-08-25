@@ -1,6 +1,11 @@
 <?php
 
 include("Site.php");
+include_once("WPMigrateFile.php");
+include_once("DBCloner.php");
+include_once("TestConfiguration.php");
+include_once("HtAccessMigrate.php");
+
 
 /*
  * To change this license header, choose License Headers in Project Properties.
@@ -188,7 +193,7 @@ class SiteManager {
             $this->nome = $site['nome'];
         }
         $con = mysql_connect(MYSQL_HOST, MYSQL_USER_NAME, MYSQL_PASSWORD);
-        $sql = "INSERT INTO `" . DB_SITEMANAGER_NAME . "`.`sm_prodotti` (`id`, `nome`, `cliente_id`, `modello_id`, `ins`, `upd`) VALUES ('', '" . $this->nome . "', ' " . $clientId . "', '" . $source . "', '" . date("Y-m-d H:i:s") . "', '" . date("Y-m-d H:i:s") . "');";
+        $sql = "REPLACE INTO `" . DB_SITEMANAGER_NAME . "`.`sm_prodotti` (`id`, `nome`, `cliente_id`, `modello_id`, `ins`, `upd`) VALUES ('', '" . $this->nome . "', ' " . $clientId . "', '" . $source . "', '" . date("Y-m-d H:i:s") . "', '" . date("Y-m-d H:i:s") . "');";
         if (!mysql_query($sql, $con)) {
             $this->errormsg = "Could not insert in db " . $this->mysqlDatabaseNameNew;
             mysql_close($con);
@@ -196,6 +201,42 @@ class SiteManager {
         }
         mysql_close($con);
         return true;
+    }
+
+    /**
+     * Create a new wp-config file
+     * @param type name of the site to move
+     * @param type array of config valuewhos keys are:,  newDb,userName,password,hostdb,domain,domainName
+     *
+     * Example:
+     * $input['newDb'] = "arubadb1";
+     * $input['userName'] = "sdfdfgjewroigt";
+     * $input['password'] = "aruba password";
+     * $input['hostdb'] = "192.34.35.354";
+     * $input['domain'] = "com";
+     * $input['domainName'] = "centro-estetocpbuetyansdusun";
+     *
+     */
+    function moveToRelease($id, $source, $newConfig) {
+        $testConfiguration = new TestConfiguration($source, $newConfig);
+        if ($testConfiguration->isConfigOk()) {
+            $fileCloner = new WPMigrateFile(BASE_PATH . $source, BASE_PATH . $source);
+            $fileCloner->createReleaseConfigAndBckpLocal($newConfig);
+            $fileCloner->switchConfigFile("wp-config-locale.php", "wp-config-remote.php");
+            $dbCloner = new DBCloner("db_" . $source, MYSQL_USER_NAME, MYSQL_PASSWORD, MYSQL_HOST, null, $source, "http://www." . $newConfig['domainName'] . "." . $newConfig['domain']);
+            $exportFileName = str_replace("/", ".", $newConfig['domainName'] . "." . $newConfig['domain'] . ".sql");
+            $fileToMove[] = $dbCloner->exportDbToPath($exportFileName, false);
+            $archiveFile = BASE_PATH . $source . DIRECTORY_SEPARATOR . $source . ".zip";
+            $fileToMove[] = $archiveFile;
+            $htaAcces = new HtAccessMigrate("http://www." . $newConfig['domainName'] . "." . $newConfig['domain'], $source);
+            $htaAcces->changeHtAccess(false);
+            $fileToMove[] = $htaAcces->getFileName();
+            $fileToMove[] = writeInstaller($newConfig, $source);
+            return updateStatusSiteInDb($id, $newConfig);
+        } else {
+            echo $testConfiguration->getErrorDescription();
+            return false;
+        }
     }
 
     /**
