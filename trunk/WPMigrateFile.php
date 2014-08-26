@@ -10,6 +10,7 @@ class WPMigrateFile {
     public $sourcePath;
     public $destPath;
     public $errorMsg;
+    public $excludefile = array();
 
     function __construct($sourcePath, $destPath) {
         $this->sourcePath = $sourcePath;
@@ -17,7 +18,19 @@ class WPMigrateFile {
     }
 
     function cloneSite() {
-        return $this->recurseCopy($this->sourcePath, $this->destPath);
+        $sourceName = str_replace(BASE_PATH, "", $this->sourcePath);
+        foreach (glob($this->sourcePath . DIRECTORY_SEPARATOR . "*" . $sourceName . "*") as $filename) {
+            $excludefile[] = $filename;
+        }
+        if (file_exists($this->sourcePath . DIRECTORY_SEPARATOR . "wp-config-remote.php")) {
+            $excludefile[] = $this->destPath . DIRECTORY_SEPARATOR . "wp-config-remote.php";
+        }
+        if (file_exists($this->sourcePath . DIRECTORY_SEPARATOR . ".htaccess-remote")) {
+            $excludefile[] = $this->destPath . DIRECTORY_SEPARATOR . ".htaccess-remote";
+        }
+        $this->excludefile = $excludefile;
+        $result = $this->recurseCopy($this->sourcePath, $this->destPath);
+        return $result;
     }
 
     function recurseCopy($src, $dst) {
@@ -30,14 +43,14 @@ class WPMigrateFile {
             return false;
         }
         $dir = opendir($src);
-        if (strpos($dst,'.svn') === false) {
+        if (strpos($dst, '.svn') === false) {
             if (!mkdir($dst)) {
                 $this->errorMsg .= "Could not create dir " . $dst;
                 return false;
             }
         }
         while (false !== ( $file = readdir($dir))) {
-            if (( $file != '.' ) && ( $file != '..' )) {
+            if (( $file != '.' ) && ( $file != '..' ) && ( $file != '.svn' )&& !in_array($file, $this->excludefile)) {
                 if (is_dir($src . '/' . $file)) {
                     $this->recurseCopy($src . '/' . $file, $dst . '/' . $file);
                 } else {
