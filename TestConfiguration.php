@@ -36,13 +36,10 @@ class TestConfiguration {
         $result = false;
         $this->createDbTestFile();
         $this->createScriptTransferFile();
-        $this->createScriptDeleteFile();
         if ($this->runScript($this->ftpScriptFile)) {
             if ($this->callDbTest()) {
-//                $this->runScript($this->ftpDeleteScriptFile);
-                if (DEBUG) {
+                if (!DEBUG) {
                     unlink($this->ftpScriptFile);
-                    unlink($this->ftpDeleteScriptFile);
                     unlink($this->dbTestFile);
                 }
                 $result = true;
@@ -65,6 +62,7 @@ if (\$mysqli->connect_errno) {
 }else {
     echo \"0\"; 
 }
+unlink (__FILE__);
 ?>";
 
         fwrite($fh, $stringData);
@@ -100,34 +98,4 @@ exit";
         }
         return $result;
     }
-
-    public function createScriptDeleteFile() {
-        $fh = fopen($this->ftpDeleteScriptFile, 'w');
-        $stringData = "option batch abort
-option confirm off
-open \"ftp://" . $this->config['ftpUsername'] . ":" . $this->config['ftpPassword'] . "@" . $this->config['ftpHost'] . "/www." . $this->config['domainName'] . "." . $this->config['domain'] . "/\"
-rm dbtest.php
-exit";
-        fwrite($fh, $stringData);
-        fclose($fh);
-    }
-
-    public function runScript($script) {
-        $result = false;
-        $winScpPath = __DIR__ . DIRECTORY_SEPARATOR . "bin" . DIRECTORY_SEPARATOR . "WinSCP.com";
-        $command = $winScpPath . " /script=\"" . $script . "\"";
-        if (DEBUG) {
-            echo $command . "</br>";
-        }
-        $ex = new Executer();
-        $ex->execute($command, false);
-        
-        if ($ex->getStdErr()!= null) {
-            $this->errorDescription .=$ex->getOutput() . "</br>";
-        } else {
-            $result = true;
-        }
-        return $result;
-    }
-
 }
