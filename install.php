@@ -5,22 +5,30 @@ $configFileName = 'config.php';
 if (!file_exists($configFileName)) {
     $fp = fopen($configFileName, 'w');
     $configString = "<?php
-define(\"BASE_PATH\",\"D:\\wamp\\www\\\");
-define(\"MYSQL_BIN_BASE_PATH\",\"D:\\wamp\\bin\\mysql\\mysql5.1.36\\bin\\\");
+define(\"BASE_PATH\",\"D:\\\\wamp\\\\www\\\\\");
+define(\"DOMAIN_URL_BASE\",\"localhost\");
+define(\"MYSQL_BIN_BASE_PATH\",\"D:\\\\wamp\\\\bin\\\\mysql\\\\mysql5.1.36\\\\bin\\\\\");
 define(\"MYSQL_USER_NAME\",\"root\");
 define(\"MYSQL_PASSWORD\",\"\");
 define(\"MYSQL_HOST\",\"localhost\");
 define(\"DEBUG\",true);
-define(\"DB_SITEMANAGER_NAME\",\"site_manager\");
+define(\"DB_SITEMANAGER_NAME\",\"sitemanager\");
 define(\"STATUS_WORKING\",0);
 define(\"STATUS_TO_TRANSFER\",1);
 define(\"STATUS_TRASFERING\",2);
 define(\"STATUS_TO_INSTALL\",3);
 define(\"STATUS_INSTALLED\",4);
 
-include_once(\"FEfunction.php\");
+define(\"SVN_SERVER\",\"mirobarsa.duckdns.org\");
+define(\"SVN_USER\",\"pi\");
+define(\"SVN_PASSWORD\",\"olidata35!\");
+define(\"SVN_USER_ADMIN\",\"vivi\");
+define(\"SVN_PASSWORD_ADMIN\",\"p0p1\");
 
-?>";
+
+include_once(\"FEfunction.php\");
+?>
+";
     fwrite($fp, $configString);
     fclose($fp);
 } else {
@@ -43,7 +51,7 @@ CREATE TABLE IF NOT EXISTS `sm_processrunning` (
 
 CREATE TABLE IF NOT EXISTS `sm_prodotti` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
-  `nome` text NOT NULL,
+  `nome` varchar(512) NOT NULL,
   `cliente_id` int(11) NOT NULL,
   `modello_id` text NOT NULL,
   `data_acquisto` date DEFAULT NULL,
@@ -60,7 +68,8 @@ CREATE TABLE IF NOT EXISTS `sm_prodotti` (
   `status` int(11) NOT NULL,
   `ins` timestamp NULL DEFAULT NULL,
   `upd` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  PRIMARY KEY (`id`)
+  PRIMARY KEY (`id`),
+  KEY `nome` (`nome`)
 ) ENGINE=MyISAM  DEFAULT CHARSET=latin1 AUTO_INCREMENT=1 ;";
     
     $con = mysql_connect(MYSQL_HOST, MYSQL_USER_NAME, MYSQL_PASSWORD, DB_SITEMANAGER_NAME);

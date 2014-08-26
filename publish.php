@@ -13,7 +13,9 @@
         include_once("config.php");
         set_time_limit(120000);
         if (isset($_POST['sites'])) {
-            $siteData = getSiteById($_POST['sites']);
+            $sm = new SiteManager();
+            $sm->setId($_POST['sites']);
+            $siteData = $sm->getSiteById();
             $today = date('d/m/Y');
             echo "Inserisci i dati per la pubblicazione di: " . $siteData['nome'] . "<br><br>
       ";
@@ -67,25 +69,29 @@ Dominio sito: http://www.<input type=\"text\" name=\"domainname\" value=\"" . $s
                 isset($_POST['sourceid'])) {
             $datenow = DateTime::createFromFormat('d/m/Y', $_POST['dataacqui']);
             $input['dataacqui'] = $datenow->format('Y-m-d');
-            $input['email'] = trim ($_POST['email']);
-            $input['ftphost'] = trim ($_POST['ftphost']);
-            $input['ftpusername'] = trim ($_POST['ftpusername']);
-            $input['ftppwd'] = trim ($_POST['ftppwd']);
-            $input['newDb'] = trim ($_POST['db']);
-            $input['userName'] = trim ($_POST['username']);
-            $input['password'] = trim ($_POST['pwd']);
-            $input['hostdb'] = trim ($_POST['hostdb']);
+            $input['email'] = trim($_POST['email']);
+            $input['ftphost'] = trim($_POST['ftphost']);
+            $input['ftpusername'] = trim($_POST['ftpusername']);
+            $input['ftppwd'] = trim($_POST['ftppwd']);
+            $input['newDb'] = trim($_POST['db']);
+            $input['userName'] = trim($_POST['username']);
+            $input['password'] = trim($_POST['pwd']);
+            $input['hostdb'] = trim($_POST['hostdb']);
             if (isset($_POST['secondsubdomain']) && $_POST['secondsubdomain'] != "") {
-                $input['domain'] = trim ($_POST['domain'] . '/' . $_POST['secondsubdomain']);
+                $input['domain'] = trim($_POST['domain'] . '/' . $_POST['secondsubdomain']);
             } else {
-                $input['domain'] = trim ($_POST['domain']);
+                $input['domain'] = trim($_POST['domain']);
             }
-            $input['domainName'] =trim ( $_POST['domainname']);
+            $input['domainName'] = trim($_POST['domainname']);
             if (moveToRelease($_POST['sourceid'], $_POST['source'], $input)) {
                 header("Location: index.php");
+            } else {
+                echo "Correggi gli errori</br>"
+                . "<a href=\"index.php\">Ritorna alla home</a>";
             }
         } else {
-            header("Location: index.php");
+            echo "Dati mancanti o non corretti</br>"
+            . "<a href=\"index.php\">Ritorna alla home</a>";
         }
         ?>
 
