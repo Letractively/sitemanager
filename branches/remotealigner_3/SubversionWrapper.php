@@ -50,20 +50,44 @@ class SubversionWrapper {
         $this->password = $password;
     }
 
+    public function forceDelete() {
+        $command = "svn st " . BASE_PATH . $this->repos;
+        $this->exec->execute($command, false);
+        if ($this->exec->getRetCode() == 0) {
+            foreach ($this->exec->getStdOut() as $line) {
+                if (strpos($line, "!") === 0) {
+                    $command = "svn delete " . substr($line, 1);
+                    $this->exec->execute($command, false);
+                    if (($this->exec->getRetCode() != "" || $this->exec->getRetCode() != "0") || DEBUG) {
+                        echo "RETURN FROM DELETE</br>";
+                        echo $this->exec->getOutput() . "</br>";
+                    }
+                }
+            }
+        } else {
+            var_dump($this->exec->getStdErr());
+        }
+    }
+
     function committAll($message) {
         $command = "svn cleanup " . BASE_PATH . $this->repos;
         $this->exec->execute($command, false);
-        $command = "svn add --force " . BASE_PATH . $this->repos . "\* --auto-props --parents --depth infinity";
+        if (($this->exec->getRetCode() != "" || $this->exec->getRetCode() != "0") || DEBUG) {
+            echo "RETURN FROM CLEANUP</br>";
+            echo $this->exec->getOutput() . "</br>";
+        }
+        $this->forceDelete();
+        $command = "svn add --depth=infinity " . BASE_PATH . $this->repos . "\*";
         $this->exec->execute($command, false);
-        if (DEBUG) {
+        if (($this->exec->getRetCode() != "" || $this->exec->getRetCode() != "0") || DEBUG) {
             echo "RETURN FROM ADD</br>";
             echo $this->exec->getOutput() . "</br>";
         }
         $command = "svn commit " . BASE_PATH . $this->repos . " -m \"" . $message . "\" --username " . SVN_USER . " --password " . SVN_PASSWORD;
         $this->exec->execute($command, true);
-        if (DEBUG) {
+        if (($this->exec->getRetCode() != "" || $this->exec->getRetCode() != "0") || DEBUG) {
             echo "RETURN FROM COMMIT</br>";
-            echo $this->exec->getOutput() . "</br>";
+            echo $this->exec->getOutput() ."</br>";
         }
     }
 
@@ -85,7 +109,7 @@ class SubversionWrapper {
     function checkout() {
         $command = "svn co http://" . SVN_SERVER . "/svn/" . $this->repos . " " . BASE_PATH . $this->repos . " --username " . SVN_USER . " --password " . SVN_PASSWORD;
         $this->exec->execute($command, false);
-        if (DEBUG) {
+        if (($this->exec->getRetCode() != "" || $this->exec->getRetCode() != "0") || DEBUG) {
             echo "RETURN FROM CHECKOUT</br>";
             echo $this->exec->getOutput() . "</br>";
         }
@@ -152,6 +176,7 @@ class SubversionWrapper {
         $info = curl_getinfo($ch);
         curl_close($ch);
     }
+
 }
 
 ?>
