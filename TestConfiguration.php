@@ -73,7 +73,7 @@ unlink (__FILE__);
         $fh = fopen($this->ftpScriptFile, 'w');
         $stringData = "option batch abort
 option confirm off
-open \"ftp://" . $this->config['ftpUsername'] . ":" . $this->config['ftpPassword'] . "@" . $this->config['ftpHost'] . "/www." . $this->config['domainName'] . "." . $this->config['domain'] . "/\"
+open \"ftp://" . $this->config['ftpusername'] . ":" . $this->config['ftppwd'] . "@" . $this->config['ftphost'] . "/www." . $this->config['domainName'] . "." . $this->config['domain'] . "/\"
 put " . $this->dbTestFile . " dbtest.php
 exit";
         fwrite($fh, $stringData);
