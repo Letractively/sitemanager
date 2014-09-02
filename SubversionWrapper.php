@@ -53,7 +53,7 @@ class SubversionWrapper {
     function committAll($message) {
         $command = "svn cleanup " . BASE_PATH . $this->repos;
         $this->exec->execute($command, false);
-        $command = "svn add --force " . BASE_PATH . $this->repos . "\* --auto-props --parents --depth infinity -q";
+        $command = "svn add --force " . BASE_PATH . $this->repos . "\* --auto-props --parents --depth infinity";
         $this->exec->execute($command, false);
         if (DEBUG) {
             echo "RETURN FROM ADD</br>";
