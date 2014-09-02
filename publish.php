@@ -11,6 +11,7 @@
     <body>
         <?php
         include_once("config.php");
+        include_once("SiteManager.php");
         set_time_limit(120000);
         if (isset($_POST['sites'])) {
             $sm = new SiteManager();
@@ -83,7 +84,8 @@ Dominio sito: http://www.<input type=\"text\" name=\"domainname\" value=\"" . $s
                 $input['domain'] = trim($_POST['domain']);
             }
             $input['domainName'] = trim($_POST['domainname']);
-            if (moveToRelease($_POST['sourceid'], $_POST['source'], $input)) {
+            $sm = new $SiteManager();
+            if ($sm->moveToRelease($_POST['sourceid'], $_POST['source'], $input)) {
                 header("Location: index.php");
             } else {
                 echo "Correggi gli errori</br>"
