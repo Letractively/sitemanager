@@ -32,6 +32,19 @@ class TestConfiguration {
         return $this->errorDescription;
     }
 
+    private function runScript($scriptFile) {
+        $result = true;
+        $winScpPath = __DIR__ . DIRECTORY_SEPARATOR . "bin" . DIRECTORY_SEPARATOR . "WinSCP.com";
+        $command = $winScpPath . " /script=\"" . $scriptFile . "\"";
+        $ex = new Executer();
+        $ex->execute($command, false);
+        if ($ex->getStdErr() != 0) {
+            $result = false;
+            $this->errorDescription .=$ex->getOutput() . "</br>";
+        }
+        return $result;
+    }
+
     public function isConfigOk() {
         $result = false;
         $this->createDbTestFile();
@@ -98,4 +111,5 @@ exit";
         }
         return $result;
     }
+
 }
