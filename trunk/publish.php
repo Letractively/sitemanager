@@ -84,7 +84,7 @@ Dominio sito: http://www.<input type=\"text\" name=\"domainname\" value=\"" . $s
                 $input['domain'] = trim($_POST['domain']);
             }
             $input['domainName'] = trim($_POST['domainname']);
-            $sm = new $SiteManager();
+            $sm = new SiteManager();
             if ($sm->moveToRelease($_POST['sourceid'], $_POST['source'], $input)) {
                 header("Location: index.php");
             } else {
