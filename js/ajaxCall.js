@@ -2,6 +2,7 @@ $(document).ready(function(){
     var loader="<img src=\"img/loading.gif\">";
     $.ajax({
         type: 'POST',
+        data:"proc=WinSCP.com",
         url: 'showprocess.php',
         success: function(good) {
             var result = JSON.parse(good);
@@ -9,6 +10,7 @@ $(document).ready(function(){
                 var refreshIntervalId =setInterval(function() {
                     $.ajax({
                         type: 'POST',
+                        data:"proc=WinSCP.com",
                         url: 'showprocess.php',
                         success: function(res2) {
                             var work = JSON.parse(res2);

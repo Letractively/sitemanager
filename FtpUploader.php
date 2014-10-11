@@ -61,50 +61,23 @@ class FtpUploader {
         $this->id_site = $id_site;
     }
 
-    function uploadUsingScript($background = false) {
+    function uploadUsingScript() {
         $winScpPath = __DIR__ . DIRECTORY_SEPARATOR . "bin" . DIRECTORY_SEPARATOR . "WinSCP.com";
         $command = $winScpPath . " /script=\"" . $this->scriptFile . "\"";
         if (DEBUG) {
             echo $command . "</br>";
         }
         $ex = new Executer();
-        $ex->execute($command,$background);
+        $ex->execute($command,true);
         if (count($ex->getOutput())>0) {
             print_r($ex->getOutput());
         }
-        if ($this->insertProcessRunning()) {
+        if ($ex->insertProcessRunning($this->id_site, $this->scriptFile)) {
             header('Location: index.php');
         }
     }
 
-    function insertProcessRunning() {
-        $con = mysql_connect(MYSQL_HOST, MYSQL_USER_NAME, MYSQL_PASSWORD);
-        $sql = "INSERT INTO `" . DB_SITEMANAGER_NAME . "`.`sm_processrunning` 
-(`id`,`id_site`,`pid`,`script_name`) 
-VALUES
-(NULL," . $this->id_site . ", '" . $this->pid . "','" . str_replace("\\", "\\\\", $this->scriptFile) . "')";
-
-        if (DEBUG) {
-            echo $sql . "</br>";
-        }
-        if (!mysql_query($sql, $con)) {
-            echo "Could not insert in db process for id_site: " . $this->id_site . " PID [" . $this->pid . "]";
-            mysql_close($con);
-            return false;
-        }
-        $sql = "UPDATE " . DB_SITEMANAGER_NAME . ".sm_prodotti SET
-        status = " . STATUS_TRASFERING . ",
-        upd = '" . date("Y-m-d H:i:s") . "'
-    WHERE sm_prodotti.id ='" . $this->id_site . "';";
-        if (!mysql_query($sql, $con)) {
-            echo "Could not update in db ";
-            mysql_close($con);
-            return false;
-        }
-        mysql_close($con);
-        return true;
-    }
-
+    
     function createScriptFile($localdir, $sqlFile, $remoteDir = "") {
         $this->scriptFile = tempnam("tmp", "");
         $scriptFileHandle = fopen($this->scriptFile, "w");

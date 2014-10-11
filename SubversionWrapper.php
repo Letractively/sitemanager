@@ -69,7 +69,7 @@ class SubversionWrapper {
         }
     }
 
-    function committAll($message) {
+    function committAll($message,$id_site) {
         $command = "svn cleanup " . BASE_PATH . $this->repos;
         $this->exec->execute($command, false);
         if (($this->exec->getRetCode() != "" || $this->exec->getRetCode() != "0") || DEBUG) {
@@ -85,6 +85,7 @@ class SubversionWrapper {
         }
         $command = "svn commit " . BASE_PATH . $this->repos . " -m \"" . $message . "\" --username " . SVN_USER . " --password " . SVN_PASSWORD;
         $this->exec->execute($command, true);
+        $this->exec->insertProcessRunning($id_site, $command);
         if (($this->exec->getRetCode() != "" || $this->exec->getRetCode() != "0") || DEBUG) {
             echo "RETURN FROM COMMIT</br>";
             echo $this->exec->getOutput() ."</br>";

@@ -192,7 +192,7 @@ function trasferFtpFile($id) {
     if (DEBUG) {
         echo "Created file " . $scriptFile . "</br>";
     }
-    $ftpMy->uploadUsingScript($scriptFile, true);
+    $ftpMy->uploadUsingScript($scriptFile);
     updateStatusForDomain($infoOnSite['domainName'], $infoOnSite['domain'], $infoOnSite['status'] + 1);
 }
 

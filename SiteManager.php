@@ -269,7 +269,7 @@ class SiteManager {
         $this->insertNewCreatedSiteInDb(null, $source);
         $svn = new SubversionWrapper($this->nome, SVN_USER, SVN_PASSWORD);
         $svn->createRepo();
-        $svn->committAll("First import");
+        $svn->committAll("First import",$this->id);
         return true;
     }
 
