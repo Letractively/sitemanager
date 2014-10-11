@@ -8,5 +8,5 @@ include_once("../SubversionWrapper.php");
 $newSite = "toptest";
 
 $svnCli = new SubversionWrapper($newSite, SVN_USER, SVN_PASSWORD);
-$svnCli->committAll("first import");
+$svnCli->committAll("first import",666);
 ?>
