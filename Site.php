@@ -14,6 +14,7 @@
 class Site {
 
     public $nome;
+    public $id;
     public $cliente_id;
     public $modello_id;
     public $data_acquisto;
@@ -32,6 +33,7 @@ class Site {
     function __construct($siteData) {
         if ($siteData != null) {
             $this->nome = $siteData['nome'];
+            $this->id = $siteData['id'];
             $this->cliente_id = $siteData['cliente_id'];
             $this->modello_id = $siteData['modello_id'];
             $this->data_acquisto = $siteData['data_acquisto'];
