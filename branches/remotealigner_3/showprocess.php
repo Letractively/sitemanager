@@ -4,7 +4,7 @@ if (isset($_POST['proc']) && $_POST['proc']!="") {
     $data = "";
     $processes = "";
     $processRunning = new ProcessManager();
-    $proces = $processRunning->getAllFtpProcessRunning($process);
+    $proces = $processRunning->getAllFtpProcessRunning($_POST['proc']);
     $pids = array();
     if (!empty($proces)) {
         foreach ($proces as $task) {
