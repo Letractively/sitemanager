@@ -77,7 +77,7 @@ class SubversionWrapper {
             echo $this->exec->getOutput() . "</br>";
         }
         $this->forceDelete();
-        $command = "svn add --depth=infinity " . BASE_PATH . $this->repos . "\*";
+        $command = "svn add --force " . BASE_PATH . $this->repos . "\* --auto-props --parents --depth infinity -q";
         $this->exec->execute($command, false);
         if (($this->exec->getRetCode() != "" || $this->exec->getRetCode() != "0") || DEBUG) {
             echo "RETURN FROM ADD</br>";
