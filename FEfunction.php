@@ -54,7 +54,7 @@ function createLinks($allSitesInDb) {
     }
     if ($reposAtServer != null) {
         foreach ($reposAtServer as $repo) {
-            $result.= "<tr><td colspan=\"3\">E' stato creato un nuovo sito (" . $repo . ") <a href=\"svnwrp.php?n=" . $repo . "\" onclick=\"loadingOverlay();\">Prendilo!</a></td></tr>";
+            $result.= "<tr><td colspan=\"3\">E' stato creato un nuovo sito (" . $repo . ") <a id=\"co".$repo . "\" href=\"svnwrp.php?n=" . $repo . "\" onclick=\"loadingOverlay('".$repo . "');\">Prendilo!</a></td></tr>";
         }
     }
     $result.="</table>        
