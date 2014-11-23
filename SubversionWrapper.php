@@ -60,7 +60,8 @@ class SubversionWrapper {
                     $this->exec->execute($command, false);
                     if (($this->exec->getRetCode() != "" || $this->exec->getRetCode() != "0") || DEBUG) {
                         echo "RETURN FROM DELETE</br>";
-                        echo $this->exec->getOutput() . "</br>";
+                        echo "Ret code[" . $this->exec->getRetCode() . "]</br>";
+                        echo "[" . $this->exec->getOutput() . "]</br>";
                     }
                 }
             }
@@ -69,26 +70,29 @@ class SubversionWrapper {
         }
     }
 
-    function committAll($message,$id_site) {
+    function committAll($message, $id_site) {
         $command = "svn cleanup " . BASE_PATH . $this->repos;
         $this->exec->execute($command, false);
         if (($this->exec->getRetCode() != "" || $this->exec->getRetCode() != "0") || DEBUG) {
             echo "RETURN FROM CLEANUP</br>";
-            echo $this->exec->getOutput() . "</br>";
+            echo "Ret code[" . $this->exec->getRetCode() . "]</br>";
+            echo "[" . $this->exec->getOutput() . "]</br>";
         }
         $this->forceDelete();
         $command = "svn add --force " . BASE_PATH . $this->repos . "\* --auto-props --parents --depth infinity -q";
         $this->exec->execute($command, false);
         if (($this->exec->getRetCode() != "" || $this->exec->getRetCode() != "0") || DEBUG) {
             echo "RETURN FROM ADD</br>";
-            echo $this->exec->getOutput() . "</br>";
+            echo "Ret code[" . $this->exec->getRetCode() . "]</br>";
+            echo "[" . $this->exec->getOutput() . "]</br>";
         }
         $command = "svn commit " . BASE_PATH . $this->repos . " -m \"" . $message . "\" --username " . SVN_USER . " --password " . SVN_PASSWORD;
         $this->exec->execute($command, true);
         $this->exec->insertProcessRunning($id_site, $command);
         if (($this->exec->getRetCode() != "" || $this->exec->getRetCode() != "0") || DEBUG) {
             echo "RETURN FROM COMMIT</br>";
-            echo $this->exec->getOutput() ."</br>";
+            echo "Ret code[" . $this->exec->getRetCode() . "]</br>";
+            echo "[" . $this->exec->getOutput() . "]</br>";
         }
     }
 
@@ -97,13 +101,15 @@ class SubversionWrapper {
         $this->exec->execute($command, false);
         if (DEBUG) {
             echo "RETURN FROM CLEANUP</br>";
-            echo $this->exec->getOutput() . "</br>";
+            echo "Ret code[" . $this->exec->getRetCode() . "]</br>";
+            echo "[" . $this->exec->getOutput() . "]</br>";
         }
         $command = "svn update " . BASE_PATH . $this->repos;
         $this->exec->execute($command, false);
         if (DEBUG) {
             echo "RETURN FROM UPDATE</br>";
-            echo $this->exec->getOutput() . "</br>";
+            echo "Ret code[" . $this->exec->getRetCode() . "]</br>";
+            echo "[" . $this->exec->getOutput() . "]</br>";
         }
     }
 
@@ -112,7 +118,8 @@ class SubversionWrapper {
         $this->exec->execute($command, false);
         if (($this->exec->getRetCode() != "" || $this->exec->getRetCode() != "0") || DEBUG) {
             echo "RETURN FROM CHECKOUT</br>";
-            echo $this->exec->getOutput() . "</br>";
+            echo "Ret code[" . $this->exec->getRetCode() . "]</br>";
+            echo "[" . $this->exec->getOutput() . "]</br>";
         }
     }
 
@@ -142,18 +149,12 @@ class SubversionWrapper {
         $useragent = "Mozilla Firefox";
         $ch = curl_init();
         $url = 'http://' . SVN_SERVER . '/list.php?l=1';
-        if (DEBUG) {
-            echo $url . "<br/>";
-        }
         curl_setopt($ch, CURLOPT_URL, $url);
         curl_setopt($ch, CURLOPT_USERAGENT, $useragent);
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
         curl_setopt($ch, CURLOPT_USERPWD, SVN_USER_ADMIN . ":" . SVN_PASSWORD_ADMIN);
         curl_setopt($ch, CURLOPT_HTTPAUTH, CURLAUTH_BASIC);
         $result = curl_exec($ch);
-        if (DEBUG) {
-            echo $result . "\n</br>";
-        }
         curl_close($ch);
         $resAsArray = json_decode($result, true);
         if ($resAsArray["return_var"] == 0 && isset($resAsArray["output"])) {
