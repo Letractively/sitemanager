@@ -1,5 +1,10 @@
-function loadingOverlay(id) {
+function removeLink(id) {
     $("#co" + id).empty();
+}
+
+function loadOverlay() {
+    var over = '<div id="overlay"><img id="loading" src="img/loading.gif"></div>';
+    $(over).appendTo('body');
 }
 
 function createInterval(removedObject) {

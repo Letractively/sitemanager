@@ -41,7 +41,7 @@ function createLinks($allSitesInDb) {
                             . " <td><input type=\"radio\" name=\"tipo\" value=\"" . $basename . "\">
 	<a href=\"http://" . DOMAIN_URL_BASE . "/" . $basename . "\" target=\"_blank\">" . $basename . "</a></td>"
                             . " <td><a id=\"c".$mapOfSite[$basename]."\" href=\"svnwrp.php?id=" . $mapOfSite[$basename] . "&f=c\">commit</a></td>"
-                            . " <td><a id=\"u".$mapOfSite[$basename]."\" href=\"svnwrp.php?id=" . $mapOfSite[$basename] . "&f=u\">update</a></td>"
+                            . " <td><a id=\"u".$mapOfSite[$basename]."\" href=\"svnwrp.php?id=" . $mapOfSite[$basename] . "&f=u\"  onclick=\"loadOverlay();\">update</a></td>"
                             . " <tr>";
                     unset($reposAtServer[$key]);
                 } else {
@@ -54,7 +54,7 @@ function createLinks($allSitesInDb) {
     }
     if ($reposAtServer != null) {
         foreach ($reposAtServer as $repo) {
-            $result.= "<tr><td colspan=\"3\">E' stato creato un nuovo sito (" . $repo . ") <a id=\"co".$repo . "\" href=\"svnwrp.php?n=" . $repo . "\" onclick=\"loadingOverlay('".$repo . "');\">Prendilo!</a></td></tr>";
+            $result.= "<tr><td colspan=\"3\">E' stato creato un nuovo sito (" . $repo . ") <a id=\"co".$repo . "\" href=\"svnwrp.php?n=" . $repo . "\" onclick=\"removeLink('".$repo . "');\">Prendilo!</a></td></tr>";
         }
     }
     $result.="</table>        
@@ -252,21 +252,6 @@ function validateInput($input) {
     return true;
 }
 
-function updateStatusForDomainForId($id, $status) {
-    $con = mysql_connect(MYSQL_HOST, MYSQL_USER_NAME, MYSQL_PASSWORD);
-    $sql = "UPDATE " . DB_SITEMANAGER_NAME . ".sm_prodotti SET
-        status = " . $status . ",
-        upd = '" . date("Y-m-d H:i:s") . "'
-    WHERE sm_prodotti.id ='" . $id . "';";
-    if (!mysql_query($sql, $con)) {
-        echo "Could not update in db ";
-        mysql_close($con);
-        return false;
-    }
-    mysql_close($con);
-    return true;
-}
-
 function updateStatusForDomain($domainName, $domain, $status) {
     $con = mysql_connect(MYSQL_HOST, MYSQL_USER_NAME, MYSQL_PASSWORD);
     $sql = "UPDATE " . DB_SITEMANAGER_NAME . ".sm_prodotti SET
@@ -276,32 +261,6 @@ function updateStatusForDomain($domainName, $domain, $status) {
     AND sm_prodotti.domain='" . $domain . "';";
     if (!mysql_query($sql, $con)) {
         echo "Could not update in db ";
-        mysql_close($con);
-        return false;
-    }
-    mysql_close($con);
-    return true;
-}
-
-function updateStatusSiteInDb($id, $data) {
-    $con = mysql_connect(MYSQL_HOST, MYSQL_USER_NAME, MYSQL_PASSWORD);
-    $sql = "UPDATE " . DB_SITEMANAGER_NAME . ".sm_prodotti SET
-        data_acquisto = '" . $data['dataacqui'] . "',
-        ref_mail = '" . $data['email'] . "',
-        ftp_host = '" . $data['ftphost'] . "',
-        ftp_username = '" . $data['ftpusername'] . "',
-        ftp_pwd = '" . $data['ftppwd'] . "',
-        db = '" . $data['newDb'] . "',
-        dbusername = '" . $data['userName'] . "',
-        dbpwd = '" . $data['password'] . "',
-        hostdb = '" . $data['hostdb'] . "',
-        domain = '" . $data['domain'] . "',
-        domainName = '" . $data['domainName'] . "',
-        status = '1',
-        upd = '" . date("Y-m-d H:i:s") . "'
-    WHERE sm_prodotti.id =" . $id . ";";
-    if (!mysql_query($sql, $con)) {
-        echo "Could not insert in db ";
         mysql_close($con);
         return false;
     }

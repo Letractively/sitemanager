@@ -28,7 +28,7 @@ if ($dbProcRun != null && count($dbProcRun) > 0) {
                     $siteMng->udpateForSite($siteInAnalysis);
                     break;
             }
-            $processRunning->deleteEntry($proc['id']);
+            $siteMng->deleteEntry($proc['id']);
         } else {
             switch ($procName) {
                 case SVN_PROC:

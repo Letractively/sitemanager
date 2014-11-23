@@ -53,19 +53,6 @@ class ProcessManager {
         }
         return $toBeUpdated;
     }
-
-    function deleteEntry($id) {
-        $con = mysql_connect(MYSQL_HOST, MYSQL_USER_NAME, MYSQL_PASSWORD);
-        $sql = "DELETE from " . DB_SITEMANAGER_NAME . ".sm_processrunning WHERE sm_processrunning.id ='" . $id . "';";
-        if (!mysql_query($sql, $con)) {
-            echo "Could not delete in db ";
-            mysql_close($con);
-            return false;
-        }
-        mysql_close($con);
-        return true;
-    }
-
 }
 
 ?>

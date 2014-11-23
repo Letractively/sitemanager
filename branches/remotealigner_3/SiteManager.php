@@ -24,7 +24,7 @@ class SiteManager {
     public $id;
     public $nome = null;
     private $con;
-    
+
     function __construct() {
         $this->con = mysql_connect(MYSQL_HOST, MYSQL_USER_NAME, MYSQL_PASSWORD);
     }
@@ -196,7 +196,7 @@ class SiteManager {
             $this->nome = $site['nome'];
         }
         $sql = 'DROP DATABASE db_' . $this->nome;
-        $retval = mysql_query($sql, $conn);
+        $retval = mysql_query($sql, $this->conn);
         if (!$retval) {
             die('Could not delete database: ' . mysql_error());
         }
@@ -221,6 +221,38 @@ class SiteManager {
         $sql = "REPLACE INTO `" . DB_SITEMANAGER_NAME . "`.`sm_prodotti` (`id`, `nome`, `cliente_id`, `modello_id`, `ins`, `upd`) VALUES ('', '" . $this->nome . "', ' " . $clientId . "', '" . $source . "', '" . date("Y-m-d H:i:s") . "', '" . date("Y-m-d H:i:s") . "');";
         if (!mysql_query($sql, $con)) {
             $this->errormsg = "Could not insert in db " . $this->mysqlDatabaseNameNew;
+            return false;
+        }
+        return true;
+    }
+
+    function updateStatusSiteInDb($id, $data) {
+        $sql = "UPDATE " . DB_SITEMANAGER_NAME . ".sm_prodotti SET
+        data_acquisto = '" . $data['dataacqui'] . "',
+        ref_mail = '" . $data['email'] . "',
+        ftp_host = '" . $data['ftphost'] . "',
+        ftp_username = '" . $data['ftpusername'] . "',
+        ftp_pwd = '" . $data['ftppwd'] . "',
+        db = '" . $data['newDb'] . "',
+        dbusername = '" . $data['userName'] . "',
+        dbpwd = '" . $data['password'] . "',
+        hostdb = '" . $data['hostdb'] . "',
+        domain = '" . $data['domain'] . "',
+        domainName = '" . $data['domainName'] . "',
+        status = '1',
+        upd = '" . date("Y-m-d H:i:s") . "'
+    WHERE sm_prodotti.id =" . $id . ";";
+        if (!mysql_query($sql, $this->con)) {
+            echo "Could not insert in db ";
+            return false;
+        }
+        return true;
+    }
+
+    function deleteEntry($id) {
+        $sql = "DELETE from " . DB_SITEMANAGER_NAME . ".sm_processrunning WHERE sm_processrunning.id ='" . $id . "';";
+        if (!mysql_query($sql, $this->con)) {
+            echo "Could not delete in db ";
             return false;
         }
         return true;
