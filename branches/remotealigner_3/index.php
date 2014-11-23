@@ -3,9 +3,10 @@
     <head>
         <title></title>
         <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-        <script type="application/javascript" src="js/check.js"></script>
-        <script src="js/jquery-1.4.2.min.js"></script>
-        <script src="js/ajaxCall.js"></script>
+        <script type="text/javascript" src="js/check.js"></script>
+        <script type="text/javascript" src="js/jquery-1.4.2.min.js"></script>
+        <script type="text/javascript" src="js/ajaxCall.js"></script>
+        <link rel="stylesheet" type="text/css" href="css/tcal.css" />
     </head>
     <body>
         <a href="test/testAll.php">Test system</a>
@@ -29,7 +30,8 @@
         } else if (isset($_GET['nome']) && isset($_GET['domain'])) {
             manageInstallation($_GET['nome'], $_GET['domain']);
         } else if (isset($_GET['f']) && $_GET['f'] == "t" && isset($_GET['id']) && $_GET['id'] != "") {
-            trasferFtpFile($_GET['id']);
+            $sm->setId($_GET['id']);
+            trasferFtpFile($sm->getSiteById());
         } else if (isset($_POST['status']) && $_POST['status'] != "" && isset($_POST['id']) && $_POST['id'] != "") {
             $sm = new SiteManager();
             $sm->setId($_POST['id']);

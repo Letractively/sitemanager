@@ -40,8 +40,8 @@ function createLinks($allSitesInDb) {
                     $result.="<tr>"
                             . " <td><input type=\"radio\" name=\"tipo\" value=\"" . $basename . "\">
 	<a href=\"http://" . DOMAIN_URL_BASE . "/" . $basename . "\" target=\"_blank\">" . $basename . "</a></td>"
-                            . " <td><a href=\"svnwrp.php?id=" . $mapOfSite[$basename] . "&f=c\">commit</a></td>"
-                            . " <td><a href=\"svnwrp.php?id=" . $mapOfSite[$basename] . "&f=u\">update</a></td>"
+                            . " <td><a id=\"c".$mapOfSite[$basename]."\" href=\"svnwrp.php?id=" . $mapOfSite[$basename] . "&f=c\">commit</a></td>"
+                            . " <td><a id=\"u".$mapOfSite[$basename]."\" href=\"svnwrp.php?id=" . $mapOfSite[$basename] . "&f=u\">update</a></td>"
                             . " <tr>";
                     unset($reposAtServer[$key]);
                 } else {
@@ -54,7 +54,7 @@ function createLinks($allSitesInDb) {
     }
     if ($reposAtServer != null) {
         foreach ($reposAtServer as $repo) {
-            $result.= "<tr><td colspan=\"3\">E' stato creato un nuovo sito (" . $repo . ") <a href=\"svnwrp.php?n=" . $repo . "\">Prendilo!</a></td></tr>";
+            $result.= "<tr><td colspan=\"3\">E' stato creato un nuovo sito (" . $repo . ") <a href=\"svnwrp.php?n=" . $repo . "\" onclick=\"loadingOverlay();\">Prendilo!</a></td></tr>";
         }
     }
     $result.="</table>        
@@ -180,10 +180,7 @@ function changeState($allSite) {
     }
 }
 
-function trasferFtpFile($id) {
-    $sm = new SiteManager();
-    $sm->setId($id);
-    $infoOnSite = $sm->getSiteById();
+function trasferFtpFile($infoOnSite) {
     $ftpMy = new FtpUploader($infoOnSite['ftp_username'], $infoOnSite['ftp_pwd'], $infoOnSite['ftp_host']);
     $remoteDir = "www." . $infoOnSite['domainName'] . "." . $infoOnSite['domain'];
     $sqlFile = str_replace("/", ".", $infoOnSite['domainName'] . "." . $infoOnSite['domain'] . ".sql");

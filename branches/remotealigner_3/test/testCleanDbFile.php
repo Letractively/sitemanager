@@ -7,11 +7,11 @@ include_once("../DBCloner.php");
  * and open the template in the editor.
  */
 
-$nomeSitoLocale = "lucianamaglio";
-$nomesitoRemoto = "http://www.lucianamaglio.it";
-$nomeFile ="C:\Users\mbarsocchi\Desktop\lucianamaglio\db_lucianamaglio.sql";
+$nomeSitoLocale = "www.esteticaclv.com/";
+$nomesitoRemoto = "localhost/cestlavie/";
+$nomeFile ="C:\Users\Miro\Documents\Desktop\Sql663568_1.sql";
 
 $db = new DBCloner("db_" . $nomeSitoLocale, MYSQL_USER_NAME, MYSQL_PASSWORD, MYSQL_HOST, null, $nomeSitoLocale, $nomesitoRemoto);
-$db->migrateDbFiles($nomeFile,false);
+$db->migrateDbFiles($nomeFile,true);
 
 ?>
