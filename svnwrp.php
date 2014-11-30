@@ -15,7 +15,7 @@ if (isset($_GET['id']) && $_GET['id'] != "") {
     if (isset($_GET['f']) && $_GET['f'] == "c") {
         $site->save(BASE_PATH . $site->getNome() . DIRECTORY_SEPARATOR . $site->getNome() . "st.obj");
         $db->mysqldumpOfDb(BASE_PATH . $site->getNome() . DIRECTORY_SEPARATOR, "db_" . $site->getNome() . ".sql");
-        $svnCli->committAll("[" . date("j-m-Y G:i") . "] update");
+        $svnCli->committAll("[" . date("j-m-Y G:i") . "] update",$site->getId());
     } else if (isset($_GET['f']) && $_GET['f'] == "u") {
         $svnCli->updateAll();
         $db->setMysqlImportFilename(BASE_PATH . $site->getNome() . DIRECTORY_SEPARATOR . "db_" . $siteData['nome'] . ".sql");
@@ -38,7 +38,7 @@ if (isset($_GET['id']) && $_GET['id'] != "") {
     $sm->insertNewCreatedSiteInDb(0, "");
     $site->updateSite();
 }
-if (!DEBUG) {
+if (!$svnCli->getHasError() && !DEBUG) {
     header('Location: index.php');
 }
 ?>
