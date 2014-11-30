@@ -9,7 +9,6 @@ class Executer {
 
     public $pid;
     private $stdOut = null;
-    private $stdErr = null;
     private $retCode;
 
     function execute($command, $background = false) {
@@ -23,13 +22,14 @@ class Executer {
                 $oExec = $WshShell->exec($command);
                 $this->pid = ( $oExec->ProcessID );
             } else {
-                $this->retCode = exec($command . " > /dev/null &", $output, $return_var);
+                exec($command . " > /dev/null &", $output, $return_var);
+                $this->retCode = $return_var;
             }
         } else {
             set_time_limit(PHP_INT_MAX);
-            $this->retCode = exec($command, $output, $return_var);
+            exec($command, $output, $return_var);
             $this->stdOut = $output;
-            $this->stdErr = $return_var;
+            $this->retCode = $return_var;
         }
     }
 
@@ -56,23 +56,10 @@ class Executer {
                 $result .= $this->stdOut . "</br>";
             }
         }
-        if ($this->stdErr != null) {
-            if (is_array($this->stdErr)) {
-                foreach ($this->stdErr as $lineErr) {
-                    $result .= $lineErr . "</br>";
-                }
-            } else {
-                $result .= $this->stdErr . "</br>";
-            }
-        }
         return $result;
     }
 
-    public function getStdErr() {
-        return $this->stdErr;
-    }
-    
-    function insertProcessRunning($id_site,$scriptFile) {
+    function insertProcessRunning($id_site, $scriptFile) {
         $con = mysql_connect(MYSQL_HOST, MYSQL_USER_NAME, MYSQL_PASSWORD);
         $sql = "INSERT INTO `" . DB_SITEMANAGER_NAME . "`.`sm_processrunning` 
 (`id`,`id_site`,`pid`,`script_name`) 
@@ -99,7 +86,6 @@ VALUES
         mysql_close($con);
         return true;
     }
-
 
 }
 

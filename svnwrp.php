@@ -38,7 +38,7 @@ if (isset($_GET['id']) && $_GET['id'] != "") {
     $sm->insertNewCreatedSiteInDb(0, "");
     $site->updateSite();
 }
-if (!DEBUG) {
+if (!$svnCli->getHasError() && !DEBUG) {
     header('Location: index.php');
 }
 ?>
