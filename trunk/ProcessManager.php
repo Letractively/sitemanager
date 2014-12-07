@@ -9,8 +9,19 @@ include_once("config.php");
 
 class ProcessManager {
 
-    function getAllFtpProcessRunning($name) {
-        exec("tasklist ", $task_list, $returnVal);
+    function getPrcRun($pid, $name) {
+        exec("tasklist /FI \"PID eq " . $pid . "\" /FI \"IMAGENAME eq " . $name . "\"", $task_list, $returnVal);
+        $results = array();
+        foreach ($task_list as $task) {
+            if (strpos($task, $name) !== false) {
+                $results[] = $task;
+            }
+        }
+        return $results;
+    }
+
+    function getAllProcessRunning($name) {
+        exec("tasklist /FI \"IMAGENAME eq " . $name . "\"", $task_list, $returnVal);
         $results = array();
         foreach ($task_list as $task) {
             if (strpos($task, $name) !== false) {
@@ -27,15 +38,8 @@ class ProcessManager {
             $proc->Terminate();
     }
 
-    private function matchFromTraferingInDb($allProcessRunningNow) {
-        $con = mysql_connect(MYSQL_HOST, MYSQL_USER_NAME, MYSQL_PASSWORD);
-        $sql = "SELECT * FROM `" . DB_SITEMANAGER_NAME . "`.`sm_processrunning`";
-        $castresult = mysql_query($sql) or die(mysql_error());
-        mysql_close($con);
+    public function matchFromTraferingInDb($allProcessRunningNow, $dbProcess) {
         $toBeUpdated = array();
-        while ($row = mysql_fetch_assoc($castresult)) {
-            $dbProcess[] = $row;
-        }
         if (!empty($dbProcess)) {
             $index = 0;
             foreach ($dbProcess as $processEntry) {
@@ -50,34 +54,17 @@ class ProcessManager {
         return $toBeUpdated;
     }
 
-    function updateStateAndFile($pid) {
-        $toBeUpdated = $this->matchFromTraferingInDb($pid);
-        $siteToInstall = null;
-        foreach ($toBeUpdated as $entry) {
-            if (file_exists($entry['file'])) {
-                unlink($entry['file']);
-            }
-            $sm = new SiteManager();
-            $sm->setId($entry['id_site']);
-            $siteToInstall[] = $sm->getSiteById();
-            updateStatusForDomainForId($entry['id_site'], STATUS_TO_INSTALL);
-            $this->deleteEntry($entry['id']);
-        }
-        return $siteToInstall;
+    public function showProcessRunning() {
+        $useragent = "Mozilla Firefox";
+        $ch = curl_init();
+        $url = 'http://' . DOMAIN_URL_BASE . '/sitemanager/showprocess.php';
+        curl_setopt($ch, CURLOPT_URL, $url);
+        curl_setopt($ch, CURLOPT_USERAGENT, $useragent);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        $result = curl_exec($ch);
+        curl_close($ch);
+        return $result;
     }
-
-    function deleteEntry($id) {
-        $con = mysql_connect(MYSQL_HOST, MYSQL_USER_NAME, MYSQL_PASSWORD);
-        $sql = "DELETE from " . DB_SITEMANAGER_NAME . ".sm_processrunning WHERE sm_processrunning.id ='" . $id . "';";
-        if (!mysql_query($sql, $con)) {
-            echo "Could not delete in db ";
-            mysql_close($con);
-            return false;
-        }
-        mysql_close($con);
-        return true;
-    }
-
 }
 
 ?>

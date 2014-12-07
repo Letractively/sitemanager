@@ -13,8 +13,10 @@ function createLinks($allSitesInDb) {
     $reposAtServer = $svnCli->listAllRepo();
     foreach ((array) $allSitesInDb as $siteInDb) {
         $mapOfSite[$siteInDb['nome']] = $siteInDb['id'];
+        if ($siteInDb['script_name'] != "") {
+            $working[$siteInDb['nome']] = $siteInDb['script_name'];
+        }
     }
-
     $files = glob(BASE_PATH . "*");
     $masterWork = array();
     $result = "<form method=\"post\" name=\"newsite\"  onsubmit=\"return validateForm()\" >
@@ -39,10 +41,16 @@ function createLinks($allSitesInDb) {
                 if ($reposAtServer != null && ($key = array_search($basename, $reposAtServer)) !== false) {
                     $result.="<tr>"
                             . " <td><input type=\"radio\" name=\"tipo\" value=\"" . $basename . "\">
-	<a href=\"http://" . DOMAIN_URL_BASE . "/" . $basename . "\" target=\"_blank\">" . $basename . "</a></td>"
-                            . " <td><a href=\"svnwrp.php?id=" . $mapOfSite[$basename] . "&f=c\">commit</a></td>"
-                            . " <td><a href=\"svnwrp.php?id=" . $mapOfSite[$basename] . "&f=u\">update</a></td>"
+	<a href=\"http://" . DOMAIN_URL_BASE . "/" . $basename . "\" target=\"_blank\">" . $basename . "</a></td>";
+                        if (!isset($working[$basename])){
+                    $result.= " <td><a id=\"c" . $mapOfSite[$basename] . "\" href=\"svnwrp.php?id=" . $mapOfSite[$basename] . "&f=c\"  onclick=\"removeCommit('" . $mapOfSite[$basename] . "');\">commit</a></td>"
+                            . " <td><a id=\"u" . $mapOfSite[$basename] . "\" href=\"svnwrp.php?id=" . $mapOfSite[$basename] . "&f=u\"  onclick=\"loadOverlay();\">update</a></td>"
                             . " <tr>";
+                        }else{
+                            $result.= " <td>&nbsp;</td>"
+                            . " <td>&nbsp;</td>"
+                            . " <tr>";
+                        }
                     unset($reposAtServer[$key]);
                 } else {
                     $result.= "<tr>
@@ -54,7 +62,7 @@ function createLinks($allSitesInDb) {
     }
     if ($reposAtServer != null) {
         foreach ($reposAtServer as $repo) {
-            $result.= "<tr><td colspan=\"3\">E' stato creato un nuovo sito (" . $repo . ") <a href=\"svnwrp.php?n=" . $repo . "\">Prendilo!</a></td></tr>";
+            $result.= "<tr><td colspan=\"3\">E' stato creato un nuovo sito (" . $repo . ") <a id=\"co" . $repo . "\" href=\"svnwrp.php?n=" . $repo . "\" onclick=\"removeLink('" . $repo . "');\">Prendilo!</a></td></tr>";
         }
     }
     $result.="</table>        
@@ -180,52 +188,6 @@ function changeState($allSite) {
     }
 }
 
-function trasferFtpFile($id) {
-    $sm = new SiteManager();
-    $sm->setId($id);
-    $infoOnSite = $sm->getSiteById();
-    $ftpMy = new FtpUploader($infoOnSite['ftp_username'], $infoOnSite['ftp_pwd'], $infoOnSite['ftp_host']);
-    $remoteDir = "www." . $infoOnSite['domainName'] . "." . $infoOnSite['domain'];
-    $sqlFile = str_replace("/", ".", $infoOnSite['domainName'] . "." . $infoOnSite['domain'] . ".sql");
-    $ftpMy->setId_site($infoOnSite['id']);
-    $scriptFile = $ftpMy->createScriptFile($infoOnSite['nome'], $sqlFile, $remoteDir);
-    if (DEBUG) {
-        echo "Created file " . $scriptFile . "</br>";
-    }
-    $ftpMy->uploadUsingScript($scriptFile, true);
-    updateStatusForDomain($infoOnSite['domainName'], $infoOnSite['domain'], $infoOnSite['status'] + 1);
-}
-
-function manageInstallation($domainName, $dom) {
-    $nameToBeCheked = "http://www." . $domainName . "." . $dom;
-    $resultOfACall = @file_get_contents($nameToBeCheked . "/install.php");
-    if (isset($http_response_header)) {
-        $responseHeader = $http_response_header[0];
-        if ($responseHeader == "HTTP/1.1 404 Not Found") {
-            @file_get_contents($nameToBeCheked . "/wp-admin/");
-            $responseHeader = $http_response_header[0];
-            if ($responseHeader != "HTTP/1.1 404 Not Found") {
-                updateStatusForDomain($domainName, $dom, STATUS_INSTALLED);
-                header('Location: index.php');
-            } else {
-                echo "carica i file sull'host";
-            }
-        } else {
-            @file_get_contents($nameToBeCheked);
-            $responseHeader = $http_response_header[0];
-            if ($responseHeader != "HTTP/1.1 404 Not Found") {
-                if ($resultOfACall == "0") {
-                    updateStatusForDomain($domainName, $dom, STATUS_INSTALLED);
-                    //header('Location: index.php');
-                } else {
-                    echo $resultOfACall;
-                }
-            } else {
-                echo "errore nell'installazione";
-            }
-        }
-    }
-}
 
 function siteCompleted($files) {
     $result = "";
@@ -254,64 +216,6 @@ function validateInput($input) {
     }
     return true;
 }
-
-function updateStatusForDomainForId($id, $status) {
-    $con = mysql_connect(MYSQL_HOST, MYSQL_USER_NAME, MYSQL_PASSWORD);
-    $sql = "UPDATE " . DB_SITEMANAGER_NAME . ".sm_prodotti SET
-        status = " . $status . ",
-        upd = '" . date("Y-m-d H:i:s") . "'
-    WHERE sm_prodotti.id ='" . $id . "';";
-    if (!mysql_query($sql, $con)) {
-        echo "Could not update in db ";
-        mysql_close($con);
-        return false;
-    }
-    mysql_close($con);
-    return true;
-}
-
-function updateStatusForDomain($domainName, $domain, $status) {
-    $con = mysql_connect(MYSQL_HOST, MYSQL_USER_NAME, MYSQL_PASSWORD);
-    $sql = "UPDATE " . DB_SITEMANAGER_NAME . ".sm_prodotti SET
-        status = " . $status . ",
-        upd = '" . date("Y-m-d H:i:s") . "'
-    WHERE sm_prodotti.domainName ='" . $domainName . "'
-    AND sm_prodotti.domain='" . $domain . "';";
-    if (!mysql_query($sql, $con)) {
-        echo "Could not update in db ";
-        mysql_close($con);
-        return false;
-    }
-    mysql_close($con);
-    return true;
-}
-
-function updateStatusSiteInDb($id, $data) {
-    $con = mysql_connect(MYSQL_HOST, MYSQL_USER_NAME, MYSQL_PASSWORD);
-    $sql = "UPDATE " . DB_SITEMANAGER_NAME . ".sm_prodotti SET
-        data_acquisto = '" . $data['dataacqui'] . "',
-        ref_mail = '" . $data['email'] . "',
-        ftp_host = '" . $data['ftphost'] . "',
-        ftp_username = '" . $data['ftpusername'] . "',
-        ftp_pwd = '" . $data['ftppwd'] . "',
-        db = '" . $data['newDb'] . "',
-        dbusername = '" . $data['userName'] . "',
-        dbpwd = '" . $data['password'] . "',
-        hostdb = '" . $data['hostdb'] . "',
-        domain = '" . $data['domain'] . "',
-        domainName = '" . $data['domainName'] . "',
-        status = '1',
-        upd = '" . date("Y-m-d H:i:s") . "'
-    WHERE sm_prodotti.id =" . $id . ";";
-    if (!mysql_query($sql, $con)) {
-        echo "Could not insert in db ";
-        mysql_close($con);
-        return false;
-    }
-    mysql_close($con);
-    return true;
-}
-
 
 
 function Zip($source, $destination) {
