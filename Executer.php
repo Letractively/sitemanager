@@ -1,10 +1,5 @@
 <?php
 
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
-
 /**
  * Description of Executer
  *
@@ -14,7 +9,6 @@ class Executer {
 
     public $pid;
     private $stdOut = null;
-    private $stdErr = null;
     private $retCode;
 
     function execute($command, $background = false) {
@@ -28,13 +22,14 @@ class Executer {
                 $oExec = $WshShell->exec($command);
                 $this->pid = ( $oExec->ProcessID );
             } else {
-                $this->retCode = exec($command . " > /dev/null &", $output, $return_var);
+                exec($command . " > /dev/null &", $output, $return_var);
+                $this->retCode = $return_var;
             }
         } else {
             set_time_limit(PHP_INT_MAX);
-            $this->retCode = exec($command, $output, $return_var);
+            exec($command." 2>&1", $output, $return_var);
             $this->stdOut = $output;
-            $this->stdErr = $return_var;
+            $this->retCode = $return_var;
         }
     }
 
@@ -61,22 +56,8 @@ class Executer {
                 $result .= $this->stdOut . "</br>";
             }
         }
-        if ($this->stdErr != null) {
-            if (is_array($this->stdErr)) {
-                foreach ($this->stdErr as $lineErr) {
-                    $result .= $lineErr . "</br>";
-                }
-            } else {
-                $result .= $this->stdErr . "</br>";
-            }
-        }
         return $result;
     }
-
-    public function getStdErr() {
-        return $this->stdErr;
-    }
-
 }
 
 ?>

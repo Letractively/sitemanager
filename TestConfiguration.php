@@ -38,7 +38,7 @@ class TestConfiguration {
         $command = $winScpPath . " /script=\"" . $scriptFile . "\"";
         $ex = new Executer();
         $ex->execute($command, false);
-        if ($ex->getStdErr() != 0) {
+        if ($ex->getRetCode() != 0) {
             $result = false;
             $this->errorDescription .=$ex->getOutput() . "</br>";
         }
