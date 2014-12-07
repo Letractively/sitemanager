@@ -6,6 +6,12 @@
         <script type="text/javascript" src="js/check.js"></script>
         <script type="text/javascript" src="js/jquery-1.4.2.min.js"></script>
         <script type="text/javascript" src="js/ajaxCall.js"></script>
+        <script type="text/javascript">
+            if (document.images) {
+                img1 = new Image();
+                img1.src = "img/loading.gif";
+            }
+        </script>
         <link rel="stylesheet" type="text/css" href="css/tcal.css" />
     </head>
     <body>
@@ -31,7 +37,9 @@
             manageInstallation($_GET['nome'], $_GET['domain']);
         } else if (isset($_GET['f']) && $_GET['f'] == "t" && isset($_GET['id']) && $_GET['id'] != "") {
             $sm->setId($_GET['id']);
-            trasferFtpFile($sm->getSiteById());
+            $site = new Site($sm->getSiteById());
+            $ftpCli = new FtpUploader($site->getFtp_username(), $site->getFtp_pwd(), $site->getFtp_host());
+            $ftpCli->trasferFtpFile($site, $sm);
         } else if (isset($_POST['status']) && $_POST['status'] != "" && isset($_POST['id']) && $_POST['id'] != "") {
             $sm = new SiteManager();
             $sm->setId($_POST['id']);

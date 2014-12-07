@@ -27,7 +27,7 @@ class Executer {
             }
         } else {
             set_time_limit(PHP_INT_MAX);
-            exec($command, $output, $return_var);
+            exec($command." 2>&1", $output, $return_var);
             $this->stdOut = $output;
             $this->retCode = $return_var;
         }
@@ -58,35 +58,6 @@ class Executer {
         }
         return $result;
     }
-
-    function insertProcessRunning($id_site, $scriptFile) {
-        $con = mysql_connect(MYSQL_HOST, MYSQL_USER_NAME, MYSQL_PASSWORD);
-        $sql = "INSERT INTO `" . DB_SITEMANAGER_NAME . "`.`sm_processrunning` 
-(`id`,`id_site`,`pid`,`script_name`) 
-VALUES
-(NULL," . $id_site . ", '" . $this->pid . "','" . str_replace("\\", "\\\\", $scriptFile) . "')";
-
-        if (DEBUG) {
-            echo $sql . "</br>";
-        }
-        if (!mysql_query($sql, $con)) {
-            echo "Could not insert in db process for id_site: " . $id_site . " PID [" . $this->pid . "]";
-            mysql_close($con);
-            return false;
-        }
-        $sql = "UPDATE " . DB_SITEMANAGER_NAME . ".sm_prodotti SET
-        status = " . STATUS_TRASFERING . ",
-        upd = '" . date("Y-m-d H:i:s") . "'
-    WHERE sm_prodotti.id ='" . $id_site . "';";
-        if (!mysql_query($sql, $con)) {
-            echo "Could not update in db ";
-            mysql_close($con);
-            return false;
-        }
-        mysql_close($con);
-        return true;
-    }
-
 }
 
 ?>
