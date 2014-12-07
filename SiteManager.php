@@ -384,7 +384,7 @@ VALUES
             $htaAcces->changeHtAccess(false);
             $fileToMove[] = $htaAcces->getFileName();
             $fileToMove[] = writeInstaller($newConfig, $source);
-            return updateStatusSiteInDb($id, $newConfig);
+            return $this->updateStatusSiteInDb($id, $newConfig);
         } else {
             echo $testConfiguration->getErrorDescription();
             return false;
