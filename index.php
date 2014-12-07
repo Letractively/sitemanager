@@ -37,7 +37,7 @@
                 echo "un qualche errore di migrazione c'e' stato....<br>";
             }
         } else if (isset($_GET['nome']) && isset($_GET['domain'])) {
-            manageInstallation($_GET['nome'], $_GET['domain']);
+            $sm->manageInstallation($_GET['nome'], $_GET['domain']);
         } else if (isset($_GET['f']) && $_GET['f'] == "t" && isset($_GET['id']) && $_GET['id'] != "") {
             $sm->setId($_GET['id']);
             $site = new Site($sm->getSiteById());

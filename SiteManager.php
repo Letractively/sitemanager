@@ -26,7 +26,8 @@ class SiteManager {
     private $con;
 
     function __construct() {
-        $this->con = mysql_connect(MYSQL_HOST, MYSQL_USER_NAME, MYSQL_PASSWORD);
+        $db =new DBConfig(MYSQL_HOST, MYSQL_USER_NAME, MYSQL_PASSWORD);
+        $this->con = $db->connect();
     }
 
     public function getId() {
@@ -90,6 +91,29 @@ class SiteManager {
         mysql_query($sql, $this->con) or die(mysql_error());
     }
 
+    public function updateSite($site) {
+        $sql = "UPDATE " . DB_SITEMANAGER_NAME . ".sm_prodotti SET
+        data_acquisto = '" . $site->getData_acquisto() . "',
+        ref_mail = '" . $site->getRef_mail() . "',
+        ftp_host = '" . $site->getFtp_host() . "',
+        ftp_username = '" . $site->getFtp_username() . "',
+        ftp_pwd = '" . $site->getFtp_pwd() . "',
+        db = '" . $site->getDb() . "',
+        dbusername = '" . $site->getDbusername() . "',
+        dbpwd = '" . $site->getDbpwd() . "',
+        hostdb = '" . $site->getHostdb() . "',
+        domain = '" . $site->getDomain() . "',
+        domainName = '" . $site->getDomainName() . "',
+        status = '" . $site->getStatus() . "',
+        upd = '" . date("Y-m-d H:i:s") . "'
+    WHERE sm_prodotti.nome='" . $site->getNome() . "';";
+        if (!mysql_query($sql, $this->con)) {
+            echo "Could not update in db ";
+            return false;
+        }
+        return true;
+    }
+
     public function updateStatusForDomainForId($status) {
         $sql = "UPDATE " . DB_SITEMANAGER_NAME . ".sm_prodotti SET
         status = " . $status . ",
@@ -129,6 +153,50 @@ VALUES
             }
         }
         return true;
+    }
+
+    public function updateStatusForDomain($domainName, $domain, $status) {
+        $sql = "UPDATE " . DB_SITEMANAGER_NAME . ".sm_prodotti SET
+        status = " . $status . ",
+        upd = '" . date("Y-m-d H:i:s") . "'
+    WHERE sm_prodotti.domainName ='" . $domainName . "'
+    AND sm_prodotti.domain='" . $domain . "';";
+        if (!mysql_query($sql, $this->con)) {
+            echo "Could not update in db ";
+            return false;
+        }
+        return true;
+    }
+
+    public function manageInstallation($domainName, $dom) {
+        $nameToBeCheked = "http://www." . $domainName . "." . $dom;
+        $resultOfACall = @file_get_contents($nameToBeCheked . "/install.php");
+        if (isset($http_response_header)) {
+            $responseHeader = $http_response_header[0];
+            if ($responseHeader == "HTTP/1.1 404 Not Found") {
+                @file_get_contents($nameToBeCheked . "/wp-admin/");
+                $responseHeader = $http_response_header[0];
+                if ($responseHeader != "HTTP/1.1 404 Not Found") {
+                    $this->updateStatusForDomain($domainName, $dom, STATUS_INSTALLED);
+                    header('Location: index.php');
+                } else {
+                    echo "carica i file sull'host";
+                }
+            } else {
+                @file_get_contents($nameToBeCheked);
+                $responseHeader = $http_response_header[0];
+                if ($responseHeader != "HTTP/1.1 404 Not Found") {
+                    if ($resultOfACall == "0") {
+                        $this->updateStatusForDomain($domainName, $dom, STATUS_INSTALLED);
+                        //header('Location: index.php');
+                    } else {
+                        echo $resultOfACall;
+                    }
+                } else {
+                    echo "errore nell'installazione";
+                }
+            }
+        }
     }
 
     public function getAllDbProcessRunning() {
@@ -247,7 +315,7 @@ VALUES
             $site = $this->getSiteById();
             $this->nome = $site['nome'];
         }
-        $sql = "REPLACE INTO `" . DB_SITEMANAGER_NAME . "`.`sm_prodotti` (`id`, `nome`, `cliente_id`, `modello_id`, `ins`, `upd`) VALUES ('', '" . $this->nome . "', ' " . $clientId . "', '" . $source . "', '" . date("Y-m-d H:i:s") . "', '" . date("Y-m-d H:i:s") . "');";
+        $sql = "REPLACE INTO `" . DB_SITEMANAGER_NAME . "`.`sm_prodotti` (`id`, `nome`, `cliente_id`, `modello_id`, `ins`, `upd`) VALUES ('" . $site['id'] . "', '" . $this->nome . "', ' " . $clientId . "', '" . $source . "', '" . date("Y-m-d H:i:s") . "', '" . date("Y-m-d H:i:s") . "');";
         if (!mysql_query($sql, $this->con)) {
             $this->errormsg = "Could not insert in db " . $this->mysqlDatabaseNameNew;
             return false;

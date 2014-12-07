@@ -188,36 +188,6 @@ function changeState($allSite) {
     }
 }
 
-function manageInstallation($domainName, $dom) {
-    $nameToBeCheked = "http://www." . $domainName . "." . $dom;
-    $resultOfACall = @file_get_contents($nameToBeCheked . "/install.php");
-    if (isset($http_response_header)) {
-        $responseHeader = $http_response_header[0];
-        if ($responseHeader == "HTTP/1.1 404 Not Found") {
-            @file_get_contents($nameToBeCheked . "/wp-admin/");
-            $responseHeader = $http_response_header[0];
-            if ($responseHeader != "HTTP/1.1 404 Not Found") {
-                updateStatusForDomain($domainName, $dom, STATUS_INSTALLED);
-                header('Location: index.php');
-            } else {
-                echo "carica i file sull'host";
-            }
-        } else {
-            @file_get_contents($nameToBeCheked);
-            $responseHeader = $http_response_header[0];
-            if ($responseHeader != "HTTP/1.1 404 Not Found") {
-                if ($resultOfACall == "0") {
-                    updateStatusForDomain($domainName, $dom, STATUS_INSTALLED);
-                    //header('Location: index.php');
-                } else {
-                    echo $resultOfACall;
-                }
-            } else {
-                echo "errore nell'installazione";
-            }
-        }
-    }
-}
 
 function siteCompleted($files) {
     $result = "";
@@ -247,21 +217,6 @@ function validateInput($input) {
     return true;
 }
 
-function updateStatusForDomain($domainName, $domain, $status) {
-    $con = mysql_connect(MYSQL_HOST, MYSQL_USER_NAME, MYSQL_PASSWORD);
-    $sql = "UPDATE " . DB_SITEMANAGER_NAME . ".sm_prodotti SET
-        status = " . $status . ",
-        upd = '" . date("Y-m-d H:i:s") . "'
-    WHERE sm_prodotti.domainName ='" . $domainName . "'
-    AND sm_prodotti.domain='" . $domain . "';";
-    if (!mysql_query($sql, $con)) {
-        echo "Could not update in db ";
-        mysql_close($con);
-        return false;
-    }
-    mysql_close($con);
-    return true;
-}
 
 function Zip($source, $destination) {
     if (!extension_loaded('zip') || !file_exists($source)) {
