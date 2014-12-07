@@ -71,7 +71,7 @@ class FtpUploader {
             echo "Created file " . $this->scriptFile . "</br>";
         }
         $this->uploadUsingScript($sm);
-        updateStatusForDomain($infoOnSite->getDomainName(), $infoOnSite->getDomain(), $infoOnSite->getStatus() + 1);
+        $sm->updateStatusForDomain($infoOnSite->getDomainName(), $infoOnSite->getDomain(), $infoOnSite->getStatus() + 1);
     }
 
     function uploadUsingScript($sm) {

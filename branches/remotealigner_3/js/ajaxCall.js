@@ -5,6 +5,7 @@ function removeLink(id) {
 
 function removeCommit(id) {
     $("#c" + id).empty();
+    loadOverlay();
 }
 
 function loadOverlay() {
