@@ -18,6 +18,9 @@
         <a href="test/testAll.php">Test system</a>
         <?php
         include_once("config.php");
+        include_once("ProcessManager.php");
+        $pm= new ProcessManager();
+        $pm->showProcessRunning();
         $sm = new SiteManager();
         $allSiteInDb = $sm->getAllSite();
         $workInProgress = $sm->filterByState($allSiteInDb, STATUS_WORKING);

@@ -9,7 +9,7 @@ include_once("config.php");
 
 class ProcessManager {
 
-    function getPrcRun($pid,$name){
+    function getPrcRun($pid, $name) {
         exec("tasklist /FI \"PID eq " . $pid . "\" /FI \"IMAGENAME eq " . $name . "\"", $task_list, $returnVal);
         $results = array();
         foreach ($task_list as $task) {
@@ -19,7 +19,7 @@ class ProcessManager {
         }
         return $results;
     }
-    
+
     function getAllProcessRunning($name) {
         exec("tasklist /FI \"IMAGENAME eq " . $name . "\"", $task_list, $returnVal);
         $results = array();
@@ -53,6 +53,19 @@ class ProcessManager {
         }
         return $toBeUpdated;
     }
+
+    public function showProcessRunning() {
+        $useragent = "Mozilla Firefox";
+        $ch = curl_init();
+        $url = 'http://' . DOMAIN_URL_BASE . '/sitemanager/showprocess.php';
+        curl_setopt($ch, CURLOPT_URL, $url);
+        curl_setopt($ch, CURLOPT_USERAGENT, $useragent);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        $result = curl_exec($ch);
+        curl_close($ch);
+        return $result;
+    }
+
 }
 
 ?>

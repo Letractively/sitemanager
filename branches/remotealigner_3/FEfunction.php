@@ -13,6 +13,9 @@ function createLinks($allSitesInDb) {
     $reposAtServer = $svnCli->listAllRepo();
     foreach ((array) $allSitesInDb as $siteInDb) {
         $mapOfSite[$siteInDb['nome']] = $siteInDb['id'];
+        if ($siteInDb['script_name'] != "") {
+            $working[$siteInDb['nome']] = $siteInDb['script_name'];
+        }
     }
     $files = glob(BASE_PATH . "*");
     $masterWork = array();
@@ -39,15 +42,15 @@ function createLinks($allSitesInDb) {
                     $result.="<tr>"
                             . " <td><input type=\"radio\" name=\"tipo\" value=\"" . $basename . "\">
 	<a href=\"http://" . DOMAIN_URL_BASE . "/" . $basename . "\" target=\"_blank\">" . $basename . "</a></td>";
-//                        if (){
-                            $result.= " <td><a id=\"c".$mapOfSite[$basename]."\" href=\"svnwrp.php?id=" . $mapOfSite[$basename] . "&f=c\"  onclick=\"removeCommit('".$mapOfSite[$basename]."');\">commit</a></td>"
-                            . " <td><a id=\"u".$mapOfSite[$basename]."\" href=\"svnwrp.php?id=" . $mapOfSite[$basename] . "&f=u\"  onclick=\"loadOverlay();\">update</a></td>"
+                        if (!isset($working[$basename])){
+                    $result.= " <td><a id=\"c" . $mapOfSite[$basename] . "\" href=\"svnwrp.php?id=" . $mapOfSite[$basename] . "&f=c\"  onclick=\"removeCommit('" . $mapOfSite[$basename] . "');\">commit</a></td>"
+                            . " <td><a id=\"u" . $mapOfSite[$basename] . "\" href=\"svnwrp.php?id=" . $mapOfSite[$basename] . "&f=u\"  onclick=\"loadOverlay();\">update</a></td>"
                             . " <tr>";
-//                        }else{
-//                            $result.= " <td>&nbsp;</td>"
-//                            . " <td>&nbsp;</td>"
-//                            . " <tr>";
-//                        }
+                        }else{
+                            $result.= " <td>&nbsp;</td>"
+                            . " <td>&nbsp;</td>"
+                            . " <tr>";
+                        }
                     unset($reposAtServer[$key]);
                 } else {
                     $result.= "<tr>
@@ -59,7 +62,7 @@ function createLinks($allSitesInDb) {
     }
     if ($reposAtServer != null) {
         foreach ($reposAtServer as $repo) {
-            $result.= "<tr><td colspan=\"3\">E' stato creato un nuovo sito (" . $repo . ") <a id=\"co".$repo . "\" href=\"svnwrp.php?n=" . $repo . "\" onclick=\"removeLink('".$repo . "');\">Prendilo!</a></td></tr>";
+            $result.= "<tr><td colspan=\"3\">E' stato creato un nuovo sito (" . $repo . ") <a id=\"co" . $repo . "\" href=\"svnwrp.php?n=" . $repo . "\" onclick=\"removeLink('" . $repo . "');\">Prendilo!</a></td></tr>";
         }
     }
     $result.="</table>        
@@ -185,7 +188,6 @@ function changeState($allSite) {
     }
 }
 
-
 function manageInstallation($domainName, $dom) {
     $nameToBeCheked = "http://www." . $domainName . "." . $dom;
     $resultOfACall = @file_get_contents($nameToBeCheked . "/install.php");
@@ -260,8 +262,6 @@ function updateStatusForDomain($domainName, $domain, $status) {
     mysql_close($con);
     return true;
 }
-
-
 
 function Zip($source, $destination) {
     if (!extension_loaded('zip') || !file_exists($source)) {
