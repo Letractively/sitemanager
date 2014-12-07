@@ -1,5 +1,10 @@
 function removeLink(id) {
     $("#co" + id).empty();
+    loadOverlay();
+}
+
+function removeCommit(id) {
+    $("#c" + id).empty();
 }
 
 function loadOverlay() {

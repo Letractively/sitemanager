@@ -14,7 +14,6 @@ function createLinks($allSitesInDb) {
     foreach ((array) $allSitesInDb as $siteInDb) {
         $mapOfSite[$siteInDb['nome']] = $siteInDb['id'];
     }
-
     $files = glob(BASE_PATH . "*");
     $masterWork = array();
     $result = "<form method=\"post\" name=\"newsite\"  onsubmit=\"return validateForm()\" >
@@ -39,10 +38,16 @@ function createLinks($allSitesInDb) {
                 if ($reposAtServer != null && ($key = array_search($basename, $reposAtServer)) !== false) {
                     $result.="<tr>"
                             . " <td><input type=\"radio\" name=\"tipo\" value=\"" . $basename . "\">
-	<a href=\"http://" . DOMAIN_URL_BASE . "/" . $basename . "\" target=\"_blank\">" . $basename . "</a></td>"
-                            . " <td><a id=\"c".$mapOfSite[$basename]."\" href=\"svnwrp.php?id=" . $mapOfSite[$basename] . "&f=c\">commit</a></td>"
+	<a href=\"http://" . DOMAIN_URL_BASE . "/" . $basename . "\" target=\"_blank\">" . $basename . "</a></td>";
+//                        if (){
+                            $result.= " <td><a id=\"c".$mapOfSite[$basename]."\" href=\"svnwrp.php?id=" . $mapOfSite[$basename] . "&f=c\"  onclick=\"removeCommit('".$mapOfSite[$basename]."');\">commit</a></td>"
                             . " <td><a id=\"u".$mapOfSite[$basename]."\" href=\"svnwrp.php?id=" . $mapOfSite[$basename] . "&f=u\"  onclick=\"loadOverlay();\">update</a></td>"
                             . " <tr>";
+//                        }else{
+//                            $result.= " <td>&nbsp;</td>"
+//                            . " <td>&nbsp;</td>"
+//                            . " <tr>";
+//                        }
                     unset($reposAtServer[$key]);
                 } else {
                     $result.= "<tr>
@@ -180,18 +185,6 @@ function changeState($allSite) {
     }
 }
 
-function trasferFtpFile($infoOnSite) {
-    $ftpMy = new FtpUploader($infoOnSite['ftp_username'], $infoOnSite['ftp_pwd'], $infoOnSite['ftp_host']);
-    $remoteDir = "www." . $infoOnSite['domainName'] . "." . $infoOnSite['domain'];
-    $sqlFile = str_replace("/", ".", $infoOnSite['domainName'] . "." . $infoOnSite['domain'] . ".sql");
-    $ftpMy->setId_site($infoOnSite['id']);
-    $scriptFile = $ftpMy->createScriptFile($infoOnSite['nome'], $sqlFile, $remoteDir);
-    if (DEBUG) {
-        echo "Created file " . $scriptFile . "</br>";
-    }
-    $ftpMy->uploadUsingScript($scriptFile);
-    updateStatusForDomain($infoOnSite['domainName'], $infoOnSite['domain'], $infoOnSite['status'] + 1);
-}
 
 function manageInstallation($domainName, $dom) {
     $nameToBeCheked = "http://www." . $domainName . "." . $dom;

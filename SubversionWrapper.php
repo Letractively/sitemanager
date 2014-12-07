@@ -51,7 +51,7 @@ class SubversionWrapper {
         $this->password = $password;
     }
 
-    function getHasError() {
+    public function getHasError() {
         return $this->hasError;
     }
         
@@ -60,8 +60,13 @@ class SubversionWrapper {
         $this->exec->execute($command, false);
         if ($this->exec->getRetCode() == 0) {
             foreach ($this->exec->getStdOut() as $line) {
-                if (strpos($line, "!") === 0) {
-                    $command = "svn delete " . substr($line, 1);
+                if (strpos($line, "!") === 0 && 
+                   ($this->repos === "" || strpos($line, $this->repos, strlen($line) - strlen($this->repos)) !== TRUE)
+                    ) 
+                    {
+                     echo $line."<br>" ;
+
+                    $command = "svn delete \"" . trim(substr($line, 1))."\" --force";
                     $this->exec->execute($command, false);
                     if (($this->exec->getRetCode() != "0") || DEBUG) {
                         $this->hasError=true;
@@ -87,7 +92,7 @@ class SubversionWrapper {
         }
     }
 
-    function committAll($message, $id_site) {
+    function committAll($message, $id_site,$sm) {
         $command = "svn cleanup " . BASE_PATH . $this->repos;
         $this->exec->execute($command, false);
         if (($this->exec->getRetCode() != "0") || DEBUG) {
@@ -107,7 +112,7 @@ class SubversionWrapper {
         }
         $command = "svn commit " . BASE_PATH . $this->repos . " -m \"" . $message . "\" --username " . SVN_USER . " --password " . SVN_PASSWORD;
         $this->exec->execute($command, true);
-        $this->exec->insertProcessRunning($id_site, $command);
+        $sm->insertProcessRunning($id_site, $command,$this->exec->getPid());
         if (($this->exec->getRetCode() != "0") || DEBUG) {
             echo "RETURN FROM COMMIT</br>";
             echo "Ret code[" . $this->exec->getRetCode() . "]</br>";

@@ -1,4 +1,5 @@
 <?php
+
 include_once("Executer.php");
 /*
  * To change this template, choose Tools | Templates
@@ -61,23 +62,34 @@ class FtpUploader {
         $this->id_site = $id_site;
     }
 
-    function uploadUsingScript() {
+    public function trasferFtpFile($infoOnSite,$sm) {
+        $remoteDir = "www." . $infoOnSite->getDomainName() . "." . $infoOnSite->getDomain();
+        $sqlFile = str_replace("/", ".", $infoOnSite->getDomainName() . "." . $infoOnSite->getDomain() . ".sql");
+        $this->setId_site($infoOnSite->getId());
+        $this->scriptFile = $this->createScriptFile($infoOnSite->getNome(), $sqlFile, $remoteDir);
+        if (DEBUG) {
+            echo "Created file " . $this->scriptFile . "</br>";
+        }
+        $this->uploadUsingScript($sm);
+        updateStatusForDomain($infoOnSite->getDomainName(), $infoOnSite->getDomain(), $infoOnSite->getStatus() + 1);
+    }
+
+    function uploadUsingScript($sm) {
         $winScpPath = __DIR__ . DIRECTORY_SEPARATOR . "bin" . DIRECTORY_SEPARATOR . "WinSCP.com";
         $command = $winScpPath . " /script=\"" . $this->scriptFile . "\"";
         if (DEBUG) {
             echo $command . "</br>";
         }
         $ex = new Executer();
-        $ex->execute($command,true);
-        if (count($ex->getOutput())>0) {
+        $ex->execute($command, true);
+        if (count($ex->getOutput()) > 0) {
             print_r($ex->getOutput());
         }
-        if ($ex->insertProcessRunning($this->id_site, $this->scriptFile)) {
+        if ($sm->insertProcessRunning($this->id_site, $this->scriptFile,$ex->getPid())) {
             header('Location: index.php');
         }
     }
 
-    
     function createScriptFile($localdir, $sqlFile, $remoteDir = "") {
         $this->scriptFile = tempnam("tmp", "");
         $scriptFileHandle = fopen($this->scriptFile, "w");
