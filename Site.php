@@ -14,6 +14,7 @@
 class Site {
 
     public $nome;
+    public $id;
     public $cliente_id;
     public $modello_id;
     public $data_acquisto;
@@ -32,6 +33,7 @@ class Site {
     function __construct($siteData) {
         if ($siteData != null) {
             $this->nome = $siteData['nome'];
+            $this->id = $siteData['id'];
             $this->cliente_id = $siteData['cliente_id'];
             $this->modello_id = $siteData['modello_id'];
             $this->data_acquisto = $siteData['data_acquisto'];
@@ -181,32 +183,6 @@ class Site {
     public function save($name) {
         $s = serialize($this);
         file_put_contents($name, $s);
-    }
-
-    public function updateSite() {
-        $con = mysql_connect(MYSQL_HOST, MYSQL_USER_NAME, MYSQL_PASSWORD);
-        $sql = "UPDATE " . DB_SITEMANAGER_NAME . ".sm_prodotti SET
-        data_acquisto = '" . $this->data_acquisto . "',
-        ref_mail = '" . $this->ref_mail . "',
-        ftp_host = '" . $this->ftp_host . "',
-        ftp_username = '" . $this->ftp_username . "',
-        ftp_pwd = '" . $this->ftp_pwd . "',
-        db = '" . $this->db . "',
-        dbusername = '" . $this->dbusername . "',
-        dbpwd = '" . $this->dbpwd . "',
-        hostdb = '" . $this->hostdb . "',
-        domain = '" . $this->domain . "',
-        domainName = '" . $this->domainName . "',
-        status = '" . $this->status . "',
-        upd = '" . date("Y-m-d H:i:s") . "'
-    WHERE sm_prodotti.nome='" . $this->nome . "';";
-        if (!mysql_query($sql, $con)) {
-            echo "Could not update in db ";
-            mysql_close($con);
-            return false;
-        }
-        mysql_close($con);
-        return true;
     }
 
     public function load($name) {

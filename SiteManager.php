@@ -5,6 +5,7 @@ include_once("WPMigrateFile.php");
 include_once("DBCloner.php");
 include_once("TestConfiguration.php");
 include_once("HtAccessMigrate.php");
+include_once("config.php");
 
 
 /*
@@ -22,6 +23,12 @@ class SiteManager {
 
     public $id;
     public $nome = null;
+    private $con;
+
+    function __construct() {
+        $db =new DBConfig(MYSQL_HOST, MYSQL_USER_NAME, MYSQL_PASSWORD);
+        $this->con = $db->connect();
+    }
 
     public function getId() {
         return $this->id;
@@ -74,22 +81,40 @@ class SiteManager {
     }
 
     public function getSiteById() {
-        $con = mysql_connect(MYSQL_HOST, MYSQL_USER_NAME, MYSQL_PASSWORD);
         $sql = "SELECT * FROM `" . DB_SITEMANAGER_NAME . "`.`sm_prodotti` WHERE id = " . $this->id;
-        $castresult = mysql_query($sql) or die(mysql_error());
-        mysql_close($con);
+        $castresult = mysql_query($sql, $this->con) or die(mysql_error());
         return mysql_fetch_array($castresult, MYSQL_ASSOC);
     }
 
     public function deleteSiteFromDb() {
-        $con = mysql_connect(MYSQL_HOST, MYSQL_USER_NAME, MYSQL_PASSWORD);
         $sql = "DELETE FROM `" . DB_SITEMANAGER_NAME . "`.`sm_prodotti` WHERE id = " . $this->id;
-        mysql_query($sql) or die(mysql_error());
-        mysql_close($con);
+        mysql_query($sql, $this->con) or die(mysql_error());
+    }
+
+    public function updateSite($site) {
+        $sql = "UPDATE " . DB_SITEMANAGER_NAME . ".sm_prodotti SET
+        data_acquisto = '" . $site->getData_acquisto() . "',
+        ref_mail = '" . $site->getRef_mail() . "',
+        ftp_host = '" . $site->getFtp_host() . "',
+        ftp_username = '" . $site->getFtp_username() . "',
+        ftp_pwd = '" . $site->getFtp_pwd() . "',
+        db = '" . $site->getDb() . "',
+        dbusername = '" . $site->getDbusername() . "',
+        dbpwd = '" . $site->getDbpwd() . "',
+        hostdb = '" . $site->getHostdb() . "',
+        domain = '" . $site->getDomain() . "',
+        domainName = '" . $site->getDomainName() . "',
+        status = '" . $site->getStatus() . "',
+        upd = '" . date("Y-m-d H:i:s") . "'
+    WHERE sm_prodotti.nome='" . $site->getNome() . "';";
+        if (!mysql_query($sql, $this->con)) {
+            echo "Could not update in db ";
+            return false;
+        }
+        return true;
     }
 
     public function updateStatusForDomainForId($status) {
-        $con = mysql_connect(MYSQL_HOST, MYSQL_USER_NAME, MYSQL_PASSWORD);
         $sql = "UPDATE " . DB_SITEMANAGER_NAME . ".sm_prodotti SET
         status = " . $status . ",
         upd = '" . date("Y-m-d H:i:s") . "'
@@ -97,18 +122,119 @@ class SiteManager {
         if (DEBUG) {
             echo $sql . "</br>";
         }
-        if (!mysql_query($sql, $con)) {
+        if (!mysql_query($sql, $this->con)) {
             echo "Could not update in db " . mysql_error();
-            mysql_close($con);
             return false;
         }
-        mysql_close($con);
         return true;
+    }
+
+    function insertProcessRunning($id_site, $scriptFile, $pid) {
+        $sql = "INSERT INTO `" . DB_SITEMANAGER_NAME . "`.`sm_processrunning` 
+(`id`,`id_site`,`pid`,`script_name`) 
+VALUES
+(NULL," . $id_site . ", '" . $pid . "','" . str_replace("\\", "\\\\", $scriptFile) . "')";
+
+        if (DEBUG) {
+            echo $sql . "</br>";
+        }
+        if (!mysql_query($sql, $this->con)) {
+            echo "Could not insert in db process for id_site: " . $id_site . " PID [" . $pid . "]";
+            return false;
+        }
+        if (strpos(strtolower($scriptFile), 'ftp') !== false) {
+            $sql = "UPDATE " . DB_SITEMANAGER_NAME . ".sm_prodotti SET
+        status = " . STATUS_TRASFERING . ",
+        upd = '" . date("Y-m-d H:i:s") . "'
+    WHERE sm_prodotti.id ='" . $id_site . "';";
+            if (!mysql_query($sql, $this->con)) {
+                echo "Could not update in db ";
+                return false;
+            }
+        }
+        return true;
+    }
+
+    public function updateStatusForDomain($domainName, $domain, $status) {
+        $sql = "UPDATE " . DB_SITEMANAGER_NAME . ".sm_prodotti SET
+        status = " . $status . ",
+        upd = '" . date("Y-m-d H:i:s") . "'
+    WHERE sm_prodotti.domainName ='" . $domainName . "'
+    AND sm_prodotti.domain='" . $domain . "';";
+        if (!mysql_query($sql, $this->con)) {
+            echo "Could not update in db ";
+            return false;
+        }
+        return true;
+    }
+
+    public function manageInstallation($domainName, $dom) {
+        $nameToBeCheked = "http://www." . $domainName . "." . $dom;
+        $resultOfACall = @file_get_contents($nameToBeCheked . "/install.php");
+        if (isset($http_response_header)) {
+            $responseHeader = $http_response_header[0];
+            if ($responseHeader == "HTTP/1.1 404 Not Found") {
+                @file_get_contents($nameToBeCheked . "/wp-admin/");
+                $responseHeader = $http_response_header[0];
+                if ($responseHeader != "HTTP/1.1 404 Not Found") {
+                    $this->updateStatusForDomain($domainName, $dom, STATUS_INSTALLED);
+                    header('Location: index.php');
+                } else {
+                    echo "carica i file sull'host";
+                }
+            } else {
+                @file_get_contents($nameToBeCheked);
+                $responseHeader = $http_response_header[0];
+                if ($responseHeader != "HTTP/1.1 404 Not Found") {
+                    if ($resultOfACall == "0") {
+                        $this->updateStatusForDomain($domainName, $dom, STATUS_INSTALLED);
+                        //header('Location: index.php');
+                    } else {
+                        echo $resultOfACall;
+                    }
+                } else {
+                    echo "errore nell'installazione";
+                }
+            }
+        }
+    }
+
+    public function getAllDbProcessRunning() {
+        $sql = "SELECT * FROM `" . DB_SITEMANAGER_NAME . "`.`sm_processrunning`";
+        $castresult = mysql_query($sql, $this->con) or die(mysql_error());
+        while ($row = mysql_fetch_assoc($castresult)) {
+            $dbProcess[] = $row;
+        }
+        return $dbProcess;
+    }
+
+    public function getAllSiteFromProcess($procDatas) {
+        $siteToInstall = null;
+        foreach ($procDatas as $entry) {
+            $this->setId($entry['id_site']);
+            $siteToInstall[] = $this->getSiteById();
+        }
+        return $siteToInstall;
+    }
+
+    public function moveSiteStateTransfered($toBeUpdated) {
+        $siteToInstall = null;
+        foreach ($toBeUpdated as $entry) {
+            if (file_exists($entry['file'])) {
+                unlink($entry['file']);
+            }
+            $this->setId($entry['id_site']);
+            $siteDataAsArray = $this->getSiteById();
+            $siteToInstall[] = $siteDataAsArray;
+            $siteInAnalysis = new Site($siteDataAsArray);
+            $siteInAnalysis->setStatus(STATUS_TO_INSTALL);
+            $this->udpateForSite($siteInAnalysis);
+        }
+        return $siteToInstall;
     }
 
     public function udpateForSite($site) {
         if ($site != null && is_a($site, "Site")) {
-            $con = mysql_connect(MYSQL_HOST, MYSQL_USER_NAME, MYSQL_PASSWORD);
             $sql = "UPDATE " . DB_SITEMANAGER_NAME . ".sm_prodotti SET
         nome = " . $site->getNome() . ",
         cliente_id = " . $site->getCliente_id() . ",
@@ -117,34 +243,33 @@ class SiteManager {
         ref_mail = " . $site->getRef_mail() . ",
         ftp_host = " . $site->getFtp_host() . ",
         ftp_pwd = " . $site->getFtp_pwd() . ",
-        ftp_username = " . $site->getFtp_usrname() . ",
+        ftp_username = " . $site->getFtp_username() . ",
         db = " . $site->getDb() . ",
         dbusername = " . $site->getDbusername() . ",
         dbpwd = " . $site->getDbpwd() . ",
         db = " . $site->getDb() . ",
-        hostdb = " . $site->getHostb() . ",
+        hostdb = " . $site->getHostdb() . ",
         domainName = " . $site->getDomainName() . ",
         domain = " . $site->getDomain() . ",
         status = " . $site->getStatus() . ",
         upd = '" . date("Y-m-d H:i:s") . "'
     WHERE sm_prodotti.nome ='" . $site->getNome() . "';";
-            if (!mysql_query($sql, $con)) {
+            if (!mysql_query($sql, $this->con)) {
                 echo "Could not update in db ";
-                mysql_close($con);
                 return false;
             }
-            mysql_close($con);
             return true;
         }
     }
 
     public function getAllSite() {
-        $con = mysql_connect(MYSQL_HOST, MYSQL_USER_NAME, MYSQL_PASSWORD);
-        $sql = "SELECT * FROM `" . DB_SITEMANAGER_NAME . "`.`sm_prodotti` ORDER BY upd DESC";
-        $castresult = mysql_query($sql) or die(mysql_error());
-        mysql_close($con);
+        $sql = "SELECT prod.id ,prod.nome ,prod.cliente_id ,prod.modello_id ,prod.data_acquisto ,prod.ref_mail ,prod.ftp_host ,prod.ftp_username ,prod.ftp_pwd ,prod.db ,prod.dbusername ,prod.dbpwd ,prod.hostdb ,prod.domainName ,prod.domain ,prod.status ,prod.ins ,prod.upd,proc.pid,proc.script_name FROM `" . DB_SITEMANAGER_NAME . "`.`sm_prodotti`  AS prod "
+                . "LEFT JOIN `" . DB_SITEMANAGER_NAME . "`.`sm_processrunning` AS proc ON prod.id = proc.id_site "
+                . "ORDER BY upd DESC ";
+
+        $castresult = mysql_query($sql, $this->con) or die(mysql_error());
         $rows = null;
-        while ($row = mysql_fetch_array($castresult)) {
+        while ($row = mysql_fetch_assoc($castresult)) {
             $rows[] = $row;
         }
         return $rows;
@@ -167,16 +292,14 @@ class SiteManager {
             $site = $this->getSiteById();
             $this->nome = $site['nome'];
         }
-        $conn = mysql_connect(MYSQL_HOST, MYSQL_USER_NAME, MYSQL_PASSWORD);
         $sql = 'DROP DATABASE db_' . $this->nome;
-        $retval = mysql_query($sql, $conn);
+        $retval = mysql_query($sql, $this->con);
         if (!$retval) {
             die('Could not delete database: ' . mysql_error());
         }
         if (DEBUG) {
             echo "Database db_" . $this->nome . " deleted successfully\n";
         }
-        mysql_close($conn);
     }
 
     /**
@@ -192,14 +315,43 @@ class SiteManager {
             $site = $this->getSiteById();
             $this->nome = $site['nome'];
         }
-        $con = mysql_connect(MYSQL_HOST, MYSQL_USER_NAME, MYSQL_PASSWORD);
-        $sql = "REPLACE INTO `" . DB_SITEMANAGER_NAME . "`.`sm_prodotti` (`id`, `nome`, `cliente_id`, `modello_id`, `ins`, `upd`) VALUES ('', '" . $this->nome . "', ' " . $clientId . "', '" . $source . "', '" . date("Y-m-d H:i:s") . "', '" . date("Y-m-d H:i:s") . "');";
-        if (!mysql_query($sql, $con)) {
+        $sql = "REPLACE INTO `" . DB_SITEMANAGER_NAME . "`.`sm_prodotti` (`id`, `nome`, `cliente_id`, `modello_id`, `ins`, `upd`) VALUES ('" . $site['id'] . "', '" . $this->nome . "', ' " . $clientId . "', '" . $source . "', '" . date("Y-m-d H:i:s") . "', '" . date("Y-m-d H:i:s") . "');";
+        if (!mysql_query($sql, $this->con)) {
             $this->errormsg = "Could not insert in db " . $this->mysqlDatabaseNameNew;
-            mysql_close($con);
             return false;
         }
-        mysql_close($con);
+        return true;
+    }
+
+    function updateStatusSiteInDb($id, $data) {
+        $sql = "UPDATE " . DB_SITEMANAGER_NAME . ".sm_prodotti SET
+        data_acquisto = '" . $data['dataacqui'] . "',
+        ref_mail = '" . $data['email'] . "',
+        ftp_host = '" . $data['ftphost'] . "',
+        ftp_username = '" . $data['ftpusername'] . "',
+        ftp_pwd = '" . $data['ftppwd'] . "',
+        db = '" . $data['newDb'] . "',
+        dbusername = '" . $data['userName'] . "',
+        dbpwd = '" . $data['password'] . "',
+        hostdb = '" . $data['hostdb'] . "',
+        domain = '" . $data['domain'] . "',
+        domainName = '" . $data['domainName'] . "',
+        status = '1',
+        upd = '" . date("Y-m-d H:i:s") . "'
+    WHERE sm_prodotti.id =" . $id . ";";
+        if (!mysql_query($sql, $this->con)) {
+            echo "Could not insert in db ";
+            return false;
+        }
+        return true;
+    }
+
+    function deleteEntry($id) {
+        $sql = "DELETE from " . DB_SITEMANAGER_NAME . ".sm_processrunning WHERE sm_processrunning.id ='" . $id . "';";
+        if (!mysql_query($sql, $this->con)) {
+            echo "Could not delete in db ";
+            return false;
+        }
         return true;
     }
 
@@ -269,7 +421,7 @@ class SiteManager {
         $this->insertNewCreatedSiteInDb(null, $source);
         $svn = new SubversionWrapper($this->nome, SVN_USER, SVN_PASSWORD);
         $svn->createRepo();
-        $svn->committAll("First import");
+        $svn->committAll("First import", $this->id, $this);
         return true;
     }
 
