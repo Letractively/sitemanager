@@ -42,15 +42,15 @@ function createLinks($allSitesInDb) {
                     $result.="<tr>"
                             . " <td><input type=\"radio\" name=\"tipo\" value=\"" . $basename . "\">
 	<a href=\"http://" . DOMAIN_URL_BASE . "/" . $basename . "\" target=\"_blank\">" . $basename . "</a></td>";
-                        if (!isset($working[$basename])){
+//                        if (!isset($working[$basename])){
                     $result.= " <td><a id=\"c" . $mapOfSite[$basename] . "\" href=\"svnwrp.php?id=" . $mapOfSite[$basename] . "&f=c\"  onclick=\"removeCommit('" . $mapOfSite[$basename] . "');\">commit</a></td>"
                             . " <td><a id=\"u" . $mapOfSite[$basename] . "\" href=\"svnwrp.php?id=" . $mapOfSite[$basename] . "&f=u\"  onclick=\"loadOverlay();\">update</a></td>"
                             . " <tr>";
-                        }else{
-                            $result.= " <td>&nbsp;</td>"
-                            . " <td>&nbsp;</td>"
-                            . " <tr>";
-                        }
+//                        }else{
+//                            $result.= " <td>&nbsp;</td>"
+//                            . " <td>&nbsp;</td>"
+//                            . " <tr>";
+//                        }
                     unset($reposAtServer[$key]);
                 } else {
                     $result.= "<tr>
