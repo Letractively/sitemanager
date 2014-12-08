@@ -202,6 +202,7 @@ VALUES
     public function getAllDbProcessRunning() {
         $sql = "SELECT * FROM `" . DB_SITEMANAGER_NAME . "`.`sm_processrunning`";
         $castresult = mysql_query($sql, $this->con) or die(mysql_error());
+        $dbProcess=array();
         while ($row = mysql_fetch_assoc($castresult)) {
             $dbProcess[] = $row;
         }
