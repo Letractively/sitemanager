@@ -38,7 +38,7 @@ function createInterval(removedObject) {
                     }
                     $("#procmsgid").empty();
                     $("#procmsgid").append(loader + site + " attività SVN");
-                } else if (result.WinSCP !== undefined && work.WinSCP.num_trasfering > 0) {
+                } else if (work.WinSCP !== undefined && work.WinSCP.num_trasfering > 0) {
                     for (var i in work.WinSCP.sites) {
                         site += work.WinSCP.sites[i].nome + ",";
                     }
