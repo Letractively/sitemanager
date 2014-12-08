@@ -6,11 +6,12 @@ include_once("ProcessManager.php");
 $siteMng = new SiteManager();
 $dbProcRun = $siteMng->getAllDbProcessRunning();
 $data = array();
-$data['svn']['num_trasfering']=0;
 define("SVN_PROC", "svn.exe");
 define("FTP_PROC", "WinSCP.com");
 
 if ($dbProcRun != null && count($dbProcRun) > 0) {
+    $data['svn']['num_trasfering'] = 0;
+    $data['WinSCP']['num_trasfering'] = 0;
     $processRunning = new ProcessManager();
     $proces = array();
     foreach ($dbProcRun as $proc) {
