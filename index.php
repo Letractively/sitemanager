@@ -15,6 +15,7 @@
         <link rel="stylesheet" type="text/css" href="css/tcal.css" />
     </head>
     <body>
+        <div id="overlay" style="display:none"><img id="loading" src="img/loading.gif"></div>
         <a href="test/testAll.php">Test system</a>
         <?php
         include_once("config.php");
@@ -57,7 +58,7 @@
             header('Location: index.php');
         }
         ?>
-        <div class="procmsg" id="procmsgid"></div>
+        <div class="procmsg" id="procmsgid" style="display:none"><img src="img/loading.gif"></div>
         <table>
             <tr>
                 <td style="vertical-align:top"><?php echo $siteLocal['all']; ?></td>
