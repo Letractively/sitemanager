@@ -1,4 +1,5 @@
 <?php
+include_once('Logger.php');
 
 /**
  * Description of Executer
@@ -12,6 +13,8 @@ class Executer {
     private $retCode;
 
     function execute($command, $background = false) {
+        $log = new MyLogPHP();
+        $log->debug($command);
         if (DEBUG) {
             echo $command . "</br>";
         }
@@ -27,7 +30,7 @@ class Executer {
             }
         } else {
             set_time_limit(PHP_INT_MAX);
-            exec($command." 2>&1", $output, $return_var);
+            exec($command . " 2>&1", $output, $return_var);
             $this->stdOut = $output;
             $this->retCode = $return_var;
         }
@@ -58,6 +61,7 @@ class Executer {
         }
         return $result;
     }
+
 }
 
 ?>

@@ -6,6 +6,7 @@ include_once("DBCloner.php");
 include_once("TestConfiguration.php");
 include_once("HtAccessMigrate.php");
 include_once("config.php");
+include_once('Logger.php');
 
 
 /*
@@ -24,8 +25,11 @@ class SiteManager {
     public $id;
     public $nome = null;
     private $con;
+    private $log;
+
 
     function __construct() {
+        $this->log = new MyLogPHP();
         $db =new DBConfig(MYSQL_HOST, MYSQL_USER_NAME, MYSQL_PASSWORD);
         $this->con = $db->connect();
     }
@@ -119,6 +123,7 @@ class SiteManager {
         status = " . $status . ",
         upd = '" . date("Y-m-d H:i:s") . "'
     WHERE sm_prodotti.id ='" . $this->id . "';";
+        $this->log->debug($sql);
         if (DEBUG) {
             echo $sql . "</br>";
         }
@@ -134,7 +139,7 @@ class SiteManager {
 (`id`,`id_site`,`pid`,`script_name`) 
 VALUES
 (NULL," . $id_site . ", '" . $pid . "','" . str_replace("\\", "\\\\", $scriptFile) . "')";
-
+        $this->log->debug($sql);
         if (DEBUG) {
             echo $sql . "</br>";
         }
@@ -298,6 +303,7 @@ VALUES
         if (!$retval) {
             die('Could not delete database: ' . mysql_error());
         }
+        $this->log->debug("Database db_" . $this->nome . " deleted successfully");
         if (DEBUG) {
             echo "Database db_" . $this->nome . " deleted successfully\n";
         }
