@@ -152,7 +152,6 @@ class SubversionWrapper {
     }
 
     function updateAll() {
-        $this->removeNotVersionedFile();
         $command = "svn cleanup " . BASE_PATH . $this->repos;
         $this->exec->execute($command, false);
         $this->log->debug("RETURN FROM CLEANUP. Ret code[" . $this->exec->getRetCode() . "]");
@@ -173,6 +172,7 @@ class SubversionWrapper {
             echo "Ret code[" . $this->exec->getRetCode() . "]</br>";
             echo "[" . $this->exec->getOutput() . "]</br>";
         }
+        $this->removeNotVersionedFile();
         $command = "svn update " . BASE_PATH . $this->repos . " --accept theirs-full";
         $this->exec->execute($command, false);
         $this->log->debug("RETURN FROM UPDATE. Ret code[" . $this->exec->getRetCode() . "]");
