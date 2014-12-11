@@ -58,6 +58,24 @@ class SubversionWrapper {
         return $this->hasError;
     }
 
+    private function removeNotVersionedFile() {
+        $command = "svn st " . BASE_PATH . $this->repos;
+        $this->exec->execute($command, false);
+        if ($this->exec->getRetCode() == 0) {
+            foreach ($this->exec->getStdOut() as $line) {
+                if (strpos($line, "?") === 0 &&
+                        ($this->repos === "" || strpos($line, $this->repos, strlen($line) - strlen($this->repos)) !== TRUE)
+                ) {
+                    $filename = trim(substr($line, 1));
+                    unlink($filename);
+                    $this->log->debug("Delete not versioned file [" . $filename . "]");
+                }
+            }
+        } else {
+            var_dump($this->exec->getOutput());
+        }
+    }
+
     public function forceDelete() {
         $command = "svn st " . BASE_PATH . $this->repos;
         $this->exec->execute($command, false);
@@ -134,6 +152,7 @@ class SubversionWrapper {
     }
 
     function updateAll() {
+        $this->removeNotVersionedFile();
         $command = "svn cleanup " . BASE_PATH . $this->repos;
         $this->exec->execute($command, false);
         $this->log->debug("RETURN FROM CLEANUP. Ret code[" . $this->exec->getRetCode() . "]");
