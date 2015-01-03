@@ -16,7 +16,8 @@
     </head>
     <body>
         <div id="overlay" style="display:none"><img id="loading" src="img/loading.gif"></div>
-        <a href="test/testAll.php">Test system</a>
+        <p><a href="test/testAll.php">Test system</a></p>
+        <p><a href="SiteManagerLog.txt">Log</a></p>
         <?php
         include_once("config.php");
         include_once("ProcessManager.php");
