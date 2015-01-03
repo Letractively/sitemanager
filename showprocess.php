@@ -28,6 +28,14 @@ if ($dbProcRun != null && count($dbProcRun) > 0) {
                     $siteInAnalysis = new Site($siteData);
                     $siteInAnalysis->setStatus(STATUS_TO_INSTALL);
                     $siteMng->udpateForSite($siteInAnalysis);
+                    $installResult = $siteInAnalysis->install();
+                    if ($installResult ==0) {
+                        $siteInAnalysis->setStatus(STATUS_INSTALLED);
+                        $siteMng->udpateForSite($siteInAnalysis);
+                    }else{
+                        $data['error']['sites'][] = $siteData;
+                        $data['error']['msg']="Error installing site: ".$installResult;
+                    }
                     break;
             }
             $siteMng->deleteEntry($proc['id']);

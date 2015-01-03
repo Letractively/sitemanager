@@ -185,6 +185,18 @@ class Site {
         file_put_contents($name, $s);
     }
 
+    public function install() {
+        $useragent = "Mozilla Firefox";
+        $ch = curl_init();
+        $url = 'http://www.' . $this->domainName . '.'.$this->domain.'/install.php';
+        curl_setopt($ch, CURLOPT_URL, $url);
+        curl_setopt($ch, CURLOPT_USERAGENT, $useragent);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        $result = curl_exec($ch);
+        curl_close($ch);
+        return $result;
+    }
+
     public function load($name) {
         if (file_exists($name)) {
             $s = file_get_contents($name);

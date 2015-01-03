@@ -35,7 +35,7 @@ function createInterval(removedObject) {
                         }
                     }
                     document.getElementById("procmsgid").style.display = "block";
-                    $("#procmsgid").append(site + " attività SVN");
+                    $("#procmsgid").change(site + " attività SVN");
                 } else if (work.WinSCP !== undefined && work.WinSCP.num_trasfering > 0) {
                     for (var i in work.WinSCP.sites) {
                         site += work.WinSCP.sites[i].nome + ",";
@@ -44,7 +44,7 @@ function createInterval(removedObject) {
                         $("#procmsgid").append(site);
                     }
                     document.getElementById("procmsgid").style.display = "block";
-                    $("#procmsgid").append(site + " in trasferimento FTP");
+                    $("#procmsgid").change(site + " in trasferimento FTP");
                 } else {
                     clearInterval(refreshIntervalId);
                     location.reload(true);

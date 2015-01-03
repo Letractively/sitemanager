@@ -331,6 +331,7 @@ if (\$isOk){
     rename(\".htaccess-remote\", \".htaccess\");
     unlink(\"" . $sqlDumpFileName . ".sql\");
     unlink(\"db_" . $source . ".sql\");
+    unlink(\"" . $source . "st.obj\");
     unlink(__FILE__);
     echo \"0\";
 }else {

@@ -40,7 +40,7 @@ class MyLogPHP {
 	 * @param string $logfilename Path and name of the file log.
 	 * @param string $separator Character used for separate the field values.
 	 */
-	function MyLogPHP($logfilename = './SiteManagerLog.csv', $separator = ' ') {
+	function MyLogPHP($logfilename = './SiteManagerLog.txt', $separator = ' ') {
 
 		$this->LOGFILENAME = $logfilename;
 		$this->SEPARATOR = $separator;
