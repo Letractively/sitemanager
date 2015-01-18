@@ -144,7 +144,7 @@ VALUES
             echo $sql . "</br>";
         }
         if (!mysql_query($sql, $this->con)) {
-            echo "Could not insert in db process for id_site: " . $id_site . " PID [" . $pid . "]";
+            echo "Could not insert in db process for id_site: [" . $id_site . "] PID [" . $pid . "]";
             return false;
         }
         if (strpos(strtolower($scriptFile), 'ftp') !== false) {
@@ -322,7 +322,7 @@ VALUES
             $site = $this->getSiteById();
             $this->nome = $site['nome'];
         }
-        $sql = "REPLACE INTO `" . DB_SITEMANAGER_NAME . "`.`sm_prodotti` (`id`, `nome`, `cliente_id`, `modello_id`, `ins`, `upd`) VALUES ('" . $site['id'] . "', '" . $this->nome . "', ' " . $clientId . "', '" . $source . "', '" . date("Y-m-d H:i:s") . "', '" . date("Y-m-d H:i:s") . "');";
+        $sql = "REPLACE INTO `" . DB_SITEMANAGER_NAME . "`.`sm_prodotti` (`id`, `nome`, `cliente_id`, `modello_id`, `ins`, `upd`) VALUES ('" .  $this->id  . "', '" . $this->nome . "', ' " . $clientId . "', '" . $source . "', '" . date("Y-m-d H:i:s") . "', '" . date("Y-m-d H:i:s") . "');";
         if (!mysql_query($sql, $this->con)) {
             $this->errormsg = "Could not insert in db " . $this->mysqlDatabaseNameNew;
             return false;
