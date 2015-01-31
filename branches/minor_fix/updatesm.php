@@ -13,6 +13,4 @@ $svnSiteManager->setRepos(__DIR__);
 $svnSiteManager->updateAll();
 if (!$svnSiteManager->getHasError()){
     header("Location: index.php");
-}else {
-    echo "Errore aggiornamento sitemanger apri il <a href=\"SiteManagerLog.txt\">file di log</a>";
 }
