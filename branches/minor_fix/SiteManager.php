@@ -331,7 +331,7 @@ VALUES
             $this->log->error("[".$sql."] Could not insert in db " . $this->mysqlDatabaseNameNew);
             return false;
         }
-        $this->id = mysql_insert_id();
+        $this->id = mysql_insert_id($this->con);
         return true;
     }
 
