@@ -11,4 +11,8 @@ include_once('config.php');
 $svnSiteManager = new SubversionWrapper("https://sitemanager.googlecode.com/svn/trunk", "", "");
 $svnSiteManager->setRepos(__DIR__);
 $svnSiteManager->updateAll();
-header("Location: index.php");
+if (!$svnSiteManager->getHasError()){
+    header("Location: index.php");
+}else {
+    echo "Errore aggiornamento sitemanger apri il <a href=\"SiteManagerLog.txt\">file di log</a>";
+}
