@@ -9,7 +9,7 @@ include_once('SubversionWrapper.php');
 include_once('config.php');
 
 $svnSiteManager = new SubversionWrapper("https://sitemanager.googlecode.com/svn/trunk", "", "");
-$svnSiteManager->setRepos(__DIR__);
+$svnSiteManager->setRepos(basename(__DIR__));
 $svnSiteManager->updateAll();
 if (!$svnSiteManager->getHasError()){
     header("Location: index.php");
