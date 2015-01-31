@@ -27,10 +27,9 @@ class SiteManager {
     private $con;
     private $log;
 
-
     function __construct() {
         $this->log = new MyLogPHP();
-        $db =new DBConfig(MYSQL_HOST, MYSQL_USER_NAME, MYSQL_PASSWORD);
+        $db = new DBConfig(MYSQL_HOST, MYSQL_USER_NAME, MYSQL_PASSWORD);
         $this->con = $db->connect();
     }
 
@@ -145,6 +144,7 @@ VALUES
         }
         if (!mysql_query($sql, $this->con)) {
             echo "Could not insert in db process for id_site: [" . $id_site . "] PID [" . $pid . "]";
+            $this->log->error("Could not insert in db process for id_site: [" . $id_site . "] PID [" . $pid . "]");
             return false;
         }
         if (strpos(strtolower($scriptFile), 'ftp') !== false) {
@@ -154,6 +154,7 @@ VALUES
     WHERE sm_prodotti.id ='" . $id_site . "';";
             if (!mysql_query($sql, $this->con)) {
                 echo "Could not update in db ";
+                $this->log->error("[".$sql."] Could not update in db");
                 return false;
             }
         }
@@ -168,6 +169,7 @@ VALUES
     AND sm_prodotti.domain='" . $domain . "';";
         if (!mysql_query($sql, $this->con)) {
             echo "Could not update in db ";
+            $this->log->error("[".$sql."] Could not update in db");
             return false;
         }
         return true;
@@ -207,7 +209,7 @@ VALUES
     public function getAllDbProcessRunning() {
         $sql = "SELECT * FROM `" . DB_SITEMANAGER_NAME . "`.`sm_processrunning`";
         $castresult = mysql_query($sql, $this->con) or die(mysql_error());
-        $dbProcess=array();
+        $dbProcess = array();
         while ($row = mysql_fetch_assoc($castresult)) {
             $dbProcess[] = $row;
         }
@@ -262,6 +264,7 @@ VALUES
     WHERE sm_prodotti.nome ='" . $site->getNome() . "';";
             if (!mysql_query($sql, $this->con)) {
                 echo "Could not update in db ";
+                $this->log->error("[".$sql."] Could not update in db");
                 return false;
             }
             return true;
@@ -322,11 +325,13 @@ VALUES
             $site = $this->getSiteById();
             $this->nome = $site['nome'];
         }
-        $sql = "REPLACE INTO `" . DB_SITEMANAGER_NAME . "`.`sm_prodotti` (`id`, `nome`, `cliente_id`, `modello_id`, `ins`, `upd`) VALUES ('" .  $this->id  . "', '" . $this->nome . "', ' " . $clientId . "', '" . $source . "', '" . date("Y-m-d H:i:s") . "', '" . date("Y-m-d H:i:s") . "');";
+        echo $sql = "REPLACE INTO `" . DB_SITEMANAGER_NAME . "`.`sm_prodotti` (`id`, `nome`, `cliente_id`, `modello_id`, `ins`, `upd`) VALUES ('" . $this->id . "', '" . $this->nome . "', ' " . $clientId . "', '" . $source . "', '" . date("Y-m-d H:i:s") . "', '" . date("Y-m-d H:i:s") . "');";
         if (!mysql_query($sql, $this->con)) {
             $this->errormsg = "Could not insert in db " . $this->mysqlDatabaseNameNew;
+            $this->log->error("[".$sql."] Could not insert in db " . $this->mysqlDatabaseNameNew);
             return false;
         }
+        $this->id = mysql_insert_id();
         return true;
     }
 
@@ -348,6 +353,7 @@ VALUES
     WHERE sm_prodotti.id =" . $id . ";";
         if (!mysql_query($sql, $this->con)) {
             echo "Could not insert in db ";
+            $this->log->error("[".$sql."] Could not insert in db ");
             return false;
         }
         return true;
@@ -357,6 +363,7 @@ VALUES
         $sql = "DELETE from " . DB_SITEMANAGER_NAME . ".sm_processrunning WHERE sm_processrunning.id ='" . $id . "';";
         if (!mysql_query($sql, $this->con)) {
             echo "Could not delete in db ";
+            $this->log->error("[".$sql."] Could not delete in db ");
             return false;
         }
         return true;
