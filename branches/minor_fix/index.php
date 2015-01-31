@@ -17,6 +17,7 @@
     <body>
         <div id="overlay" style="display:none"><img id="loading" src="img/loading.gif"></div>
         <p><a href="test/testAll.php">Test system</a></p>
+        <p><a href="updatesm.php">Update Site Manager</a></p>
         <p><a href="SiteManagerLog.txt">Log</a></p>
         <?php
         include_once("config.php");
