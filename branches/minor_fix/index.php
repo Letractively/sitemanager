@@ -22,7 +22,7 @@
         <?php
         include_once("config.php");
         include_once("ProcessManager.php");
-        $pm= new ProcessManager();
+        $pm = new ProcessManager();
         $pm->showProcessRunning();
         $sm = new SiteManager();
         $allSiteInDb = $sm->getAllSite();
@@ -38,6 +38,8 @@
             $result = $sm->migrate($_POST['tipo'], $_POST['nome'], $masterWork[$_POST['tipo']]);
             if (!$result) {
                 echo "un qualche errore di migrazione c'e' stato....<br>";
+            } else {
+                header('Location: index.php');
             }
         } else if (isset($_GET['nome']) && isset($_GET['domain'])) {
             $sm->manageInstallation($_GET['nome'], $_GET['domain']);
