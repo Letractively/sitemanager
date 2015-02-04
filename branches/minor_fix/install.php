@@ -133,6 +133,9 @@ CREATE TABLE IF NOT EXISTS `sm_processrunning` (
                 </form>
                 <?php
             }
+        }else {
+            echo "<p>File di configurazione già presente</p>";
+            echo "<a href=\"index.php\">Home</a>";
         }
         ?>
     </body>
