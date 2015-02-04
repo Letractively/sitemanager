@@ -50,7 +50,7 @@ class WPMigrateFile {
             }
         }
         while (false !== ( $file = readdir($dir))) {
-            if (( $file != '.' ) && ( $file != '..' ) && ( $file != '.svn' )&& !in_array($file, $this->excludefile)) {
+            if (( $file != '.' ) && ( $file != '..' ) && ( $file != '.svn' )&& !in_array($src .'\\'.$file, $this->excludefile)) {
                 if (is_dir($src . '/' . $file)) {
                     $this->recurseCopy($src . '/' . $file, $dst . '/' . $file);
                 } else {
