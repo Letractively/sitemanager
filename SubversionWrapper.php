@@ -58,6 +58,20 @@ class SubversionWrapper {
         return $this->hasError;
     }
 
+    private function deleteFolder($path) {
+        if (file_exists($path) && is_dir($path) === true) {
+            $files = array_diff(scandir($path), array('.', '..'));
+            foreach ($files as $file) {
+                $this->deleteFolder(realpath($path) . '/' . $file);
+            }
+            return rmdir($path);
+        } else if (file_exists($path) && is_file($path) === true) {
+            return unlink($path);
+        }
+
+        return false;
+    }
+    
     private function removeNotVersionedFile() {
         $command = "svn st " . BASE_PATH . $this->repos;
         $this->exec->execute($command, false);
@@ -67,7 +81,11 @@ class SubversionWrapper {
                         ($this->repos === "" || strpos($line, $this->repos, strlen($line) - strlen($this->repos)) !== TRUE)
                 ) {
                     $filename = trim(substr($line, 1));
-                    unlink($filename);
+                    if (is_file($filename)) {
+                        unlink($filename);
+                    }else if (is_dir($filename)){
+                        $this->deleteFolder($filename);
+                    }
                     $this->log->debug("Delete not versioned file [" . $filename . "]");
                 }
             }
