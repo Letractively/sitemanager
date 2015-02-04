@@ -432,10 +432,14 @@ VALUES
         if (!DEBUG) {
             $dbCloner->cleanAndClose();
         }
-        $this->insertNewCreatedSiteInDb(null, $source);
         $svn = new SubversionWrapper($this->nome, SVN_USER, SVN_PASSWORD);
         $svn->createRepo();
         $svn->committAll("First import", $this->id, $this);
+        if ($svn->getHasError()){
+            echo "Error creating Repository"."</br>";
+            return false;
+        }
+        $this->insertNewCreatedSiteInDb(null, $source);
         return true;
     }
 
