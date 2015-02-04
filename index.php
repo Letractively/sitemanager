@@ -1,3 +1,8 @@
+<?php
+if (!file_exists($configFileName)) {
+    header("Location: install.php");
+}
+?>
 <!DOCTYPE html>
 <html>
     <head>
