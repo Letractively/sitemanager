@@ -22,8 +22,6 @@
         <?php
         include_once("config.php");
         include_once("ProcessManager.php");
-        $pm = new ProcessManager();
-        $pm->showProcessRunning();
         $sm = new SiteManager();
         $allSiteInDb = $sm->getAllSite();
         $workInProgress = $sm->filterByState($allSiteInDb, STATUS_WORKING);
@@ -38,8 +36,6 @@
             $result = $sm->migrate($_POST['tipo'], $_POST['nome'], $masterWork[$_POST['tipo']]);
             if (!$result) {
                 echo "un qualche errore di migrazione c'e' stato....<br>";
-            } else {
-                header('Location: index.php');
             }
         } else if (isset($_GET['nome']) && isset($_GET['domain'])) {
             $sm->manageInstallation($_GET['nome'], $_GET['domain']);
@@ -49,7 +45,6 @@
             $ftpCli = new FtpUploader($site->getFtp_username(), $site->getFtp_pwd(), $site->getFtp_host());
             $ftpCli->trasferFtpFile($site, $sm);
         } else if (isset($_POST['status']) && $_POST['status'] != "" && isset($_POST['id']) && $_POST['id'] != "") {
-            $sm = new SiteManager();
             $sm->setId($_POST['id']);
             if ($_POST['status'] === "-1") {
                 $sm->deleteSite();
@@ -61,6 +56,8 @@
             }
             header('Location: index.php');
         }
+        $pm = new ProcessManager();
+        $pm->showProcessRunning();
         ?>
         <div class="procmsg" id="procmsgid" style="display:none"><img src="img/loading.gif"></div>
         <table>
