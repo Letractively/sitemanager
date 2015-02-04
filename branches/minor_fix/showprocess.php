@@ -9,6 +9,29 @@ $data = array();
 define("SVN_PROC", "svn.exe");
 define("FTP_PROC", "WinSCP.com");
 
+function commitSite($idSite) {
+    $useragent = "Mozilla Firefox";
+    $fields = array(
+        'id' => $idSite,
+        'f' => "c"
+    );
+
+    foreach ($fields as $key => $value) {
+        $fields_string .= $key . '=' . $value . '&';
+    }
+    rtrim($fields_string, '&');
+    $ch = curl_init();
+    $url = 'http://' . DOMAIN_URL_BASE . '/sitemanager/svnwrp.php';
+    curl_setopt($ch, CURLOPT_URL, $url);
+    curl_setopt($ch, CURLOPT_USERAGENT, $useragent);
+    curl_setopt($ch, CURLOPT_POST, count($fields));
+    curl_setopt($ch, CURLOPT_POSTFIELDS, $fields_string);
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+    $result = curl_exec($ch);
+    curl_close($ch);
+    return $result;
+}
+
 if ($dbProcRun != null && count($dbProcRun) > 0) {
     $data['svn']['num_trasfering'] = 0;
     $data['WinSCP']['num_trasfering'] = 0;
@@ -29,12 +52,13 @@ if ($dbProcRun != null && count($dbProcRun) > 0) {
                     $siteInAnalysis->setStatus(STATUS_TO_INSTALL);
                     $siteMng->udpateForSite($siteInAnalysis);
                     $installResult = $siteInAnalysis->install();
-                    if ($installResult ==0) {
+                    if ($installResult == 0) {
                         $siteInAnalysis->setStatus(STATUS_INSTALLED);
                         $siteMng->udpateForSite($siteInAnalysis);
-                    }else{
+                        commitSite($proc['id_site']);
+                    } else {
                         $data['error']['sites'][] = $siteData;
-                        $data['error']['msg']="Error installing site: ".$installResult;
+                        $data['error']['msg'] = "Error installing site: " . $installResult;
                     }
                     break;
             }
