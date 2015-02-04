@@ -42,15 +42,14 @@ function createLinks($allSitesInDb) {
                     $result.="<tr>"
                             . " <td><input type=\"radio\" name=\"tipo\" value=\"" . $basename . "\">
 	<a href=\"http://" . DOMAIN_URL_BASE . "/" . $basename . "\" target=\"_blank\">" . $basename . "</a></td>";
-//                        if (!isset($working[$basename])){
-                    $result.= " <td><a id=\"c" . $mapOfSite[$basename] . "\" href=\"svnwrp.php?id=" . $mapOfSite[$basename] . "&f=c\"  onclick=\"removeCommit('" . $mapOfSite[$basename] . "');\">commit</a></td>"
-                            . " <td><a id=\"u" . $mapOfSite[$basename] . "\" href=\"svnwrp.php?id=" . $mapOfSite[$basename] . "&f=u\"  onclick=\"loadOverlay();\">update</a></td>"
-                            . " <tr>";
-//                        }else{
-//                            $result.= " <td>&nbsp;</td>"
-//                            . " <td>&nbsp;</td>"
-//                            . " <tr>";
-//                        }
+                    if (!isset($working[$basename])) {
+                        $result.= " <td><a id=\"c" . $mapOfSite[$basename] . "\" href=\"svnwrp.php?id=" . $mapOfSite[$basename] . "&f=c\"  onclick=\"removeCommit('" . $mapOfSite[$basename] . "');\">commit</a></td>"
+                                . " <td><a id=\"u" . $mapOfSite[$basename] . "\" href=\"svnwrp.php?id=" . $mapOfSite[$basename] . "&f=u\"  onclick=\"loadOverlay();\">update</a></td>";
+                    } else {
+                        $result.= " <td><a id=\"c" . $mapOfSite[$basename] . "\" href=\"svnwrp.php?id=" . $mapOfSite[$basename] . "&f=c\"  onclick=\"removeCommit('" . $mapOfSite[$basename] . "');\" style=\"display:none\">commit</a></td>"
+                                . " <td><a id=\"u" . $mapOfSite[$basename] . "\" href=\"svnwrp.php?id=" . $mapOfSite[$basename] . "&f=u\"  onclick=\"loadOverlay();\" style=\"display:none\">update</a></td>";
+                    }
+                    $result.=" <tr>";
                     unset($reposAtServer[$key]);
                 } else {
                     $result.= "<tr>
@@ -188,7 +187,6 @@ function changeState($allSite) {
     }
 }
 
-
 function siteCompleted($files) {
     $result = "";
     if ($files != null && count($files) > 0) {
@@ -216,7 +214,6 @@ function validateInput($input) {
     }
     return true;
 }
-
 
 function Zip($source, $destination) {
     if (!extension_loaded('zip') || !file_exists($source)) {
@@ -334,6 +331,7 @@ if (\$isOk){
     rename(\".htaccess-remote\", \".htaccess\");
     unlink(\"" . $sqlDumpFileName . ".sql\");
     unlink(\"db_" . $source . ".sql\");
+    unlink(\"" . $source . "st.obj\");
     unlink(__FILE__);
     echo \"0\";
 }else {

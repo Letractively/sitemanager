@@ -1,6 +1,7 @@
 <?php
 
 include("DBConfig.php");
+include_once('Logger.php');
 
 class DBCloner {
 
@@ -11,6 +12,7 @@ class DBCloner {
     public $sourcename;
     public $destName;
     private $con = null;
+    private $log;
 
     /**
      * 
@@ -26,7 +28,7 @@ class DBCloner {
      */
     function __construct($mysqlDatabaseName, $mysqlUserName, $mysqlPassword, $mysqlHostName, $mysqlDatabaseNameNew, $source, $dest) {
         $this->dbConfigSource = new DBConfig($mysqlHostName, $mysqlUserName, $mysqlPassword);
-
+        $this->log = new MyLogPHP();
         $this->mysqlDatabaseName = $mysqlDatabaseName;
         $this->mysqlDatabaseNameNew = $mysqlDatabaseNameNew;
         $this->sourcename = $source;
@@ -87,6 +89,7 @@ class DBCloner {
                 return $result;
             }, $data);
         }
+        $this->log->debug("ERROR UNSERIALAZING:[".$data."]");
         if (DEBUG && ( $unserialized = @unserialize($data) ) === false) {
             echo "ERROR UNSERIALAZING<br><br>".$data . "</br>";
         }
@@ -113,6 +116,7 @@ class DBCloner {
 
     function importFile() {
         $command = "\"" . MYSQL_BIN_BASE_PATH . "mysql\" --host=" . $this->dbConfigSource->getHostDb() . " --user=" . $this->dbConfigSource->getUsernameDb() . " --password=" . $this->dbConfigSource->getPasswordDb() . " " . $this->mysqlDatabaseNameNew . " < \"" . $this->mysqlImportFilename . "\"";
+        $this->log->debug($command);
         if (DEBUG) {
             echo $command . "</br>";
             @exec($command, $output = array(), $worked);
@@ -154,6 +158,7 @@ class DBCloner {
         }
         $this->migrateDbFiles($this->mysqlImportFilename, $isLocal);
         $command = "\"" . MYSQL_BIN_BASE_PATH . "mysql\" --host=" . $this->dbConfigSource->getHostDb() . " --user=" . $this->dbConfigSource->getUsernameDb() . " --password=" . $this->dbConfigSource->getPasswordDb() . " " . $this->mysqlDatabaseNameNew . " < \"" . $this->mysqlImportFilename . "\"";
+        $this->log->debug($command);
         if (DEBUG) {
             echo $command . "</br>";
             @exec($command, $output = array(), $worked);
@@ -217,6 +222,7 @@ class DBCloner {
 
     public function migrateDbFiles($fileName, $isLocal = true) {
         $content = file_get_contents($fileName);
+        $this->log->debug("replace [" . $this->sourcename . "]  with [" . $this->destName . "]");
         if (DEBUG) {
             echo "replace [" . $this->sourcename . "]  with [" . $this->destName . "]<br/>";
         }
