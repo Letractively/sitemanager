@@ -6,6 +6,7 @@ include_once("DBCloner.php");
 include_once("TestConfiguration.php");
 include_once("HtAccessMigrate.php");
 include_once("config.php");
+include_once('Logger.php');
 
 
 /*
@@ -24,9 +25,11 @@ class SiteManager {
     public $id;
     public $nome = null;
     private $con;
+    private $log;
 
     function __construct() {
-        $db =new DBConfig(MYSQL_HOST, MYSQL_USER_NAME, MYSQL_PASSWORD);
+        $this->log = new MyLogPHP();
+        $db = new DBConfig(MYSQL_HOST, MYSQL_USER_NAME, MYSQL_PASSWORD);
         $this->con = $db->connect();
     }
 
@@ -119,6 +122,7 @@ class SiteManager {
         status = " . $status . ",
         upd = '" . date("Y-m-d H:i:s") . "'
     WHERE sm_prodotti.id ='" . $this->id . "';";
+        $this->log->debug($sql);
         if (DEBUG) {
             echo $sql . "</br>";
         }
@@ -134,12 +138,13 @@ class SiteManager {
 (`id`,`id_site`,`pid`,`script_name`) 
 VALUES
 (NULL," . $id_site . ", '" . $pid . "','" . str_replace("\\", "\\\\", $scriptFile) . "')";
-
+        $this->log->debug($sql);
         if (DEBUG) {
             echo $sql . "</br>";
         }
         if (!mysql_query($sql, $this->con)) {
             echo "Could not insert in db process for id_site: [" . $id_site . "] PID [" . $pid . "]";
+            $this->log->error("Could not insert in db process for id_site: [" . $id_site . "] PID [" . $pid . "]");
             return false;
         }
         if (strpos(strtolower($scriptFile), 'ftp') !== false) {
@@ -149,6 +154,7 @@ VALUES
     WHERE sm_prodotti.id ='" . $id_site . "';";
             if (!mysql_query($sql, $this->con)) {
                 echo "Could not update in db ";
+                $this->log->error("[".$sql."] Could not update in db");
                 return false;
             }
         }
@@ -163,6 +169,7 @@ VALUES
     AND sm_prodotti.domain='" . $domain . "';";
         if (!mysql_query($sql, $this->con)) {
             echo "Could not update in db ";
+            $this->log->error("[".$sql."] Could not update in db");
             return false;
         }
         return true;
@@ -202,7 +209,7 @@ VALUES
     public function getAllDbProcessRunning() {
         $sql = "SELECT * FROM `" . DB_SITEMANAGER_NAME . "`.`sm_processrunning`";
         $castresult = mysql_query($sql, $this->con) or die(mysql_error());
-        $dbProcess=array();
+        $dbProcess = array();
         while ($row = mysql_fetch_assoc($castresult)) {
             $dbProcess[] = $row;
         }
@@ -257,6 +264,7 @@ VALUES
     WHERE sm_prodotti.nome ='" . $site->getNome() . "';";
             if (!mysql_query($sql, $this->con)) {
                 echo "Could not update in db ";
+                $this->log->error("[".$sql."] Could not update in db");
                 return false;
             }
             return true;
@@ -298,6 +306,7 @@ VALUES
         if (!$retval) {
             die('Could not delete database: ' . mysql_error());
         }
+        $this->log->debug("Database db_" . $this->nome . " deleted successfully");
         if (DEBUG) {
             echo "Database db_" . $this->nome . " deleted successfully\n";
         }
@@ -319,8 +328,10 @@ VALUES
         $sql = "REPLACE INTO `" . DB_SITEMANAGER_NAME . "`.`sm_prodotti` (`id`, `nome`, `cliente_id`, `modello_id`, `ins`, `upd`) VALUES ('" . $this->id . "', '" . $this->nome . "', ' " . $clientId . "', '" . $source . "', '" . date("Y-m-d H:i:s") . "', '" . date("Y-m-d H:i:s") . "');";
         if (!mysql_query($sql, $this->con)) {
             $this->errormsg = "Could not insert in db " . $this->mysqlDatabaseNameNew;
+            $this->log->error("[".$sql."] Could not insert in db " . $this->mysqlDatabaseNameNew);
             return false;
         }
+        $this->id = mysql_insert_id($this->con);
         return true;
     }
 
@@ -342,6 +353,7 @@ VALUES
     WHERE sm_prodotti.id =" . $id . ";";
         if (!mysql_query($sql, $this->con)) {
             echo "Could not insert in db ";
+            $this->log->error("[".$sql."] Could not insert in db ");
             return false;
         }
         return true;
@@ -351,6 +363,7 @@ VALUES
         $sql = "DELETE from " . DB_SITEMANAGER_NAME . ".sm_processrunning WHERE sm_processrunning.id ='" . $id . "';";
         if (!mysql_query($sql, $this->con)) {
             echo "Could not delete in db ";
+            $this->log->error("[".$sql."] Could not delete in db ");
             return false;
         }
         return true;
@@ -419,10 +432,14 @@ VALUES
         if (!DEBUG) {
             $dbCloner->cleanAndClose();
         }
-        $this->insertNewCreatedSiteInDb(null, $source);
         $svn = new SubversionWrapper($this->nome, SVN_USER, SVN_PASSWORD);
         $svn->createRepo();
         $svn->committAll("First import", $this->id, $this);
+        if ($svn->getHasError()){
+            echo "Error creating Repository"."</br>";
+            return false;
+        }
+        $this->insertNewCreatedSiteInDb(null, $source);
         return true;
     }
 

@@ -1,20 +1,18 @@
 function removeLink(id) {
-    $("#co" + id).empty();
+    document.getElementById("co" + id).style.display = "none";
     loadOverlay();
 }
 
 function removeCommit(id) {
-    $("#c" + id).empty();
+    document.getElementById("c" + id).style.display = "none";
     loadOverlay();
 }
 
 function loadOverlay() {
-    var over = '<div id="overlay"><img id="loading" src="img/loading.gif"></div>';
-    $(over).appendTo('body');
+    document.getElementById("overlay").style.display = "block";
 }
 
 function createInterval(removedObject) {
-    var loader = "<img src=\"img/loading.gif\">";
     var refreshIntervalId = setInterval(function () {
         $.ajax({
             type: 'GET',
@@ -22,22 +20,22 @@ function createInterval(removedObject) {
             success: function (res2) {
                 var work = JSON.parse(res2);
                 var site = "";
-                var removedObjectAfter = {};
+                var removedObjectAfter = new Array();
                 if (work.svn !== undefined && work.svn.num_trasfering > 0) {
                     for (var i in work.svn.sites) {
                         site += work.svn.sites[i].nome + ",";
-                        removedObjectAfter["c" + work.svn.sites[i].id] = document.getElementById("c" + work.svn.sites[i].id).cloneNode();
-                        removedObjectAfter["u" + work.svn.sites[i].id] = document.getElementById("u" + work.svn.sites[i].id).cloneNode();
-                        $("#c" + work.svn.sites[i].id).empty();
-                        $("#u" + work.svn.sites[i].id).empty();
+                        document.getElementById("c" + work.svn.sites[i].id).style.display = "none";
+                        removedObjectAfter.push("c" + work.svn.sites[i].id);
+                        document.getElementById("u" + work.svn.sites[i].id).style.display = "none";
+                        removedObjectAfter.push("#" + work.svn.sites[i].id);
                     }
-                    for (var i = 0, keys = Object.keys(removedObject), ii = keys.length; i < ii; i++) {
-                        if (removedObjectAfter[keys[i]] === undefined) {
-                            document.getElementById(keys[i]).innerHTML = removedObject[keys[i]];
+                    for(var i in removedObject){
+                        if (removedObjectAfter.indexOf(removedObject[i]) == -1) {
+                            document.getElementById(removedObject[i]).style.display = "block";
                         }
                     }
-                    $("#procmsgid").empty();
-                    $("#procmsgid").append(loader + site + " attività SVN");
+                    document.getElementById("procmsgid").style.display = "block";
+                    $("#procmsgid").change(site + " attività SVN");
                 } else if (work.WinSCP !== undefined && work.WinSCP.num_trasfering > 0) {
                     for (var i in work.WinSCP.sites) {
                         site += work.WinSCP.sites[i].nome + ",";
@@ -45,8 +43,8 @@ function createInterval(removedObject) {
                     if (!site) {
                         $("#procmsgid").append(site);
                     }
-                    $("#procmsgid").empty();
-                    $("#procmsgid").append(loader + site + " in trasferimento FTP");
+                    document.getElementById("procmsgid").style.display = "block";
+                    $("#procmsgid").change(site + " in trasferimento FTP");
                 } else {
                     clearInterval(refreshIntervalId);
                     location.reload(true);
@@ -60,7 +58,6 @@ function createInterval(removedObject) {
 }
 
 $(document).ready(function () {
-    var loader = "<img src=\"img/loading.gif\">";
     $.ajax({
         type: 'GET',
         url: 'showprocess.php',
@@ -68,25 +65,27 @@ $(document).ready(function () {
             var result = JSON.parse(good);
             var site = "";
             var create = false;
-            var removedObject = {};
+            var removedObject = new Array();
             if (result.WinSCP !== undefined && result.WinSCP.num_trasfering > 0) {
                 for (var i in result.WinSCP.sites) {
                     site += result.WinSCP.sites[i].nome + ",";
                 }
                 var msg = " in trasferimento FTP";
-                $("#procmsgid").append(loader + site + msg);
+                document.getElementById("procmsgid").style.display = "block";
+                $("#procmsgid").append(site + msg);
                 create = true;
             }
             if (result.svn !== undefined && result.svn.num_trasfering > 0) {
                 var msg = " attività SVN";
                 for (var i in result.svn.sites) {
                     site += result.svn.sites[i].nome + ",";
-                    removedObject["c" + result.svn.sites[i].id] = document.getElementById("c" + result.svn.sites[i].id).innerHTML;
-                    removedObject["u" + result.svn.sites[i].id] = document.getElementById("u" + result.svn.sites[i].id).innerHTML;
-                    $("#c" + result.svn.sites[i].id).empty();
-                    $("#u" + result.svn.sites[i].id).empty();
+                    removedObject.push("c" + result.svn.sites[i].id);
+                    removedObject.push("u" + result.svn.sites[i].id);
+                    document.getElementById("c" + result.svn.sites[i].id).style.display = "none";
+                    document.getElementById("u" + result.svn.sites[i].id).style.display = "none";
                 }
-                $("#procmsgid").append(loader + site + msg);
+                document.getElementById("procmsgid").style.display = "block";
+                $("#procmsgid").append(site + msg);
                 create = true;
             }
             if (create) {

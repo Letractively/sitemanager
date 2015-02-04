@@ -1,3 +1,8 @@
+<?php
+if (!file_exists("config.php")) {
+    header("Location: install.php");
+}
+?>
 <!DOCTYPE html>
 <html>
     <head>
@@ -15,12 +20,13 @@
         <link rel="stylesheet" type="text/css" href="css/tcal.css" />
     </head>
     <body>
-        <a href="test/testAll.php">Test system</a>
+        <div id="overlay" style="display:none"><img id="loading" src="img/loading.gif"></div>
+        <p><a href="test/testAll.php">Test system</a></p>
+        <p><a href="updatesm.php">Update Site Manager</a></p>
+        <p><a href="SiteManagerLog.txt">Log</a></p>
         <?php
         include_once("config.php");
         include_once("ProcessManager.php");
-        $pm= new ProcessManager();
-        $pm->showProcessRunning();
         $sm = new SiteManager();
         $allSiteInDb = $sm->getAllSite();
         $workInProgress = $sm->filterByState($allSiteInDb, STATUS_WORKING);
@@ -44,7 +50,6 @@
             $ftpCli = new FtpUploader($site->getFtp_username(), $site->getFtp_pwd(), $site->getFtp_host());
             $ftpCli->trasferFtpFile($site, $sm);
         } else if (isset($_POST['status']) && $_POST['status'] != "" && isset($_POST['id']) && $_POST['id'] != "") {
-            $sm = new SiteManager();
             $sm->setId($_POST['id']);
             if ($_POST['status'] === "-1") {
                 $sm->deleteSite();
@@ -56,8 +61,10 @@
             }
             header('Location: index.php');
         }
+        $pm = new ProcessManager();
+        $pm->showProcessRunning();
         ?>
-        <div class="procmsg" id="procmsgid"></div>
+        <div class="procmsg" id="procmsgid" style="display:none"><img src="img/loading.gif"></div>
         <table>
             <tr>
                 <td style="vertical-align:top"><?php echo $siteLocal['all']; ?></td>

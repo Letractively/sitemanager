@@ -1,6 +1,8 @@
 <?php
 
 include_once("Executer.php");
+include_once('Logger.php');
+
 /*
  * To change this template, choose Tools | Templates
  * and open the template in the editor.
@@ -19,8 +21,10 @@ class FtpUploader {
     public $scriptFile;
     public $pid;
     public $id_site;
+    private $log;
 
     function __construct($ftpUsername, $ftpPassword, $ftpHost) {
+        $this->log = new MyLogPHP();
         $this->ftpUsername = $ftpUsername;
         $this->ftpPassword = $ftpPassword;
         $this->ftpHost = $ftpHost;
@@ -62,11 +66,12 @@ class FtpUploader {
         $this->id_site = $id_site;
     }
 
-    public function trasferFtpFile($infoOnSite,$sm) {
+    public function trasferFtpFile($infoOnSite, $sm) {
         $remoteDir = "www." . $infoOnSite->getDomainName() . "." . $infoOnSite->getDomain();
         $sqlFile = str_replace("/", ".", $infoOnSite->getDomainName() . "." . $infoOnSite->getDomain() . ".sql");
         $this->setId_site($infoOnSite->getId());
         $this->scriptFile = $this->createScriptFile($infoOnSite->getNome(), $sqlFile, $remoteDir);
+        $this->log->debug("Created file " . $this->scriptFile);
         if (DEBUG) {
             echo "Created file " . $this->scriptFile . "</br>";
         }
@@ -77,6 +82,7 @@ class FtpUploader {
     function uploadUsingScript($sm) {
         $winScpPath = __DIR__ . DIRECTORY_SEPARATOR . "bin" . DIRECTORY_SEPARATOR . "WinSCP.com";
         $command = $winScpPath . " /script=\"" . $this->scriptFile . "\"";
+        $this->log->debug($command);
         if (DEBUG) {
             echo $command . "</br>";
         }
@@ -85,7 +91,7 @@ class FtpUploader {
         if (count($ex->getOutput()) > 0) {
             print_r($ex->getOutput());
         }
-        if ($sm->insertProcessRunning($this->id_site, $this->scriptFile,$ex->getPid())) {
+        if ($sm->insertProcessRunning($this->id_site, $this->scriptFile, $ex->getPid())) {
             header('Location: index.php');
         }
     }
